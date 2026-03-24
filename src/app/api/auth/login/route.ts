@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { SESSION_COOKIE } from '@/lib/auth-constants';
 import { verifyPassword, verifyUser } from '@/lib/server/academia';
-import { getSessionCookieOptions, setUserSession } from '@/lib/server/session';
+import { applySessionCookie } from '@/lib/server/session';
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,15 +39,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sessionId = await setUserSession({
+    const response = NextResponse.json({ success: true });
+    return applySessionCookie(response, {
       email,
       cookies: authResult.data.cookies,
       createdAt: Date.now(),
     });
-
-    const response = NextResponse.json({ success: true });
-    response.cookies.set(SESSION_COOKIE, sessionId, getSessionCookieOptions());
-    return response;
   } catch {
     return NextResponse.json({ error: 'server error' }, { status: 500 });
   }

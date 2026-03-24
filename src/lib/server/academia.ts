@@ -1,12 +1,10 @@
 import 'server-only';
 
-import { execFile } from 'node:child_process';
 import crypto from 'node:crypto';
 import axios, { AxiosInstance } from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import * as cheerio from 'cheerio';
 import { CookieJar } from 'tough-cookie';
-import { promisify } from 'node:util';
 
 const BASE_URL = 'https://academia.srmist.edu.in';
 const DEFAULT_HEADERS = {
@@ -21,8 +19,6 @@ const URLS = {
   gridBase: '/srm_university/academia-academic-services/page/Unified_Time_Table_2025',
   planner: '/srm_university/academia-academic-services/page/Academic_Planner_2025_26_EVEN',
 } as const;
-
-const execFileAsync = promisify(execFile);
 
 export type SessionCookies = Record<string, string>;
 
@@ -153,6 +149,21 @@ interface SessionContainer {
   jar: CookieJar;
 }
 
+interface LoginResponsePayload {
+  status?: string;
+  code?: string;
+  message?: string;
+  cdigest?: string;
+  error?: {
+    msg?: string;
+  };
+  data?: {
+    access_token?: string;
+    oauth_token?: string;
+    oauthorize_uri?: string;
+  };
+}
+
 function isSessionContainer(value: SessionCookies | SessionContainer): value is SessionContainer {
   return 'client' in value && 'jar' in value;
 }
@@ -267,19 +278,39 @@ export async function verifyPassword({
   captcha?: string;
   cdigest?: string;
 }): Promise<VerifyPasswordResponse> {
-  const normalizedUser = identifier.includes('@') ? identifier.split('@')[0] : identifier;
-  return attemptVerifyPassword({
-    identifier: normalizedUser,
-    password,
-    captcha,
-    cdigest,
-  });
+  const normalizedIdentifier = identifier.trim().toLowerCase();
+  const fallbackIdentifier = normalizedIdentifier.includes('@')
+    ? normalizedIdentifier.split('@')[0]
+    : normalizedIdentifier;
+  const candidates = [...new Set([normalizedIdentifier, fallbackIdentifier])];
+
+  let lastResult: VerifyPasswordResponse = {
+    data: { statusCode: 401, message: 'Invalid credentials' },
+    isAuthenticated: false,
+  };
+
+  for (const candidate of candidates) {
+    const result = await attemptVerifyPassword({
+      identifier: candidate,
+      password,
+      captcha,
+      cdigest,
+    });
+
+    if (result.isAuthenticated || result.data?.captcha?.required) {
+      return result;
+    }
+
+    lastResult = result;
+  }
+
+  return lastResult;
 }
 
 async function forceLogoutSessions(client: AxiosInstance, html: string): Promise<boolean> {
   const $ = cheerio.load(html);
   const forms = $('form').toArray();
-  let terminateForm: any = null;
+  let terminateForm: (typeof forms)[number] | null = null;
 
   for (const form of forms) {
     const text = $(form).text().toLowerCase();
@@ -369,7 +400,7 @@ async function attemptVerifyPassword({
       }
     }
 
-    let data: any;
+    let data: LoginResponsePayload;
     try {
       data = typeof response.data === 'string' ? JSON.parse(responseText) : response.data;
     } catch {
@@ -856,12 +887,17 @@ export async function getDashboardData(cookies: SessionCookies) {
 }
 
 export async function getUserInfo(cookies: SessionCookies) {
-  const { userInfo, isAuthenticated } = await getProfileAndCourses(cookies);
-  return { userInfo, status: isAuthenticated ? 200 : 401, error: isAuthenticated ? undefined : 'session expired' };
+  const { userInfo, cookies: profileCookies, isAuthenticated } = await getProfileAndCourses(cookies);
+  return {
+    userInfo,
+    cookies: profileCookies,
+    status: isAuthenticated ? 200 : 401,
+    error: isAuthenticated ? undefined : 'session expired',
+  };
 }
 
 export async function getCourse(cookies: SessionCookies) {
-  const { courseMap, userInfo, isAuthenticated } = await getProfileAndCourses(cookies);
+  const { courseMap, userInfo, cookies: profileCookies, isAuthenticated } = await getProfileAndCourses(cookies);
   const deduped = new Map<string, RawCourseItem>();
   for (const course of courseMap.values()) {
     if (!deduped.has(course.courseCode)) deduped.set(course.courseCode, course);
@@ -869,6 +905,7 @@ export async function getCourse(cookies: SessionCookies) {
   return {
     courseList: [...deduped.values()],
     batch: userInfo.batch,
+    cookies: profileCookies,
     status: isAuthenticated ? 200 : 401,
     error: isAuthenticated ? undefined : 'session expired',
   };
@@ -880,6 +917,7 @@ export async function getAttendance(cookies: SessionCookies) {
   const attendance = parseAttendance(attendancePage.html, courseMap);
   return {
     attendance,
+    cookies: attendancePage.cookies,
     status: isAuthenticated && attendancePage.html ? 200 : 401,
     error: isAuthenticated && attendancePage.html ? undefined : 'session expired',
   };
@@ -890,6 +928,7 @@ export async function getMarks(cookies: SessionCookies) {
   const markList = parseMarks(attendancePage.html);
   return {
     markList,
+    cookies: attendancePage.cookies,
     status: attendancePage.html ? 200 : 401,
     error: attendancePage.html ? undefined : 'session expired',
   };
@@ -902,6 +941,7 @@ export async function getTimetable(cookies: SessionCookies) {
   const timetable = parseTimetable(gridPage.html, courseMap);
   return {
     timetable,
+    cookies: gridPage.cookies,
     status: isAuthenticated && gridPage.html ? 200 : 401,
     error: isAuthenticated && gridPage.html ? undefined : 'session expired',
   };
@@ -912,6 +952,7 @@ export async function getCalendar(cookies: SessionCookies) {
   const calendar = parseCalendar(plannerPage.html);
   return {
     calendar,
+    cookies: plannerPage.cookies,
     status: plannerPage.html ? 200 : 401,
     error: plannerPage.html ? undefined : 'session expired',
   };

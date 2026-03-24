@@ -3,6 +3,7 @@ import 'server-only';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { NextResponse } from 'next/server';
 import { SESSION_COOKIE } from '@/lib/auth-constants';
 import type {
   RawAttendanceItem,
@@ -14,6 +15,7 @@ import type {
 } from '@/lib/server/academia';
 
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
+const SESSION_SECRET_FALLBACK = 'fcuk-academia-session-secret';
 const SESSION_DIR = process.env.NODE_ENV === 'production' 
   ? path.join('/tmp', '.session-store')
   : path.join(process.cwd(), '.session-store');
@@ -37,18 +39,48 @@ async function ensureSessionDir() {
   await fs.mkdir(SESSION_DIR, { recursive: true });
 }
 
-function getSessionPath(sessionId: string) {
-  return path.join(SESSION_DIR, `${sessionId}.json`);
-}
-
 function getSnapshotPath(sessionId: string) {
   return path.join(SESSION_DIR, `${sessionId}.snapshot.json`);
 }
 
-async function readSession(sessionId: string) {
+function getSessionSecret() {
+  return (
+    process.env.SESSION_SECRET ||
+    process.env.AUTH_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    SESSION_SECRET_FALLBACK
+  );
+}
+
+function getSessionKey() {
+  return crypto.createHash('sha256').update(getSessionSecret()).digest();
+}
+
+function createSessionId(cookieValue: string) {
+  return crypto.createHash('sha256').update(cookieValue).digest('hex').slice(0, 32);
+}
+
+function encodeSession(session: UserSession) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', getSessionKey(), iv);
+  const plaintext = JSON.stringify(session);
+  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return Buffer.concat([iv, tag, encrypted]).toString('base64url');
+}
+
+function decodeSession(value: string) {
   try {
-    const raw = await fs.readFile(getSessionPath(sessionId), 'utf8');
-    return JSON.parse(raw) as UserSession;
+    const payload = Buffer.from(value, 'base64url');
+    if (payload.length <= 28) return null;
+
+    const iv = payload.subarray(0, 12);
+    const tag = payload.subarray(12, 28);
+    const encrypted = payload.subarray(28);
+    const decipher = crypto.createDecipheriv('aes-256-gcm', getSessionKey(), iv);
+    decipher.setAuthTag(tag);
+    const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8');
+    return JSON.parse(decrypted) as UserSession;
   } catch {
     return null;
   }
@@ -57,14 +89,13 @@ async function readSession(sessionId: string) {
 export async function getUserSession() {
   const { cookies } = await import('next/headers');
   const store = await cookies();
-  const sessionId = store.get(SESSION_COOKIE)?.value;
-  if (!sessionId) return null;
+  const cookieValue = store.get(SESSION_COOKIE)?.value;
+  if (!cookieValue) return null;
 
-  const session = await readSession(sessionId);
+  const session = decodeSession(cookieValue);
   if (!session) return null;
 
   if (Date.now() - session.createdAt > SESSION_TTL_SECONDS * 1000) {
-    await fs.rm(getSessionPath(sessionId), { force: true });
     return null;
   }
 
@@ -72,15 +103,12 @@ export async function getUserSession() {
 }
 
 export async function setUserSession(session: UserSession) {
-  await ensureSessionDir();
-  const sessionId = crypto.randomBytes(24).toString('hex');
-  await fs.writeFile(getSessionPath(sessionId), JSON.stringify(session), 'utf8');
-  return sessionId;
+  return encodeSession(session);
 }
 
 export async function updateUserSession(sessionId: string, session: UserSession) {
-  await ensureSessionDir();
-  await fs.writeFile(getSessionPath(sessionId), JSON.stringify(session), 'utf8');
+  void sessionId;
+  return encodeSession(session);
 }
 
 export async function getSessionSnapshot(sessionId: string) {
@@ -97,11 +125,14 @@ export async function setSessionSnapshot(sessionId: string, snapshot: SessionSna
   await fs.writeFile(getSnapshotPath(sessionId), JSON.stringify(snapshot), 'utf8');
 }
 
+export async function clearSessionSnapshot(sessionId: string) {
+  await fs.rm(getSnapshotPath(sessionId), { force: true });
+}
+
 export async function clearUserSession(sessionId?: string | null) {
   const activeSessionId = sessionId ?? null;
   if (activeSessionId) {
-    await fs.rm(getSessionPath(activeSessionId), { force: true });
-    await fs.rm(getSnapshotPath(activeSessionId), { force: true });
+    await clearSessionSnapshot(activeSessionId);
   }
 }
 
@@ -128,13 +159,19 @@ export function getExpiredSessionCookieOptions() {
 export async function getCurrentSessionId() {
   const { cookies } = await import('next/headers');
   const store = await cookies();
-  return store.get(SESSION_COOKIE)?.value ?? null;
+  const cookieValue = store.get(SESSION_COOKIE)?.value;
+  if (!cookieValue) return null;
+  return createSessionId(cookieValue);
 }
 
 export async function clearCurrentUserSession() {
   const sessionId = await getCurrentSessionId();
   if (sessionId) {
-    await fs.rm(getSessionPath(sessionId), { force: true });
-    await fs.rm(getSnapshotPath(sessionId), { force: true });
+    await clearSessionSnapshot(sessionId);
   }
+}
+
+export function applySessionCookie(response: NextResponse, session: UserSession) {
+  response.cookies.set(SESSION_COOKIE, encodeSession(session), getSessionCookieOptions());
+  return response;
 }

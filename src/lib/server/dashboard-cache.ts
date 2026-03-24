@@ -1,19 +1,15 @@
 import 'server-only';
 
-import fs from 'node:fs/promises';
-import path from 'node:path';
-
 import { getDashboardData } from '@/lib/server/academia';
 import {
+  clearSessionSnapshot,
   getSessionSnapshot,
   setSessionSnapshot,
-  updateUserSession,
   type SessionSnapshot,
   type UserSession,
 } from '@/lib/server/session';
 
 const SNAPSHOT_TTL_MS = 1000 * 60 * 2;
-const SESSION_DIR = path.join(process.cwd(), '.session-store');
 
 function isSnapshotUsable(snapshot: SessionSnapshot) {
   const hasName = Boolean(snapshot.userInfo.name?.trim());
@@ -28,11 +24,12 @@ export async function getCachedDashboardData(sessionId: string, session: UserSes
     return {
       snapshot: cached,
       refreshed: false,
+      session,
     };
   }
 
   if (cached && !isSnapshotUsable(cached)) {
-    await fs.rm(path.join(SESSION_DIR, `${sessionId}.snapshot.json`), { force: true });
+    await clearSessionSnapshot(sessionId);
   }
 
   const result = await getDashboardData(session.cookies);
@@ -40,6 +37,7 @@ export async function getCachedDashboardData(sessionId: string, session: UserSes
     return {
       snapshot: null,
       refreshed: false,
+      session,
       error: result.error ?? 'session expired',
     };
   }
@@ -55,14 +53,14 @@ export async function getCachedDashboardData(sessionId: string, session: UserSes
 
   await Promise.all([
     setSessionSnapshot(sessionId, snapshot),
-    updateUserSession(sessionId, {
-      ...session,
-      cookies: result.cookies,
-    }),
   ]);
 
   return {
     snapshot,
     refreshed: true,
+    session: {
+      ...session,
+      cookies: result.cookies,
+    },
   };
 }
