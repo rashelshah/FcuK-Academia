@@ -8,6 +8,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import GlowCard from '@/components/ui/GlowCard';
 import SubjectCard from '@/components/dashboard/SubjectCard';
 import CountUp from '@/components/ui/CountUp';
+import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
 import { useMarks } from '@/hooks/useMarks';
 import { useUser } from '@/hooks/useUser';
 import { createAvatarUrl, getMarksPercentage, getWeakestMark, inferGrade } from '@/lib/academia-ui';
@@ -29,7 +30,7 @@ export default function MarksPage() {
   const avatarUrl = createAvatarUrl(user?.name || 'SRM Student');
 
   return (
-    <div className="flex flex-col gap-8 pb-32 pt-4">
+    <PageReveal className="flex flex-col gap-8 pb-32 pt-4">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 relative">
@@ -42,12 +43,12 @@ export default function MarksPage() {
 
       <section className="space-y-1 mt-4">
         <p className="font-label text-[10px] font-bold tracking-[0.2em] text-[#adaaaa] uppercase">TOTAL AGGREGATE</p>
-        <div className="flex items-baseline gap-2">
+        <RevealHeading className="flex items-baseline gap-2">
           <span className="font-headline font-bold text-[5.5rem] leading-[0.8] tracking-tighter text-primary">
             {loading ? '0.0' : <CountUp value={totalObtained} decimals={1} />}
           </span>
           <span className="font-headline font-bold text-4xl text-[#808080]">/ {totalMax || 0}</span>
-        </div>
+        </RevealHeading>
         <div className="inline-flex items-center gap-2 border border-white/10 bg-white/[0.02] rounded-full px-4 py-1.5 mt-4">
           <TrendingUp className="w-3.5 h-3.5 text-primary" />
           <span className="font-body text-xs text-[#e0e0e0] font-semibold">
@@ -56,7 +57,8 @@ export default function MarksPage() {
         </div>
       </section>
 
-      <GlassCard className="mt-4 flex flex-col justify-between p-7">
+      <RevealItem>
+        <GlassCard className="mt-4 flex flex-col justify-between p-7">
         <div>
           <h2 className="font-headline text-3xl font-bold lowercase tracking-tighter text-white mb-1">future grade prediction</h2>
           <p className="font-body text-sm text-[#adaaaa]">based on current trajectory</p>
@@ -72,9 +74,11 @@ export default function MarksPage() {
             SIMULATE
           </button>
         </div>
-      </GlassCard>
+        </GlassCard>
+      </RevealItem>
 
-      <GlowCard glowColor="error" borderStyle="dashed" className="mt-2 text-center relative overflow-hidden bg-gradient-to-b from-[#1c0d0a] to-[#0c0c0c] border-[1.5px] p-8">
+      <RevealItem>
+        <GlowCard glowColor="error" borderStyle="dashed" className="mt-2 text-center relative overflow-hidden bg-gradient-to-b from-[#1c0d0a] to-[#0c0c0c] border-[1.5px] p-8">
         <AlertTriangle className="absolute right-6 top-6 w-7 h-7 text-error" />
         <div className="text-left w-full mb-6">
           <h3 className="font-headline text-3xl font-bold lowercase tracking-tighter text-error">you&apos;re cooked</h3>
@@ -93,14 +97,15 @@ export default function MarksPage() {
               : '--'}
           </span>
         </div>
-      </GlowCard>
+        </GlowCard>
+      </RevealItem>
 
-      <div className="flex items-center justify-between mt-12">
+      <RevealText className="flex items-center justify-between mt-12">
         <h2 className="font-headline text-4xl font-bold lowercase tracking-tighter text-white">academic breakdown</h2>
         <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-[#adaaaa] bg-[#121212]">
           <ListFilter size={18} />
         </div>
-      </div>
+      </RevealText>
 
       {error ? <p className="text-sm text-error font-body">{error}</p> : null}
       <div className="grid grid-cols-1 gap-6">
@@ -110,10 +115,12 @@ export default function MarksPage() {
           </div>
         ) : (
           marks.map((subject, index) => (
-            <SubjectCard key={`${subject.id}-${index}`} subject={subject} type="marks" />
+            <RevealItem key={`${subject.id}-${index}`}>
+              <SubjectCard subject={subject} type="marks" />
+            </RevealItem>
           ))
         )}
       </div>
-    </div>
+    </PageReveal>
   );
 }

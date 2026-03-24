@@ -6,6 +6,7 @@ import { Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import CountUp from '@/components/ui/CountUp';
 import GlassCard from '@/components/ui/GlassCard';
+import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
 import { cn } from '@/lib/utils';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useUser } from '@/hooks/useUser';
@@ -23,7 +24,7 @@ export default function CalendarPage() {
   const dates = currentMonth?.days ?? [];
 
   return (
-    <div className="flex flex-col gap-8 pb-40 pt-4">
+    <PageReveal className="flex flex-col gap-8 pb-40 pt-4">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 relative">
@@ -36,22 +37,26 @@ export default function CalendarPage() {
 
       <section className="mt-4">
         <span className="font-label text-[10px] font-bold tracking-[0.2em] text-[#808080] uppercase">CURRENT CYCLE</span>
+        <RevealHeading>
         <h1 className="font-headline text-[7.5rem] font-bold leading-[0.8] tracking-tighter text-white mt-4">
           day {loading || !today?.dayOrder || today.dayOrder === '--' ? '--' : <CountUp value={Number(today.dayOrder)} />}
         </h1>
+        </RevealHeading>
+        <RevealText>
         <p className="font-headline text-2xl font-semibold italic text-[#808080] mt-6">
           {today ? `${today.day.toLowerCase()}, ${currentMonth?.month.toLowerCase()} ${today.date}` : 'calendar syncing...'}
         </p>
+        </RevealText>
       </section>
 
-      <section className="mt-2">
+      <RevealItem className="mt-2">
         <div className="inline-flex flex-col gap-1 border-l-4 border-secondary bg-[#121212]/60 px-6 py-4 rounded-r-lg">
           <span className="font-label text-[9px] font-bold tracking-widest text-[#808080] uppercase">STATUS</span>
           <span className="font-headline text-xl font-bold text-secondary lowercase">{today?.event?.toLowerCase() || 'in_session'}</span>
         </div>
-      </section>
+      </RevealItem>
 
-      <section className="bg-[#121212] rounded-[42px] p-10 mt-10 border border-white/5 shadow-[0_4px_44px_rgba(0,0,0,0.6)]">
+      <RevealItem className="bg-[#121212] rounded-[42px] p-10 mt-10 border border-white/5 shadow-[0_4px_44px_rgba(0,0,0,0.6)]">
         <div className="flex items-center justify-between mb-12">
           <h2 className="font-headline text-3xl font-bold text-white tracking-tight">{currentMonth ? formatMonthTitle(currentMonth.month).toLowerCase() : 'calendar'}</h2>
           <div className="flex gap-4">
@@ -87,32 +92,33 @@ export default function CalendarPage() {
             </div>
           ))}
         </div>
-      </section>
+      </RevealItem>
 
-      <section className="flex gap-6 px-1 mt-8">
+      <RevealText className="flex gap-6 px-1 mt-8">
         <LegendItem color="bg-secondary" label="MAJOR EXAMS" />
         <LegendItem color="bg-error" label="EVENTS" />
         <LegendItem color="bg-[#444]" label="DAY ORDER" />
-      </section>
+      </RevealText>
 
       <section className="mt-8">
-        <div className="inline-block border-b-2 border-primary mb-8 px-1">
+        <RevealText className="inline-block border-b-2 border-primary mb-8 px-1">
           <h2 className="font-headline text-2xl font-bold lowercase text-white pb-1">today&apos;s_agenda</h2>
-        </div>
+        </RevealText>
 
         <GlassCard className="p-8 space-y-10 bg-[#121212]/50 backdrop-blur-xl border border-white/5">
           {(agenda.length ? agenda : [{ date: '--', event: 'no upcoming events', day: 'stay tuned', dayOrder: '-', month: '' }]).map((item, index) => (
-            <AgendaItem
-              key={`${item.date}-${item.event}-${index}`}
-              time={item.date}
-              title={item.event || 'no event'}
-              subtitle={`${item.day} • day ${item.dayOrder}`}
-              active={index === 0}
-            />
+            <RevealItem key={`${item.date}-${item.event}-${index}`}>
+              <AgendaItem
+                time={item.date}
+                title={item.event || 'no event'}
+                subtitle={`${item.day} • day ${item.dayOrder}`}
+                active={index === 0}
+              />
+            </RevealItem>
           ))}
         </GlassCard>
       </section>
-    </div>
+    </PageReveal>
   );
 }
 

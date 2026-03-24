@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Bell, AlertTriangle } from 'lucide-react';
 
 import CountUp from '@/components/ui/CountUp';
+import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
 import { cn } from '@/lib/utils';
 import { createAvatarUrl, getAverageMarks, getNextClass, getOverallAttendance, getWeakestMark, getDayOrders, getUpcomingCalendarEvents } from '@/lib/academia-ui';
 import { useDashboard } from '@/hooks/useDashboard';
@@ -40,7 +41,7 @@ export default function HomePage() {
   );
 
   return (
-    <div className="flex flex-col gap-10 pb-40 pt-4">
+    <PageReveal className="flex flex-col gap-10 pb-40 pt-4">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 relative">
@@ -52,10 +53,14 @@ export default function HomePage() {
       </header>
 
       <section className="mt-2">
+        <RevealHeading>
         <h1 className="font-headline text-[3.8rem] font-bold leading-[0.8] tracking-tighter text-white">sup, {profileName}</h1>
+        </RevealHeading>
+        <RevealText>
         <p className="font-label text-[10px] font-bold tracking-[0.2em] text-[#808080] uppercase mt-4">
           {user?.department || 'ready for the grind?'}
         </p>
+        </RevealText>
       </section>
 
       <section className="flex gap-3">
@@ -75,7 +80,7 @@ export default function HomePage() {
         ))}
       </section>
 
-      <section className="relative mt-4 px-1 overflow-hidden">
+      <RevealItem className="relative mt-4 px-1 overflow-hidden">
         <div className="absolute right-0 top-0 opacity-[0.05] -z-10">
           <span className="font-headline text-[12rem] font-bold tracking-tighter leading-none">01</span>
         </div>
@@ -89,9 +94,9 @@ export default function HomePage() {
           {loading ? 'loading' : nextClass?.courseTitle?.toLowerCase() || 'no class'}
         </h2>
         <p className="font-headline text-2xl font-bold text-[#808080] mt-3 tracking-tight">{nextClass?.time || 'schedule unavailable'}</p>
-      </section>
+      </RevealItem>
 
-      <section className="flex gap-4">
+      <RevealItem className="flex gap-4">
         <div className="bg-[#121212] rounded-[32px] p-7 flex-1 border border-white/5">
           <span className="font-label text-[9px] font-bold tracking-[0.2em] text-[#808080] uppercase">ATTENDANCE</span>
           <div className="font-headline text-[2.8rem] font-bold text-primary mt-1 leading-none tracking-tighter">
@@ -108,38 +113,42 @@ export default function HomePage() {
           </div>
           <div className="font-label text-[10px] font-bold tracking-widest text-[#808080] mt-3 uppercase">live internal average</div>
         </div>
-      </section>
+      </RevealItem>
 
-      <section>
+      <RevealItem>
         <div className="bg-error rounded-[28px] p-8 flex flex-col gap-3 relative shadow-[0_4px_24px_rgba(255,115,81,0.3)]">
           <AlertTriangle className="absolute right-8 top-8 w-8 h-8 text-[#1c1b18]" />
           <h3 className="font-headline text-2xl font-bold lowercase text-[#1c1b18] leading-tight pr-12">academic alert: {upcomingEvent?.event?.toLowerCase() || 'watch your weakest subject'}</h3>
           <p className="font-body font-bold text-[#1c1b18] text-sm">{upcomingEvent ? `${upcomingEvent.day} ${upcomingEvent.date}` : weakestMark ? `${weakestMark.course} currently needs attention.` : 'all systems nominal.'}</p>
         </div>
-      </section>
+      </RevealItem>
 
       <section className="space-y-6">
-        <div className="flex items-center justify-between">
+        <RevealText className="flex items-center justify-between">
           <h3 className="font-headline text-2xl font-bold lowercase text-white">recent marks</h3>
           <Link href="/marks" className="font-label text-[10px] font-bold tracking-widest text-[#808080] uppercase border-b border-[#333] pb-0.5">
             VIEW ALL
           </Link>
-        </div>
+        </RevealText>
         {error ? <p className="text-sm text-error font-body">{error}</p> : null}
         <div className="flex flex-col gap-4">
           {recentMarks.length ? recentMarks.map((item, index) => (
-            <MarkItem
+            <RevealItem key={`${item.course}-${index}`}>
+              <MarkItem
               key={`${item.course}-${index}`}
               dotColor={index === 0 ? 'bg-secondary' : index === 1 ? 'bg-primary' : 'bg-[#ff9d68]'}
               title={item.course}
               score={`${item.total.obtained}/${item.total.maxMark || 0}`}
             />
+            </RevealItem>
           )) : (
-            <MarkItem dotColor="bg-secondary" title={loading ? 'loading' : 'no marks yet'} score="--" />
+            <RevealItem>
+              <MarkItem dotColor="bg-secondary" title={loading ? 'loading' : 'no marks yet'} score="--" />
+            </RevealItem>
           )}
         </div>
       </section>
-    </div>
+    </PageReveal>
   );
 }
 

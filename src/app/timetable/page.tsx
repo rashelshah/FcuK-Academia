@@ -5,6 +5,7 @@ import { Bell } from 'lucide-react';
 import Image from 'next/image';
 
 import GlowCard from '@/components/ui/GlowCard';
+import { PageReveal, RevealItem, RevealText } from '@/components/ui/PageReveal';
 import { useTimetable } from '@/hooks/useTimetable';
 import { useUser } from '@/hooks/useUser';
 import { createAvatarUrl, getClassesForDay, getDayOrders } from '@/lib/academia-ui';
@@ -19,7 +20,7 @@ export default function TimetablePage() {
   const avatarUrl = createAvatarUrl(user?.name || 'SRM Student');
 
   return (
-    <div className="flex flex-col gap-8 pb-32 pt-4">
+    <PageReveal className="flex flex-col gap-8 pb-32 pt-4">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 relative">
@@ -30,7 +31,7 @@ export default function TimetablePage() {
         <Bell className="text-primary w-6 h-6" />
       </header>
 
-      <section className="flex items-center gap-6 mt-4 z-10 relative">
+      <RevealText className="flex items-center gap-6 mt-4 z-10 relative">
         <span className="font-label text-[10px] font-bold tracking-widest text-[#adaaaa] uppercase">day order</span>
         <div className="flex gap-3">
           {(dayOrders.length ? dayOrders : [1, 2, 3, 4]).map((num) => (
@@ -47,7 +48,7 @@ export default function TimetablePage() {
             </button>
           ))}
         </div>
-      </section>
+      </RevealText>
 
       {error ? <p className="text-sm text-error font-body">{error}</p> : null}
       <section className="relative mt-8">
@@ -61,7 +62,7 @@ export default function TimetablePage() {
               const isPrimary = index === 2;
               const glow = index % 2 === 0 ? 'primary' : 'secondary';
               return (
-                <div key={`${item.slot}-${item.time}-${index}`} className="flex gap-6 relative">
+                <RevealItem key={`${item.slot}-${item.time}-${index}`} className="flex gap-6 relative">
                   <div className="relative mt-6">
                     <div className={`w-2.5 h-2.5 rounded-full z-10 relative ${glow === 'primary' ? 'shadow-[0_0_10px_var(--primary)] bg-primary' : 'shadow-[0_0_10px_var(--secondary)] bg-secondary'}`} />
                   </div>
@@ -96,14 +97,14 @@ export default function TimetablePage() {
                       </div>
                     </GlowCard>
                   )}
-                </div>
+                </RevealItem>
               );
             })
           ) : (
-            <div className="ml-8 rounded-[28px] border border-white/5 bg-[#121212] p-8 text-[#808080] font-body">No classes found for this day order.</div>
+            <RevealItem className="ml-8 rounded-[28px] border border-white/5 bg-[#121212] p-8 text-[#808080] font-body">No classes found for this day order.</RevealItem>
           )}
         </div>
       </section>
-    </div>
+    </PageReveal>
   );
 }
