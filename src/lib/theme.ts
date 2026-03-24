@@ -2,6 +2,8 @@ import { motionPresets } from '@/lib/motion';
 import { ThemeDefinition, ThemeType } from '@/lib/types';
 
 export const defaultTheme: ThemeType = 'neon-lime';
+export const THEME_STORAGE_KEY = 'fcuk-academia-theme';
+export const INTRO_STORAGE_KEY = 'fcuk-academia-intro-seen';
 
 export const themeOrder: ThemeType[] = [
   'neon-lime',
@@ -9,9 +11,16 @@ export const themeOrder: ThemeType[] = [
   'electric-blue',
   'amber-charcoal',
   'graphite-green',
+  'orange-noir',
+  'neo-brutal-pop',
+  'royal-amethyst',
   'minimal-light',
   'claymorph',
   'soft-bloom',
+  'lavender-violet',
+  'purple-peach',
+  'mint-gray',
+  'soft-pink-beige',
 ];
 
 export const themes: Record<ThemeType, ThemeDefinition> = {
@@ -302,7 +311,7 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     description: 'quiet white surfaces, graphite typography, and restrained motion.',
     mode: 'light',
     preview: ['#ffffff', '#dbe2ea', '#2a3441'],
-    category: 'light',
+    category: 'soft',
     colors: {
       background: '#f4f7fb',
       backgroundAlt: '#edf2f7',
@@ -358,7 +367,7 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     description: 'soft clay surfaces, pastel accents, and depth-led motion.',
     mode: 'light',
     preview: ['#f2c8bc', '#d6cff8', '#fff6ee'],
-    category: 'light',
+    category: 'soft',
     isFemaleFocused: true,
     colors: {
       background: '#f8efe9',
@@ -465,7 +474,526 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     },
     motion: motionPresets.elegantFloat,
   },
+  'orange-noir': {
+    id: 'orange-noir',
+    label: 'orange noir',
+    shortLabel: 'ember',
+    description: 'orange glow on black glass with a premium fintech pulse.',
+    mode: 'dark',
+    preview: ['#ff9e44', '#ff6b2c', '#060606'],
+    category: 'dark',
+    colors: {
+      background: '#060606',
+      backgroundAlt: '#0f0a08',
+      surface: '#16100d',
+      surfaceSoft: '#1d1612',
+      surfaceElevated: '#261c17',
+      surfaceHighlight: '#322520',
+      primary: '#ff9e44',
+      primarySoft: '#ffe2bf',
+      secondary: '#ff6b2c',
+      accent: '#ffd166',
+      text: '#fff7f1',
+      textMuted: '#cab4a1',
+      textSubtle: '#967b68',
+      textInverse: '#2b1400',
+      success: '#8ee1a1',
+      warning: '#ffd166',
+      error: '#ff8869',
+      border: 'rgba(255, 158, 68, 0.14)',
+      borderStrong: 'rgba(255, 107, 44, 0.3)',
+    },
+    glow: {
+      primary: '0 0 36px rgba(255, 158, 68, 0.24)',
+      secondary: '0 0 30px rgba(255, 107, 44, 0.18)',
+      accent: '0 0 22px rgba(255, 209, 102, 0.16)',
+      focus: '0 0 0 1px rgba(255, 158, 68, 0.32), 0 0 0 6px rgba(255, 158, 68, 0.12)',
+    },
+    radius: {
+      sm: '18px',
+      md: '24px',
+      lg: '30px',
+      xl: '38px',
+      pill: '999px',
+    },
+    elevation: {
+      soft: '0 18px 38px rgba(7, 5, 4, 0.36)',
+      card: '0 22px 54px rgba(7, 5, 4, 0.48)',
+      strong: '0 28px 70px rgba(7, 5, 4, 0.56)',
+      floating: '0 24px 60px rgba(7, 5, 4, 0.52), 0 0 30px rgba(255, 158, 68, 0.12)',
+      nav: '0 24px 58px rgba(7, 5, 4, 0.54), 0 0 34px rgba(255, 107, 44, 0.14)',
+    },
+    effects: {
+      pageGradient: 'radial-gradient(circle at 14% 10%, rgba(255, 158, 68, 0.16), transparent 28%), radial-gradient(circle at 84% 6%, rgba(255, 107, 44, 0.1), transparent 24%), linear-gradient(180deg, #060606 0%, #0c0907 56%, #120d0b 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.018) 34%, rgba(255,255,255,0) 100%)',
+      heroGradient: 'linear-gradient(135deg, rgba(255, 158, 68, 0.22), rgba(255, 107, 44, 0.12) 52%, rgba(255, 209, 102, 0.08) 100%)',
+    },
+    motion: motionPresets.darkSmooth,
+  },
+  'neo-brutal-pop': {
+    id: 'neo-brutal-pop',
+    label: 'neo brutal pop',
+    shortLabel: 'pop',
+    description: 'cyan, red, and yellow accents with playful hard contrast.',
+    mode: 'dark',
+    preview: ['#37f6ff', '#ff4865', '#ffe55c'],
+    category: 'dark',
+    colors: {
+      background: '#080808',
+      backgroundAlt: '#111111',
+      surface: '#171717',
+      surfaceSoft: '#1e1e1e',
+      surfaceElevated: '#262626',
+      surfaceHighlight: '#313131',
+      primary: '#37f6ff',
+      primarySoft: '#d7fcff',
+      secondary: '#ff4865',
+      accent: '#ffe55c',
+      text: '#fffbea',
+      textMuted: '#d2d2c4',
+      textSubtle: '#9f9f92',
+      textInverse: '#06181a',
+      success: '#78f29b',
+      warning: '#ffe55c',
+      error: '#ff4865',
+      border: 'rgba(55, 246, 255, 0.16)',
+      borderStrong: 'rgba(255, 72, 101, 0.34)',
+    },
+    glow: {
+      primary: '0 0 30px rgba(55, 246, 255, 0.22)',
+      secondary: '0 0 22px rgba(255, 72, 101, 0.24)',
+      accent: '0 0 18px rgba(255, 229, 92, 0.18)',
+      focus: '0 0 0 1px rgba(55, 246, 255, 0.32), 0 0 0 6px rgba(55, 246, 255, 0.12)',
+    },
+    radius: {
+      sm: '16px',
+      md: '22px',
+      lg: '28px',
+      xl: '34px',
+      pill: '999px',
+    },
+    elevation: {
+      soft: '0 12px 24px rgba(0, 0, 0, 0.32)',
+      card: '8px 8px 0 rgba(55, 246, 255, 0.22), 0 18px 42px rgba(0, 0, 0, 0.42)',
+      strong: '12px 12px 0 rgba(255, 72, 101, 0.18), 0 24px 60px rgba(0, 0, 0, 0.5)',
+      floating: '10px 10px 0 rgba(255, 229, 92, 0.16), 0 24px 56px rgba(0, 0, 0, 0.48)',
+      nav: '0 20px 44px rgba(0, 0, 0, 0.52), 6px 6px 0 rgba(55, 246, 255, 0.18)',
+    },
+    effects: {
+      pageGradient: 'radial-gradient(circle at 16% 14%, rgba(55, 246, 255, 0.14), transparent 28%), radial-gradient(circle at 84% 10%, rgba(255, 72, 101, 0.12), transparent 22%), linear-gradient(180deg, #080808 0%, #101010 58%, #141414 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 36%, rgba(255,255,255,0) 100%)',
+      heroGradient: 'linear-gradient(135deg, rgba(55, 246, 255, 0.18), rgba(255, 72, 101, 0.16) 58%, rgba(255, 229, 92, 0.16) 100%)',
+    },
+    motion: motionPresets.playfulPop,
+  },
+  'royal-amethyst': {
+    id: 'royal-amethyst',
+    label: 'royal amethyst',
+    shortLabel: 'royal',
+    description: 'deep purple and black with velvet highlights and composed motion.',
+    mode: 'dark',
+    preview: ['#8f6dff', '#d46fff', '#08060e'],
+    category: 'dark',
+    colors: {
+      background: '#08060e',
+      backgroundAlt: '#100b18',
+      surface: '#151022',
+      surfaceSoft: '#1b152b',
+      surfaceElevated: '#241c38',
+      surfaceHighlight: '#2e2447',
+      primary: '#8f6dff',
+      primarySoft: '#e1d6ff',
+      secondary: '#d46fff',
+      accent: '#6ef0ff',
+      text: '#f8f3ff',
+      textMuted: '#b9a9d0',
+      textSubtle: '#87789f',
+      textInverse: '#170f2a',
+      success: '#8af0b2',
+      warning: '#ffcf7c',
+      error: '#ff7fa7',
+      border: 'rgba(143, 109, 255, 0.14)',
+      borderStrong: 'rgba(212, 111, 255, 0.28)',
+    },
+    glow: {
+      primary: '0 0 34px rgba(143, 109, 255, 0.24)',
+      secondary: '0 0 30px rgba(212, 111, 255, 0.18)',
+      accent: '0 0 24px rgba(110, 240, 255, 0.14)',
+      focus: '0 0 0 1px rgba(143, 109, 255, 0.32), 0 0 0 6px rgba(143, 109, 255, 0.12)',
+    },
+    radius: {
+      sm: '18px',
+      md: '24px',
+      lg: '30px',
+      xl: '38px',
+      pill: '999px',
+    },
+    elevation: {
+      soft: '0 18px 40px rgba(5, 3, 11, 0.34)',
+      card: '0 22px 54px rgba(5, 3, 11, 0.46)',
+      strong: '0 28px 72px rgba(5, 3, 11, 0.56)',
+      floating: '0 24px 60px rgba(5, 3, 11, 0.5), 0 0 30px rgba(143, 109, 255, 0.12)',
+      nav: '0 22px 56px rgba(5, 3, 11, 0.54), 0 0 32px rgba(212, 111, 255, 0.12)',
+    },
+    effects: {
+      pageGradient: 'radial-gradient(circle at 18% 14%, rgba(143, 109, 255, 0.16), transparent 28%), radial-gradient(circle at 86% 8%, rgba(212, 111, 255, 0.1), transparent 22%), linear-gradient(180deg, #08060e 0%, #0d0915 56%, #140f20 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.018) 36%, rgba(255,255,255,0) 100%)',
+      heroGradient: 'linear-gradient(135deg, rgba(143, 109, 255, 0.2), rgba(212, 111, 255, 0.12) 52%, rgba(110, 240, 255, 0.06) 100%)',
+    },
+    motion: motionPresets.royalVelvet,
+  },
+  'lavender-violet': {
+    id: 'lavender-violet',
+    label: 'lavender violet',
+    shortLabel: 'lavender',
+    description: 'soft lavender gradients with elegant violet contrast.',
+    mode: 'light',
+    preview: ['#d9ccff', '#9c7cff', '#fff8ff'],
+    category: 'soft',
+    isFemaleFocused: true,
+    colors: {
+      background: '#faf7ff',
+      backgroundAlt: '#f3eeff',
+      surface: '#ffffff',
+      surfaceSoft: '#fbf7ff',
+      surfaceElevated: '#eee6ff',
+      surfaceHighlight: '#e2d5ff',
+      primary: '#7852d8',
+      primarySoft: '#ede5ff',
+      secondary: '#9c7cff',
+      accent: '#c5b0ff',
+      text: '#33264d',
+      textMuted: '#615676',
+      textSubtle: '#807392',
+      textInverse: '#faf7ff',
+      success: '#6db991',
+      warning: '#daaa66',
+      error: '#d56d92',
+      border: 'rgba(120, 82, 216, 0.12)',
+      borderStrong: 'rgba(156, 124, 255, 0.22)',
+    },
+    glow: {
+      primary: '0 16px 36px rgba(120, 82, 216, 0.14)',
+      secondary: '0 12px 28px rgba(156, 124, 255, 0.16)',
+      accent: '0 10px 22px rgba(197, 176, 255, 0.16)',
+      focus: '0 0 0 1px rgba(120, 82, 216, 0.18), 0 0 0 6px rgba(120, 82, 216, 0.08)',
+    },
+    radius: {
+      sm: '20px',
+      md: '26px',
+      lg: '32px',
+      xl: '40px',
+      pill: '999px',
+    },
+    elevation: {
+      soft: '0 14px 28px rgba(126, 108, 181, 0.12)',
+      card: '0 18px 38px rgba(126, 108, 181, 0.15)',
+      strong: '0 22px 48px rgba(126, 108, 181, 0.2)',
+      floating: '0 20px 42px rgba(126, 108, 181, 0.18)',
+      nav: '0 18px 40px rgba(126, 108, 181, 0.16)',
+    },
+    effects: {
+      pageGradient: 'radial-gradient(circle at 14% 8%, rgba(156, 124, 255, 0.18), transparent 24%), radial-gradient(circle at 86% 10%, rgba(213, 109, 146, 0.12), transparent 20%), linear-gradient(180deg, #fdfbff 0%, #f7f3ff 52%, #f2edff 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.5) 100%)',
+      heroGradient: 'linear-gradient(135deg, rgba(156, 124, 255, 0.18), rgba(120, 82, 216, 0.14) 52%, rgba(197, 176, 255, 0.12) 100%)',
+    },
+    motion: motionPresets.elegantFloat,
+  },
+  'purple-peach': {
+    id: 'purple-peach',
+    label: 'purple peach',
+    shortLabel: 'peach',
+    description: 'balanced purple depth with peach warmth and clean contrast.',
+    mode: 'light',
+    preview: ['#8d6af2', '#ffb9a0', '#fff8f4'],
+    category: 'soft',
+    colors: {
+      background: '#fff7f4',
+      backgroundAlt: '#fff0eb',
+      surface: '#fffdfb',
+      surfaceSoft: '#fff9f6',
+      surfaceElevated: '#f7e8e3',
+      surfaceHighlight: '#efd8d0',
+      primary: '#7a56df',
+      primarySoft: '#eee7ff',
+      secondary: '#f6a88e',
+      accent: '#ffcfbf',
+      text: '#34263b',
+      textMuted: '#66556d',
+      textSubtle: '#87758c',
+      textInverse: '#fff9f7',
+      success: '#6fb489',
+      warning: '#d79558',
+      error: '#d86a73',
+      border: 'rgba(122, 86, 223, 0.12)',
+      borderStrong: 'rgba(246, 168, 142, 0.24)',
+    },
+    glow: {
+      primary: '0 16px 34px rgba(122, 86, 223, 0.14)',
+      secondary: '0 12px 28px rgba(246, 168, 142, 0.16)',
+      accent: '0 10px 20px rgba(255, 207, 191, 0.16)',
+      focus: '0 0 0 1px rgba(122, 86, 223, 0.18), 0 0 0 6px rgba(122, 86, 223, 0.08)',
+    },
+    radius: {
+      sm: '20px',
+      md: '26px',
+      lg: '32px',
+      xl: '40px',
+      pill: '999px',
+    },
+    elevation: {
+      soft: '0 14px 28px rgba(137, 106, 128, 0.12)',
+      card: '0 18px 38px rgba(137, 106, 128, 0.15)',
+      strong: '0 22px 48px rgba(137, 106, 128, 0.18)',
+      floating: '0 20px 42px rgba(137, 106, 128, 0.16)',
+      nav: '0 18px 40px rgba(137, 106, 128, 0.14)',
+    },
+    effects: {
+      pageGradient: 'radial-gradient(circle at 12% 10%, rgba(246, 168, 142, 0.2), transparent 24%), radial-gradient(circle at 84% 8%, rgba(122, 86, 223, 0.16), transparent 22%), linear-gradient(180deg, #fffaf8 0%, #fff3ef 52%, #ffede8 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.48) 100%)',
+      heroGradient: 'linear-gradient(135deg, rgba(122, 86, 223, 0.16), rgba(246, 168, 142, 0.18) 52%, rgba(255, 207, 191, 0.14) 100%)',
+    },
+    motion: motionPresets.elegantFloat,
+  },
+  'mint-gray': {
+    id: 'mint-gray',
+    label: 'mint gray',
+    shortLabel: 'mint',
+    description: 'fresh mint accents over light gray for a crisp minimal feel.',
+    mode: 'light',
+    preview: ['#7fd6bf', '#cfd7d8', '#f6fbfb'],
+    category: 'light',
+    colors: {
+      background: '#f4faf9',
+      backgroundAlt: '#edf4f3',
+      surface: '#ffffff',
+      surfaceSoft: '#f7fbfb',
+      surfaceElevated: '#e7efee',
+      surfaceHighlight: '#dce5e4',
+      primary: '#2c7567',
+      primarySoft: '#d8f2eb',
+      secondary: '#7fd6bf',
+      accent: '#9fe7d4',
+      text: '#19312d',
+      textMuted: '#49625d',
+      textSubtle: '#6d8580',
+      textInverse: '#f7fffd',
+      success: '#3ca874',
+      warning: '#c79242',
+      error: '#cf6e63',
+      border: 'rgba(44, 117, 103, 0.12)',
+      borderStrong: 'rgba(127, 214, 191, 0.24)',
+    },
+    glow: {
+      primary: '0 14px 30px rgba(44, 117, 103, 0.12)',
+      secondary: '0 10px 24px rgba(127, 214, 191, 0.16)',
+      accent: '0 10px 20px rgba(159, 231, 212, 0.14)',
+      focus: '0 0 0 1px rgba(44, 117, 103, 0.16), 0 0 0 6px rgba(44, 117, 103, 0.08)',
+    },
+    radius: {
+      sm: '18px',
+      md: '24px',
+      lg: '30px',
+      xl: '36px',
+      pill: '999px',
+    },
+    elevation: {
+      soft: '0 14px 28px rgba(78, 117, 109, 0.1)',
+      card: '0 18px 38px rgba(78, 117, 109, 0.12)',
+      strong: '0 22px 48px rgba(78, 117, 109, 0.16)',
+      floating: '0 20px 42px rgba(78, 117, 109, 0.14)',
+      nav: '0 18px 40px rgba(78, 117, 109, 0.12)',
+    },
+    effects: {
+      pageGradient: 'radial-gradient(circle at 14% 10%, rgba(127, 214, 191, 0.18), transparent 24%), radial-gradient(circle at 86% 10%, rgba(211, 223, 224, 0.5), transparent 24%), linear-gradient(180deg, #f8fcfc 0%, #f1f8f7 52%, #edf4f3 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.84) 0%, rgba(255,255,255,0.58) 100%)',
+      heroGradient: 'linear-gradient(135deg, rgba(44, 117, 103, 0.08), rgba(127, 214, 191, 0.12) 58%, rgba(255, 255, 255, 0.74) 100%)',
+    },
+    motion: motionPresets.freshBreeze,
+  },
+  'soft-pink-beige': {
+    id: 'soft-pink-beige',
+    label: 'soft pink beige',
+    shortLabel: 'blush',
+    description: 'warm blush and beige layers with gentle, polished softness.',
+    mode: 'light',
+    preview: ['#f4b7c2', '#ead5c8', '#fff8f6'],
+    category: 'soft',
+    isFemaleFocused: true,
+    colors: {
+      background: '#fff7f5',
+      backgroundAlt: '#f9efeb',
+      surface: '#fffdfb',
+      surfaceSoft: '#fff8f5',
+      surfaceElevated: '#f5e7e1',
+      surfaceHighlight: '#ecd7cf',
+      primary: '#b76c82',
+      primarySoft: '#fae4eb',
+      secondary: '#dca28d',
+      accent: '#f4b7c2',
+      text: '#432c32',
+      textMuted: '#70555d',
+      textSubtle: '#8d737a',
+      textInverse: '#fff8f9',
+      success: '#78b38e',
+      warning: '#d39b56',
+      error: '#d76e79',
+      border: 'rgba(183, 108, 130, 0.12)',
+      borderStrong: 'rgba(220, 162, 141, 0.24)',
+    },
+    glow: {
+      primary: '0 16px 34px rgba(183, 108, 130, 0.14)',
+      secondary: '0 12px 26px rgba(220, 162, 141, 0.16)',
+      accent: '0 10px 22px rgba(244, 183, 194, 0.16)',
+      focus: '0 0 0 1px rgba(183, 108, 130, 0.18), 0 0 0 6px rgba(183, 108, 130, 0.08)',
+    },
+    radius: {
+      sm: '20px',
+      md: '26px',
+      lg: '32px',
+      xl: '40px',
+      pill: '999px',
+    },
+    elevation: {
+      soft: '0 14px 28px rgba(151, 116, 118, 0.12)',
+      card: '0 18px 38px rgba(151, 116, 118, 0.14)',
+      strong: '0 22px 48px rgba(151, 116, 118, 0.18)',
+      floating: '0 20px 42px rgba(151, 116, 118, 0.16)',
+      nav: '0 18px 40px rgba(151, 116, 118, 0.14)',
+    },
+    effects: {
+      pageGradient: 'radial-gradient(circle at 14% 10%, rgba(244, 183, 194, 0.18), transparent 24%), radial-gradient(circle at 86% 10%, rgba(220, 162, 141, 0.14), transparent 22%), linear-gradient(180deg, #fffaf8 0%, #fff4f1 54%, #f9efeb 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.48) 100%)',
+      heroGradient: 'linear-gradient(135deg, rgba(183, 108, 130, 0.12), rgba(244, 183, 194, 0.18) 52%, rgba(220, 162, 141, 0.16) 100%)',
+    },
+    motion: motionPresets.elegantFloat,
+  },
 };
+
+type Rgb = { r: number; g: number; b: number };
+
+function hexToRgb(value: string): Rgb | null {
+  const normalized = value.trim();
+  const hex = normalized.startsWith('#') ? normalized.slice(1) : normalized;
+
+  if (![3, 6].includes(hex.length)) return null;
+
+  const expanded = hex.length === 3
+    ? hex.split('').map((part) => `${part}${part}`).join('')
+    : hex;
+  const parsed = Number.parseInt(expanded, 16);
+
+  if (Number.isNaN(parsed)) return null;
+
+  return {
+    r: (parsed >> 16) & 255,
+    g: (parsed >> 8) & 255,
+    b: parsed & 255,
+  };
+}
+
+function rgbToHex({ r, g, b }: Rgb) {
+  return `#${[r, g, b]
+    .map((channel) => Math.max(0, Math.min(255, Math.round(channel))).toString(16).padStart(2, '0'))
+    .join('')}`;
+}
+
+function mixHex(base: string, mixWith: string, weight: number) {
+  const baseRgb = hexToRgb(base);
+  const mixRgb = hexToRgb(mixWith);
+
+  if (!baseRgb || !mixRgb) return base;
+
+  return rgbToHex({
+    r: baseRgb.r + (mixRgb.r - baseRgb.r) * weight,
+    g: baseRgb.g + (mixRgb.g - baseRgb.g) * weight,
+    b: baseRgb.b + (mixRgb.b - baseRgb.b) * weight,
+  });
+}
+
+function getRelativeLuminance(color: string) {
+  const rgb = hexToRgb(color);
+  if (!rgb) return 0;
+
+  const channels = [rgb.r, rgb.g, rgb.b].map((channel) => {
+    const normalized = channel / 255;
+    return normalized <= 0.03928
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4;
+  });
+
+  return (0.2126 * channels[0]) + (0.7152 * channels[1]) + (0.0722 * channels[2]);
+}
+
+function getContrastRatio(foreground: string, background: string) {
+  const lighter = Math.max(getRelativeLuminance(foreground), getRelativeLuminance(background));
+  const darker = Math.min(getRelativeLuminance(foreground), getRelativeLuminance(background));
+
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function ensureContrast(
+  foreground: string,
+  background: string,
+  minimumRatio: number,
+  fallback: string,
+) {
+  return getContrastRatio(foreground, background) >= minimumRatio ? foreground : fallback;
+}
+
+function getAccessibleTokens(theme: ThemeDefinition) {
+  const lightText = '#f8fbff';
+  const darkText = '#18222f';
+  const mutedLightText = '#d6deea';
+  const mutedDarkText = '#435365';
+  const subtleLightText = '#a6b5c7';
+  const subtleDarkText = '#647487';
+
+  const resolvedText = ensureContrast(
+    theme.colors.text,
+    theme.colors.background,
+    theme.mode === 'light' ? 7 : 4.5,
+    theme.mode === 'light' ? darkText : lightText,
+  );
+
+  const resolvedTextMuted = ensureContrast(
+    theme.colors.textMuted,
+    theme.colors.backgroundAlt,
+    4.5,
+    theme.mode === 'light' ? mutedDarkText : mutedLightText,
+  );
+
+  const resolvedTextSubtle = ensureContrast(
+    theme.colors.textSubtle,
+    theme.colors.backgroundAlt,
+    3.2,
+    theme.mode === 'light' ? subtleDarkText : subtleLightText,
+  );
+
+  return {
+    text: resolvedText,
+    textMuted: resolvedTextMuted,
+    textSubtle: resolvedTextSubtle,
+    surfaceCard: theme.mode === 'light'
+      ? mixHex(theme.colors.surface, theme.colors.primarySoft, 0.08)
+      : mixHex(theme.colors.surface, '#ffffff', 0.035),
+    surfaceCardSoft: theme.mode === 'light'
+      ? mixHex(theme.colors.surfaceSoft, '#ffffff', 0.16)
+      : mixHex(theme.colors.surfaceSoft, '#ffffff', 0.045),
+    surfaceCardElevated: theme.mode === 'light'
+      ? mixHex(theme.colors.surfaceElevated, theme.colors.primarySoft, 0.1)
+      : mixHex(theme.colors.surfaceElevated, '#ffffff', 0.06),
+    overlayBackdrop: theme.mode === 'light' ? 'rgba(244, 247, 251, 0.72)' : 'rgba(5, 7, 11, 0.72)',
+    overlayBlur: theme.mode === 'light' ? '14px' : '12px',
+    navBackground: theme.mode === 'light'
+      ? 'color-mix(in srgb, var(--surface-card) 88%, white)'
+      : 'color-mix(in srgb, var(--surface-card) 80%, transparent)',
+    pageTextShadow: theme.mode === 'dark' ? theme.glow.primary : 'none',
+    cardBorder: theme.mode === 'light'
+      ? 'color-mix(in srgb, var(--border-strong) 64%, white 36%)'
+      : 'var(--border)',
+  };
+}
 
 export const themeOptions = themeOrder.map((themeId) => themes[themeId]);
 
@@ -474,6 +1002,8 @@ export function isDarkTheme(theme: ThemeType) {
 }
 
 export function getThemeCssVariables(theme: ThemeDefinition) {
+  const accessible = getAccessibleTokens(theme);
+
   return {
     background: theme.colors.background,
     'background-alt': theme.colors.backgroundAlt,
@@ -484,25 +1014,29 @@ export function getThemeCssVariables(theme: ThemeDefinition) {
     'surface-low': theme.colors.surfaceSoft,
     'surface-high': theme.colors.surfaceElevated,
     'surface-highest': theme.colors.surfaceHighlight,
+    'surface-card': accessible.surfaceCard,
+    'surface-card-soft': accessible.surfaceCardSoft,
+    'surface-card-elevated': accessible.surfaceCardElevated,
     primary: theme.colors.primary,
     'primary-soft': theme.colors.primarySoft,
     'primary-container': theme.colors.primarySoft,
     secondary: theme.colors.secondary,
     tertiary: theme.colors.accent,
     accent: theme.colors.accent,
-    text: theme.colors.text,
-    'text-muted': theme.colors.textMuted,
-    'text-subtle': theme.colors.textSubtle,
+    text: accessible.text,
+    'text-muted': accessible.textMuted,
+    'text-subtle': accessible.textSubtle,
     'text-inverse': theme.colors.textInverse,
     'on-primary': theme.colors.textInverse,
-    'on-surface': theme.colors.text,
-    'on-surface-variant': theme.colors.textMuted,
+    'on-surface': accessible.text,
+    'on-surface-variant': accessible.textMuted,
     success: theme.colors.success,
     warning: theme.colors.warning,
     error: theme.colors.error,
     outline: theme.colors.border,
     border: theme.colors.border,
     'border-strong': theme.colors.borderStrong,
+    'card-border': accessible.cardBorder,
     'glow-primary': theme.glow.primary,
     'glow-secondary': theme.glow.secondary,
     'glow-accent': theme.glow.accent,
@@ -520,5 +1054,51 @@ export function getThemeCssVariables(theme: ThemeDefinition) {
     'page-gradient': theme.effects.pageGradient,
     'surface-gradient': theme.effects.surfaceGradient,
     'hero-gradient': theme.effects.heroGradient,
+    'overlay-backdrop': accessible.overlayBackdrop,
+    'overlay-blur': accessible.overlayBlur,
+    'nav-background': accessible.navBackground,
+    'page-text-shadow': accessible.pageTextShadow,
   };
+}
+
+const themeModeMap = Object.fromEntries(
+  themeOptions.map((theme) => [theme.id, theme.mode]),
+) as Record<ThemeType, ThemeDefinition['mode']>;
+
+const themeCssVariableMap = Object.fromEntries(
+  themeOptions.map((theme) => [theme.id, getThemeCssVariables(theme)]),
+) as Record<ThemeType, ReturnType<typeof getThemeCssVariables>>;
+
+export function getThemeBootstrapScript() {
+  return `
+    (() => {
+      try {
+        const themes = ${JSON.stringify(themeCssVariableMap)};
+        const modes = ${JSON.stringify(themeModeMap)};
+        const storageKey = ${JSON.stringify(THEME_STORAGE_KEY)};
+        const introKey = ${JSON.stringify(INTRO_STORAGE_KEY)};
+        const fallbackTheme = ${JSON.stringify(defaultTheme)};
+        const root = document.documentElement;
+        const storedTheme = localStorage.getItem(storageKey);
+        const theme = storedTheme && themes[storedTheme] ? storedTheme : fallbackTheme;
+        const variables = themes[theme];
+
+        Object.entries(variables).forEach(([key, value]) => {
+          root.style.setProperty('--' + key, value);
+        });
+
+        root.dataset.theme = theme;
+        root.dataset.themeMode = modes[theme] || 'dark';
+        root.dataset.introSeen = localStorage.getItem(introKey) === 'true' ? 'true' : 'false';
+        root.style.colorScheme = root.dataset.themeMode;
+        root.classList.toggle('dark', root.dataset.themeMode === 'dark');
+
+        if (document.body) {
+          document.body.dataset.theme = theme;
+        }
+      } catch (error) {
+        void error;
+      }
+    })();
+  `;
 }

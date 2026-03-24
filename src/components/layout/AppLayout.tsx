@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
 
 import Navbar from '@/components/layout/Navbar';
@@ -18,6 +18,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { themeConfig } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [navigationDirection, setNavigationDirection] = useState(0);
+  const previousPathnameRef = useRef(pathname);
   const touchStartXRef = useRef(0);
   const touchStartYRef = useRef(0);
   const touchStartTimeRef = useRef(0);
@@ -33,6 +34,33 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
+  useEffect(() => {
+    const previousPathname = previousPathnameRef.current;
+    if (previousPathname === pathname) return;
+
+    const previousIndex = SWIPEABLE_PATHS.indexOf(previousPathname as typeof SWIPEABLE_PATHS[number]);
+    const nextIndex = SWIPEABLE_PATHS.indexOf(pathname as typeof SWIPEABLE_PATHS[number]);
+    const inferredDirection = navigationDirection !== 0
+      ? navigationDirection
+      : previousIndex !== -1 && nextIndex !== -1 && previousIndex !== nextIndex
+        ? nextIndex > previousIndex ? 1 : -1
+        : 1;
+
+    const frame = window.requestAnimationFrame(() => {
+      setNavigationDirection(inferredDirection);
+      previousPathnameRef.current = pathname;
+    });
+
+    const timer = window.setTimeout(() => {
+      setNavigationDirection(0);
+    }, 420);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [navigationDirection, pathname]);
+
   if (hideNav) {
     return <>{children}</>;
   }
@@ -43,6 +71,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const nextPath = SWIPEABLE_PATHS[nextIndex];
 
     if (!nextPath || nextPath === pathname) return;
+
     setNavigationDirection(swipeDirection);
     router.push(nextPath);
   }
@@ -68,16 +97,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const swipeMotion = themeConfig.motion.swipe;
 
     if (Math.abs(deltaX) < swipeMotion.threshold && velocityX < swipeMotion.velocityThreshold) return;
-    if (Math.abs(deltaX) <= Math.abs(deltaY) * 1.2) return;
+    if (Math.abs(deltaX) <= Math.abs(deltaY) * 1.16) return;
 
     navigateToDirection(deltaX < 0 ? 1 : -1);
   }
 
   const pageMotion = getPageMotion(themeConfig.motion, navigationDirection);
-
   return (
-    <div className="relative mx-auto min-h-screen max-w-md overflow-x-hidden pb-40">
+    <div className="relative mx-auto min-h-screen w-full max-w-[28rem] overflow-x-hidden pb-40 sm:max-w-[34rem] lg:max-w-[44rem] xl:max-w-[52rem]">
       <IntroOverlay />
+
       {!mounted ? (
         <main className="px-4 pt-6 sm:px-6 sm:pt-8">
           {children}
@@ -93,13 +122,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             transition={pageMotion.transition}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
-            className="min-h-[calc(100dvh-9.5rem)] touch-pan-y px-4 pt-6 will-change-transform sm:px-6 sm:pt-8"
+            className="relative min-h-[calc(100dvh-9.5rem)] touch-pan-y px-4 pt-6 will-change-transform sm:px-6 sm:pt-8"
             style={{ touchAction: 'pan-y' }}
           >
             {children}
           </motion.main>
         </AnimatePresence>
       )}
+
       <Navbar />
     </div>
   );

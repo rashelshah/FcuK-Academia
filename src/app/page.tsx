@@ -1,20 +1,32 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import Image from 'next/image';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, Bell } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
+import AppHeader from '@/components/layout/AppHeader';
+import DayOrderPills from '@/components/ui/DayOrderPills';
 import CountUp from '@/components/ui/CountUp';
 import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
-import { cn } from '@/lib/utils';
-import { createAvatarUrl, getDayOrders, getNextClass, getOverallAttendance, getTotalMarks, getWeakestMark } from '@/lib/academia-ui';
+import { useAppState } from '@/context/AppStateContext';
+import { getDayOrders, getNextClass, getOverallAttendance, getTotalMarks, getWeakestMark } from '@/lib/academia-ui';
 import { useDashboard } from '@/hooks/useDashboard';
 
 export default function HomePage() {
   const { user, attendance, marks, timetable, loading, error } = useDashboard();
-  const dayOrders = useMemo(() => getDayOrders(timetable), [timetable]);
-  const [dayOrder, setDayOrder] = useState(dayOrders[0] || 1);
+  const {
+    activeDayOrder,
+    availableDayOrders,
+    setActiveDayOrder,
+  } = useAppState();
+  const timetableDayOrders = useMemo(() => getDayOrders(timetable), [timetable]);
+  const dayOrders = useMemo(
+    () => [...new Set([...availableDayOrders, ...timetableDayOrders])].sort((left, right) => left - right),
+    [availableDayOrders, timetableDayOrders],
+  );
+  const dayOrder = activeDayOrder && dayOrders.includes(activeDayOrder)
+    ? activeDayOrder
+    : dayOrders[0] || activeDayOrder || 1;
 
   const overallAttendance = getOverallAttendance(attendance);
   const totalMarks = getTotalMarks(marks);
@@ -22,7 +34,6 @@ export default function HomePage() {
   const weakestMark = getWeakestMark(marks);
   const firstName = user?.name?.split(' ')[0]?.trim() || 'student';
   const profileName = firstName ? `${firstName.charAt(0).toUpperCase()}${firstName.slice(1).toLowerCase()}` : 'Student';
-  const avatarUrl = createAvatarUrl(user?.name || 'SRM Student');
   const courseTitleMap = useMemo(
     () => new Map(attendance.map((item) => [item.courseCode, item.courseTitle])),
     [attendance],
@@ -45,18 +56,7 @@ export default function HomePage() {
 
   return (
     <PageReveal className="flex flex-col gap-8 pb-40 pt-4">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div
-            className="relative h-10 w-10 overflow-hidden rounded-full border"
-            style={{ borderColor: 'var(--border)' }}
-          >
-            <Image src={avatarUrl} alt="Profile" fill className="object-cover" unoptimized />
-          </div>
-          <span className="font-headline text-xl font-bold normal-case tracking-tight text-primary">FucK Academia</span>
-        </div>
-        <Bell className="h-6 w-6 text-primary" />
-      </header>
+      <AppHeader />
 
       <section className="mt-1 space-y-2">
         <RevealText>
@@ -70,32 +70,11 @@ export default function HomePage() {
       </section>
 
       <section className="-mx-4 overflow-x-auto px-4 pb-2">
-        <div className="flex min-w-max gap-3">
-          {(dayOrders.length ? dayOrders : [1, 2, 3, 4, 5]).map((num) => (
-            <button
-              key={num}
-              type="button"
-              onClick={() => setDayOrder(num)}
-              className={cn(
-                'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border font-headline text-xl font-bold transition-all',
-                dayOrder === num ? 'text-[var(--text-inverse)] shadow-[var(--glow-primary)]' : 'text-on-surface-variant',
-              )}
-              style={
-                dayOrder === num
-                  ? {
-                      backgroundColor: 'var(--primary)',
-                      borderColor: 'var(--primary)',
-                    }
-                  : {
-                      background: 'color-mix(in srgb, var(--surface-soft) 92%, transparent)',
-                      borderColor: 'var(--border)',
-                    }
-              }
-            >
-              {num}
-            </button>
-          ))}
-        </div>
+        <DayOrderPills
+          days={dayOrders.length ? dayOrders : [1, 2, 3, 4, 5]}
+          activeDayOrder={dayOrder}
+          onSelect={setActiveDayOrder}
+        />
       </section>
 
       <RevealItem className="relative overflow-hidden px-1">
@@ -113,7 +92,7 @@ export default function HomePage() {
           }}
         >
           <div className="h-1.5 w-1.5 rounded-full bg-secondary" />
-          <span className="font-label text-[9px] font-bold uppercase tracking-widest text-secondary">first class • subject</span>
+          <span className="font-label text-[9px] font-bold uppercase tracking-widest text-secondary">first class / subject</span>
         </div>
 
         <h2 className="mt-6 max-w-full break-words font-headline text-[clamp(3.4rem,21vw,5rem)] font-bold leading-[0.9] tracking-tight text-primary [overflow-wrap:anywhere]">
@@ -149,17 +128,17 @@ export default function HomePage() {
 
       <RevealItem>
         <div
-          className="relative flex flex-col gap-3 rounded-[var(--radius-lg)] p-7"
+          className="theme-card relative flex flex-col gap-3 p-7"
           style={{
-            background: 'linear-gradient(135deg, color-mix(in srgb, var(--error) 88%, white 12%), color-mix(in srgb, var(--accent) 52%, var(--error) 48%))',
-            boxShadow: '0 20px 46px color-mix(in srgb, var(--error) 22%, transparent)',
+            background: 'linear-gradient(180deg, color-mix(in srgb, var(--error) 10%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 100%)',
+            borderColor: 'color-mix(in srgb, var(--error) 18%, var(--border))',
           }}
         >
-          <AlertTriangle className="absolute right-7 top-7 h-7 w-7" style={{ color: 'var(--text-inverse)' }} />
-          <h3 className="pr-10 font-headline text-2xl font-bold lowercase leading-tight" style={{ color: 'var(--text-inverse)' }}>
+          <AlertTriangle className="absolute right-7 top-7 h-7 w-7 text-error" />
+          <h3 className="pr-10 font-headline text-2xl font-bold lowercase leading-tight text-on-surface">
             academic alert: watch your weakest subject
           </h3>
-          <p className="text-sm font-semibold" style={{ color: 'color-mix(in srgb, var(--text-inverse) 90%, transparent)' }}>
+          <p className="text-sm font-semibold text-on-surface-variant">
             {weakestSubjectName ? `${weakestSubjectName} currently needs attention.` : 'all systems nominal.'}
           </p>
         </div>

@@ -129,7 +129,11 @@ export function getCriticalAttendance(attendance: RawAttendanceItem[]) {
 }
 
 export function getDayOrders(timetable: RawTimetableItem[]) {
-  return timetable.map((item) => Number(item.dayOrder)).filter((value) => !Number.isNaN(value));
+  return [...new Set(
+    timetable
+      .map((item) => Number(item.dayOrder))
+      .filter((value) => !Number.isNaN(value)),
+  )].sort((left, right) => left - right);
 }
 
 export function toTimetableEntries(timetable: RawTimetableItem[]): TimetableEntry[] {
@@ -172,6 +176,33 @@ export function getNextClass(timetable: RawTimetableItem[], dayOrder: number) {
 
 export function flattenCalendar(calendar: RawCalendarMonth[]) {
   return calendar.flatMap((month) => month.days.map((day) => ({ ...day, month: month.month })));
+}
+
+export function getCalendarDayOrders(calendar: RawCalendarMonth[]) {
+  return [...new Set(
+    flattenCalendar(calendar)
+      .map((item) => Number(item.dayOrder))
+      .filter((value) => !Number.isNaN(value) && value > 0),
+  )].sort((left, right) => left - right);
+}
+
+export function getFirstCalendarDayWithDayOrder(calendar: RawCalendarMonth[]) {
+  for (const month of calendar) {
+    const day = month.days.find((item) => Number(item.dayOrder) > 0);
+    if (day) {
+      return { month: month.month, day };
+    }
+  }
+
+  return null;
+}
+
+export function getCalendarDayByKey(calendar: RawCalendarMonth[], selection: { month: string; date: string }) {
+  const month = calendar.find((item) => item.month === selection.month);
+  if (!month) return null;
+
+  const day = month.days.find((item) => item.date === selection.date);
+  return day ? { month: month.month, day } : null;
 }
 
 function parseCalendarMonthLabel(label: string) {

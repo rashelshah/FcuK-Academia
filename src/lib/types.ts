@@ -23,7 +23,7 @@ export interface Subject {
 
 export interface TimetableEntry {
   id: string;
-  day: string; // e.g., "Monday", "Day 1"
+  day: string;
   startTime: string;
   endTime: string;
   subjectId: string;
@@ -50,9 +50,16 @@ export type ThemeType =
   | 'electric-blue'
   | 'amber-charcoal'
   | 'graphite-green'
+  | 'orange-noir'
+  | 'neo-brutal-pop'
+  | 'royal-amethyst'
   | 'minimal-light'
   | 'claymorph'
-  | 'soft-bloom';
+  | 'soft-bloom'
+  | 'lavender-violet'
+  | 'purple-peach'
+  | 'mint-gray'
+  | 'soft-pink-beige';
 
 export interface ThemeMotionPreset {
   id: string;
@@ -94,6 +101,13 @@ export interface ThemeMotionPreset {
     hoverY: number;
     duration: number;
   };
+  route: {
+    panelTravel: number;
+    panelScale: number;
+    panelOpacity: number;
+    duration: number;
+    labelDuration: number;
+  };
   intro: {
     logoScale: number;
     glowScale: number;
@@ -108,7 +122,7 @@ export interface ThemeDefinition {
   shortLabel: string;
   description: string;
   mode: 'dark' | 'light';
-  category: 'dark' | 'light';
+  category: 'dark' | 'light' | 'soft';
   preview: string[];
   isFemaleFocused?: boolean;
   colors: {

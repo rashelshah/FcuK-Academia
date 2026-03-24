@@ -1,42 +1,60 @@
 'use client';
 
-import React, { useState } from 'react';
+import Link from 'next/link';
+import React from 'react';
 
-import GlassCard from '../ui/GlassCard';
-import { cn } from '@/lib/utils';
-
-const days = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6'];
+import GlassCard from '@/components/ui/GlassCard';
+import DayOrderPills from '@/components/ui/DayOrderPills';
+import { useAppState } from '@/context/AppStateContext';
 
 export default function DayOrderSelector() {
-  const [selected, setSelected] = useState('Day 1');
+  const {
+    activeDayOrder,
+    availableDayOrders,
+    dayOrderSource,
+    setActiveDayOrder,
+    clearManualDayOrder,
+  } = useAppState();
+
+  const days = availableDayOrders.length ? availableDayOrders : [1, 2, 3, 4, 5];
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-1">
-        <p className="theme-kicker">preferences</p>
-        <h3 className="font-headline text-2xl font-bold text-on-surface">active day order</h3>
-      </div>
-      <div className="grid grid-cols-3 gap-3">
-        {days.map((day) => (
-          <GlassCard
-            key={day}
-            onClick={() => setSelected(day)}
-            className={cn(
-              "cursor-pointer p-4 text-center transition-all",
-              selected === day ? "shadow-[var(--glow-primary)]" : ""
-            )}
-            style={selected === day ? {
-              borderColor: 'var(--border-strong)',
-              background: 'color-mix(in srgb, var(--primary) 14%, transparent)',
-            } : { borderColor: 'var(--border)' }}
+    <GlassCard className="space-y-5 p-5">
+      <div className="space-y-1.5">
+        <p className="theme-kicker">day order sync</p>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="font-headline text-2xl font-bold text-on-surface">active day {activeDayOrder ?? '--'}</h3>
+          <span
+            className="rounded-[var(--radius-pill)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]"
+            style={{
+              background: dayOrderSource === 'calendar'
+                ? 'color-mix(in srgb, var(--primary) 16%, transparent)'
+                : 'color-mix(in srgb, var(--secondary) 16%, transparent)',
+              color: dayOrderSource === 'calendar' ? 'var(--primary)' : 'var(--secondary)',
+            }}
           >
-            <span className={cn(
-               "font-headline text-lg",
-               selected === day ? "text-primary" : "text-on-surface-variant"
-            )}>{day}</span>
-          </GlassCard>
-        ))}
+            {dayOrderSource === 'calendar' ? 'calendar sync' : 'manual override'}
+          </span>
+        </div>
+        <p className="text-sm leading-5 text-on-surface-variant">
+          Calendar drives the shared day order across the app.
+        </p>
       </div>
-    </div>
+
+      <div className="-mx-1 overflow-x-auto px-1 pb-1">
+        <DayOrderPills days={days} activeDayOrder={activeDayOrder} onSelect={setActiveDayOrder} />
+      </div>
+
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <Link href="/calendar" className="font-semibold text-primary">
+          Open calendar
+        </Link>
+        {dayOrderSource === 'manual' ? (
+          <button type="button" onClick={clearManualDayOrder} className="font-semibold text-secondary">
+            Reset to calendar
+          </button>
+        ) : null}
+      </div>
+    </GlassCard>
   );
 }

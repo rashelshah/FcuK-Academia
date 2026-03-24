@@ -1,21 +1,19 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
-import { AlertTriangle, Bell, ListFilter, TrendingUp } from 'lucide-react';
+import { AlertTriangle, ListFilter, TrendingUp } from 'lucide-react';
 
+import AppHeader from '@/components/layout/AppHeader';
 import CountUp from '@/components/ui/CountUp';
 import GlassCard from '@/components/ui/GlassCard';
 import GlowCard from '@/components/ui/GlowCard';
 import SubjectCard from '@/components/dashboard/SubjectCard';
 import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
 import { useMarks } from '@/hooks/useMarks';
-import { useUser } from '@/hooks/useUser';
-import { createAvatarUrl, getMarksPercentage, getWeakestMark, inferGrade } from '@/lib/academia-ui';
+import { getMarksPercentage, getWeakestMark, inferGrade } from '@/lib/academia-ui';
 
 export default function MarksPage() {
   const { marks, markList, loading, error } = useMarks();
-  const { user } = useUser();
   const validMarkList = markList.filter((item) => item.total.maxMark > 0);
 
   const totalObtained = validMarkList.reduce((sum, item) => sum + item.total.obtained, 0);
@@ -27,19 +25,10 @@ export default function MarksPage() {
     ?? 'no weak link';
   const predictedGrade = inferGrade(percentage);
   const probability = Math.min(97, Math.max(48, Math.round(percentage)));
-  const avatarUrl = createAvatarUrl(user?.name || 'SRM Student');
 
   return (
     <PageReveal className="flex flex-col gap-8 pb-32 pt-4">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="relative h-10 w-10 overflow-hidden rounded-full border border-[color:var(--border)]">
-            <Image src={avatarUrl} alt="Profile" fill className="object-cover" unoptimized />
-          </div>
-          <span className="font-headline text-xl font-bold normal-case tracking-tight text-primary">FucK Academia</span>
-        </div>
-        <Bell className="h-6 w-6 text-primary" />
-      </header>
+      <AppHeader />
 
       <section className="mt-2 space-y-2">
         <p className="theme-kicker">total aggregate</p>
@@ -88,7 +77,7 @@ export default function MarksPage() {
           <div
             className="rounded-[inherit] p-6"
             style={{
-              background: 'linear-gradient(180deg, color-mix(in srgb, var(--error) 14%, var(--surface)) 0%, var(--surface) 100%)',
+              background: 'linear-gradient(180deg, color-mix(in srgb, var(--error) 10%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 100%)',
             }}
           >
             <AlertTriangle className="absolute right-6 top-6 h-7 w-7 text-error" />
@@ -99,14 +88,14 @@ export default function MarksPage() {
             <div
               className="flex flex-col gap-5 rounded-[24px] p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6"
               style={{
-                background: 'color-mix(in srgb, var(--surface-soft) 94%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--error) 22%, transparent)',
+                background: 'color-mix(in srgb, var(--surface-soft) 92%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--error) 16%, transparent)',
               }}
             >
               <div className="min-w-0 flex-1 text-left">
                 <h4 className="font-headline text-[2rem] font-bold lowercase leading-[1] text-on-surface">{weakestSubjectName}</h4>
                 <p className="mt-1 font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-                  {weakest ? `${weakest.category} • INTERNAL: ${weakest.total.obtained}/${weakest.total.maxMark}` : 'live data • internals stable'}
+                  {weakest ? `${weakest.category} / INTERNAL: ${weakest.total.obtained}/${weakest.total.maxMark}` : 'live data / internals stable'}
                 </p>
               </div>
               <span className="shrink-0 self-start font-headline text-[4.2rem] font-bold leading-none tracking-tight text-error sm:self-auto sm:text-5xl">

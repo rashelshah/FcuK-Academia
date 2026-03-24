@@ -1,23 +1,22 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 
+import AppHeader from '@/components/layout/AppHeader';
 import CountUp from '@/components/ui/CountUp';
 import ProgressBar from '@/components/ui/ProgressBar';
 import SubjectCard from '@/components/dashboard/SubjectCard';
 import GlowCard from '@/components/ui/GlowCard';
 import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
+import { useAppState } from '@/context/AppStateContext';
 import { useAttendance } from '@/hooks/useAttendance';
-import { useUser } from '@/hooks/useUser';
-import { createAvatarUrl, getCriticalAttendance, getOverallAttendance } from '@/lib/academia-ui';
+import { getCriticalAttendance, getOverallAttendance } from '@/lib/academia-ui';
 
 export default function AttendancePage() {
   const { attendance, attendanceList, loading, error } = useAttendance();
-  const { user } = useUser();
+  const { activeDayOrder, dayOrderSource } = useAppState();
   const overallAtt = getOverallAttendance(attendanceList);
   const critical = getCriticalAttendance(attendanceList);
-  const avatarUrl = createAvatarUrl(user?.name || 'SRM Student');
   const projected = attendanceList.length
     ? ((attendanceList.reduce((sum, item) => sum + (item.courseConducted - item.courseAbsent), 0) + 5) /
       (attendanceList.reduce((sum, item) => sum + item.courseConducted, 0) + 5)) * 100
@@ -25,12 +24,27 @@ export default function AttendancePage() {
 
   return (
     <PageReveal className="flex flex-col gap-8 pb-32 pt-4">
-      <header className="flex items-center gap-3">
-        <div className="relative h-10 w-10 overflow-hidden rounded-full border border-[color:var(--border)]">
-          <Image src={avatarUrl} alt="Profile" fill className="object-cover" unoptimized />
+      <AppHeader />
+
+      <RevealItem className="theme-card flex items-center justify-between gap-4 p-5">
+        <div>
+          <p className="theme-kicker">shared day order</p>
+          <p className="mt-2 font-headline text-2xl font-bold text-on-surface">
+            Day {activeDayOrder ?? '--'}
+          </p>
         </div>
-        <span className="font-headline text-xl font-bold normal-case tracking-tight text-primary">FucK Academia</span>
-      </header>
+        <span
+          className="rounded-[var(--radius-pill)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]"
+          style={{
+            background: dayOrderSource === 'calendar'
+              ? 'color-mix(in srgb, var(--primary) 16%, transparent)'
+              : 'color-mix(in srgb, var(--secondary) 16%, transparent)',
+            color: dayOrderSource === 'calendar' ? 'var(--primary)' : 'var(--secondary)',
+          }}
+        >
+          {dayOrderSource}
+        </span>
+      </RevealItem>
 
       <section className="relative mt-6">
         <div className="absolute left-0 top-[-1rem] z-0 select-none opacity-[0.08]">
@@ -45,11 +59,11 @@ export default function AttendancePage() {
       </section>
 
       <RevealItem>
-        <GlowCard glowColor="error" className="border-none p-0">
+        <GlowCard glowColor="error" className="p-0">
           <div
             className="rounded-[inherit] px-6 py-7"
             style={{
-              background: 'linear-gradient(135deg, color-mix(in srgb, var(--error) 18%, var(--surface)) 0%, color-mix(in srgb, var(--accent) 10%, var(--surface)) 100%)',
+              background: 'linear-gradient(180deg, color-mix(in srgb, var(--error) 10%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 100%)',
             }}
           >
             <div className="flex items-start justify-between gap-4">

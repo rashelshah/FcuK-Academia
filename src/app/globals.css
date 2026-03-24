@@ -61,11 +61,20 @@
   --page-gradient: radial-gradient(circle at 15% 12%, rgba(185, 255, 63, 0.12), transparent 30%), radial-gradient(circle at 82% 8%, rgba(126, 247, 255, 0.08), transparent 28%), linear-gradient(180deg, #050505 0%, #090b09 58%, #0c1110 100%);
   --surface-gradient: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.015) 34%, rgba(255,255,255,0) 100%);
   --hero-gradient: linear-gradient(135deg, rgba(185, 255, 63, 0.2), rgba(126, 247, 255, 0.08) 52%, rgba(255, 138, 91, 0.05) 100%);
+  --surface-card: #101312;
+  --surface-card-soft: #171b1a;
+  --surface-card-elevated: #1d2220;
+  --overlay-backdrop: rgba(5, 7, 11, 0.72);
+  --overlay-blur: 12px;
+  --nav-background: color-mix(in srgb, var(--surface) 82%, transparent);
+  --card-border: var(--border);
+  --page-text-shadow: var(--glow-primary);
 }
 
 @layer base {
   html {
     background: var(--background);
+    scroll-behavior: smooth;
   }
 
   body {
@@ -74,6 +83,7 @@
     -webkit-font-smoothing: antialiased;
     background-image: var(--page-gradient);
     background-attachment: fixed;
+    line-height: 1.55;
     transition:
       background-color 0.4s ease,
       color 0.35s ease,
@@ -107,7 +117,7 @@
 @layer components {
   .theme-card {
     background: color-mix(in srgb, var(--surface) 92%, transparent);
-    border: 1px solid var(--border);
+    border: 1px solid var(--card-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--elevation-card);
     position: relative;
@@ -208,17 +218,17 @@
   }
 
   .glow-primary {
-    box-shadow: var(--glow-primary);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--primary) 18%, transparent);
     border-color: color-mix(in srgb, var(--primary) 34%, transparent);
   }
 
   .glow-secondary {
-    box-shadow: var(--glow-secondary);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--secondary) 18%, transparent);
     border-color: color-mix(in srgb, var(--secondary) 34%, transparent);
   }
 
   .glow-error {
-    box-shadow: 0 0 32px color-mix(in srgb, var(--error) 26%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--error) 16%, transparent);
     border-color: color-mix(in srgb, var(--error) 34%, transparent);
   }
 

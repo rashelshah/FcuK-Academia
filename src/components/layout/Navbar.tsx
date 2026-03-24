@@ -21,7 +21,7 @@ const navItems = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { themeConfig, isDark } = useTheme();
+  const { themeConfig } = useTheme();
   const [mounted, setMounted] = useState(false);
   const motionProps = getInteractiveMotion(themeConfig.motion);
 
@@ -35,14 +35,14 @@ export default function Navbar() {
 
   return (
     <nav
-      className="fixed bottom-4 left-1/2 z-50 w-[90%] max-w-md -translate-x-1/2 px-1 pb-[max(env(safe-area-inset-bottom),0px)]"
+      className="fixed bottom-4 left-1/2 z-50 w-[min(92%,28rem)] max-w-[28rem] -translate-x-1/2 px-1 pb-[max(env(safe-area-inset-bottom),0px)] sm:w-[min(92%,30rem)] sm:max-w-[30rem] lg:w-[min(88%,34rem)] lg:max-w-[34rem]"
       aria-label="Primary"
     >
       <div
-        className="relative overflow-hidden rounded-[var(--radius-pill)] border px-3 py-3 backdrop-blur-[24px]"
+        className="relative overflow-hidden rounded-[var(--radius-pill)] border px-3 py-3 backdrop-blur-[16px]"
         style={{
-          borderColor: 'var(--border)',
-          background: 'color-mix(in srgb, var(--surface) 78%, transparent)',
+          borderColor: 'var(--card-border)',
+          background: 'var(--nav-background)',
           boxShadow: 'var(--elevation-nav)',
         }}
       >
@@ -50,9 +50,7 @@ export default function Navbar() {
         <div
           className="pointer-events-none absolute inset-x-10 -bottom-5 h-10 rounded-full blur-2xl"
           style={{
-            background: isDark
-              ? 'radial-gradient(circle, color-mix(in srgb, var(--primary) 26%, transparent) 0%, color-mix(in srgb, var(--secondary) 14%, transparent) 42%, transparent 74%)'
-              : 'radial-gradient(circle, color-mix(in srgb, var(--primary) 18%, transparent) 0%, color-mix(in srgb, var(--secondary) 10%, transparent) 42%, transparent 74%)',
+            background: 'radial-gradient(circle, color-mix(in srgb, var(--primary) 22%, transparent) 0%, color-mix(in srgb, var(--secondary) 12%, transparent) 42%, transparent 74%)',
           }}
         />
 

@@ -870,7 +870,7 @@ function parseCalendar(htmlContent: string | null): RawCalendarMonth[] {
           eventParts.push(value);
         }
 
-        const joinedEvent = cleanText(eventParts.join(' • '));
+        const joinedEvent = cleanText(eventParts.join(' / '));
         const inferredEvent = !joinedEvent && /^sat/i.test(day) ? 'Holiday' : '';
 
         months[blockIndex]?.days.push({

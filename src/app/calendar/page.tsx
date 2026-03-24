@@ -1,17 +1,15 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
-import { Bell, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+import AppHeader from '@/components/layout/AppHeader';
 import CountUp from '@/components/ui/CountUp';
 import GlassCard from '@/components/ui/GlassCard';
 import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
+import { useAppState } from '@/context/AppStateContext';
 import { cn } from '@/lib/utils';
-import { useCalendar } from '@/hooks/useCalendar';
-import { useUser } from '@/hooks/useUser';
 import {
-  createAvatarUrl,
   formatMonthTitle,
   getCurrentCalendarMonth,
   getTodayCalendarItem,
@@ -42,14 +40,22 @@ function getMonthIndex(calendar: RawCalendarMonth[], targetMonth: RawCalendarMon
 }
 
 export default function CalendarPage() {
-  const { calendar, loading, error } = useCalendar();
-  const { user } = useUser();
-  const avatarUrl = createAvatarUrl(user?.name || 'SRM Student');
+  const {
+    calendar,
+    calendarLoading: loading,
+    calendarError: error,
+    selectedCalendarDay,
+    setSelectedCalendarDay,
+  } = useAppState();
   const derivedCurrentMonth = getCurrentCalendarMonth(calendar) ?? calendar[0] ?? null;
   const derivedToday = getTodayCalendarItem(calendar) ?? derivedCurrentMonth?.days.find((item) => item.dayOrder && item.dayOrder !== '-') ?? derivedCurrentMonth?.days[0] ?? null;
+  const preferredMonth = useMemo(
+    () => calendar.find((month) => month.month === selectedCalendarDay?.month) ?? derivedCurrentMonth,
+    [calendar, derivedCurrentMonth, selectedCalendarDay?.month],
+  );
   const initialMonthIndex = useMemo(
-    () => getMonthIndex(calendar, derivedCurrentMonth),
-    [calendar, derivedCurrentMonth],
+    () => getMonthIndex(calendar, preferredMonth),
+    [calendar, preferredMonth],
   );
 
   const [activeMonthIndex, setActiveMonthIndex] = useState(initialMonthIndex);
@@ -68,6 +74,11 @@ export default function CalendarPage() {
       return;
     }
 
+    if (selectedCalendarDay && selectedCalendarDay.month === activeMonth.month) {
+      setSelectedDayKey(getDayKey(activeMonth.month, selectedCalendarDay.date));
+      return;
+    }
+
     const fallbackDay =
       (activeMonth.month === derivedCurrentMonth?.month ? derivedToday : null) ||
       activeMonth.days.find((item) => item.event && item.event !== '-') ||
@@ -76,7 +87,7 @@ export default function CalendarPage() {
       null;
 
     setSelectedDayKey(fallbackDay ? getDayKey(activeMonth.month, fallbackDay.date) : null);
-  }, [activeMonth, derivedCurrentMonth?.month, derivedToday]);
+  }, [activeMonth, derivedCurrentMonth?.month, derivedToday, selectedCalendarDay]);
 
   const selectedDay = useMemo(() => {
     if (!activeMonth) return null;
@@ -107,6 +118,14 @@ export default function CalendarPage() {
   function handleSelectDay(date: string) {
     if (!activeMonth) return;
     setSelectedDayKey(getDayKey(activeMonth.month, date));
+
+    const selectedDay = activeMonth.days.find((item) => item.date === date);
+    const parsedDayOrder = Number(selectedDay?.dayOrder);
+
+    setSelectedCalendarDay(
+      { month: activeMonth.month, date },
+      Number.isNaN(parsedDayOrder) || parsedDayOrder <= 0 ? null : parsedDayOrder,
+    );
   }
 
   function goToPreviousMonth() {
@@ -122,15 +141,7 @@ export default function CalendarPage() {
 
   return (
     <PageReveal className="flex flex-col gap-8 pb-40 pt-4">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="relative h-10 w-10 overflow-hidden rounded-full border border-[color:var(--border)]">
-            <Image src={avatarUrl} alt="Profile" fill className="object-cover" unoptimized />
-          </div>
-          <span className="font-headline text-xl font-bold normal-case tracking-tight text-primary">FucK Academia</span>
-        </div>
-        <Bell className="h-6 w-6 text-primary" />
-      </header>
+      <AppHeader />
 
       <section className="mt-2">
         <span className="theme-kicker">current cycle</span>
@@ -248,7 +259,7 @@ export default function CalendarPage() {
                 <AgendaItem
                   time={item.date || '--'}
                   title={(item.event || 'no upcoming events').toLowerCase()}
-                  subtitle={`${(item.day || 'stay tuned').toLowerCase()} • day ${item.dayOrder || '-'}`}
+                  subtitle={`${(item.day || 'stay tuned').toLowerCase()} / day ${item.dayOrder || '-'}`}
                   tone={tone}
                   active={isSelected || index === 0}
                 />

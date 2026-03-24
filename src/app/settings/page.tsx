@@ -1,29 +1,34 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
-import { Bell, ChevronRight, LogOut, MoonStar, RefreshCw, School, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
+import { Bell, ChevronRight, LogOut, MoonStar, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
+import AppHeader from '@/components/layout/AppHeader';
 import DayOrderSelector from '@/components/settings/DayOrderSelector';
 import Button from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
+import { useAppState } from '@/context/AppStateContext';
 import { useTheme } from '@/context/ThemeContext';
 import { getInteractiveMotion } from '@/lib/motion';
-import { cn } from '@/lib/utils';
 import { useUser } from '@/hooks/useUser';
+import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
-  const { theme, themeConfig, availableThemes, setTheme } = useTheme();
+  const { themeConfig } = useTheme();
   const { user, loading } = useUser();
+  const { activeDayOrder, dayOrderSource } = useAppState();
   const router = useRouter();
-  const [logoutLoading, setLogoutLoading] = useState(false);
   const motionProps = getInteractiveMotion(themeConfig.motion);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const syncLabel = useMemo(() => {
-    if (loading) return 'syncing live account data';
-    if (!user) return 'session expired';
-    return `semester ${user.semester} • batch ${user.batch}`;
+    if (loading) return 'live sync';
+    if (!user) return 'session off';
+    return `sem ${user.semester} / ${user.batch}`;
   }, [loading, user]);
 
   async function handleLogout() {
@@ -34,127 +39,71 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 pb-36 pt-2">
-      <section className="space-y-4">
-        <div className="space-y-2">
-          <p className="theme-kicker">settings</p>
-          <h1 className="font-headline text-[clamp(2.6rem,12vw,4.4rem)] font-bold leading-[0.9] text-on-surface">
-            visual control
-          </h1>
-          <p className="max-w-sm text-sm text-on-surface-variant">
-            tune palette, motion, and account preferences without breaking the mobile rhythm.
+    <div className="space-y-7 pb-36 pt-4">
+      <AppHeader />
+
+      <section className="space-y-2 px-1">
+        <p className="theme-kicker">settings</p>
+        <h1 className="font-headline text-[clamp(2.8rem,13vw,4.6rem)] font-bold leading-[0.9] text-on-surface">
+          clean control
+        </h1>
+      </section>
+
+      <GlassCard className="space-y-6 p-6">
+        <div className="space-y-1.5">
+          <p className="theme-kicker">profile</p>
+          <h2 className="font-headline text-2xl font-bold text-on-surface">
+            {user?.name || 'Live SRM session'}
+          </h2>
+          <p className="text-sm leading-5 text-on-surface-variant">
+            {user ? `${user.regNumber} / ${user.department}` : 'Live account details appear here.'}
           </p>
         </div>
 
-        <GlassCard className="space-y-4 p-5">
-          <div className="flex items-start gap-4">
-            <div
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[20px]"
-              style={{ background: 'var(--hero-gradient)', boxShadow: 'var(--glow-primary)' }}
-            >
-              <UserRound size={22} className="text-on-surface" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="theme-kicker">profile</p>
-              <h2 className="mt-2 font-headline text-2xl font-bold text-on-surface">
-                {user ? user.name.toLowerCase() : 'live srm session'}
-              </h2>
-              <p className="mt-2 text-sm text-on-surface-variant">
-                {user ? `${user.regNumber} • ${user.department}` : 'your session details load here when account data is ready.'}
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <StatPill label="theme" value={themeConfig.label} />
-            <StatPill label="sync" value={syncLabel} />
-          </div>
-        </GlassCard>
-      </section>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatTile label="theme" value={themeConfig.label} />
+          <StatTile label="sync" value={syncLabel} />
+          <StatTile label="course" value={user?.program || 'Not available'} />
+          <StatTile label="day order" value={activeDayOrder ? `day ${activeDayOrder}` : 'not set'} />
+        </div>
+      </GlassCard>
 
       <section className="space-y-4">
         <SectionHeading
-          kicker="theme"
-          title="pick the vibe"
-          subtitle="eight compact skins with motion behavior baked into each theme."
+          kicker="appearance"
+          title="theme system"
         />
 
-        <div className="-mx-4 overflow-x-auto px-4 pb-2">
-          <div className="flex min-w-max gap-3">
-            {availableThemes.map((option) => {
-              const active = option.id === theme;
-
-              return (
-                <motion.button
-                  key={option.id}
-                  type="button"
-                  whileHover={motionProps.whileHover}
-                  whileTap={motionProps.whileTap}
-                  transition={motionProps.transition}
-                  onClick={() => setTheme(option.id)}
-                  className={cn(
-                    'relative flex min-w-[11.5rem] items-center gap-3 rounded-[var(--radius-md)] border px-4 py-3 text-left',
-                    active
-                      ? 'shadow-[var(--glow-primary)]'
-                      : ''
-                  )}
-                  style={{
-                    borderColor: active ? 'var(--border-strong)' : 'var(--border)',
-                    background: active
-                      ? 'color-mix(in srgb, var(--surface-elevated) 92%, transparent)'
-                      : 'color-mix(in srgb, var(--surface) 88%, transparent)',
-                  }}
-                >
-                  <div className="flex gap-1.5">
-                    {option.preview.map((color) => (
-                      <span
-                        key={color}
-                        className="h-3.5 w-3.5 rounded-full border border-white/10"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-headline text-base font-bold text-on-surface">
-                      {option.label}
-                    </p>
-                    <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-on-surface-variant">
-                      {option.category}
-                      {option.isFemaleFocused ? ' • soft' : ''}
-                    </p>
-                  </div>
-                  <span
-                    className={cn(
-                      'h-2.5 w-2.5 rounded-full transition-all',
-                      active ? 'bg-primary shadow-[var(--glow-primary)]' : ''
-                    )}
-                    style={active ? undefined : { background: 'color-mix(in srgb, var(--text-subtle) 50%, transparent)' }}
-                  />
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
-
-        <GlassCard className="space-y-3 p-5">
+        <GlassCard className="space-y-5 p-5">
           <div className="flex items-center justify-between gap-4">
-            <div>
+            <div className="space-y-1">
               <p className="theme-kicker">active theme</p>
-              <h3 className="mt-2 font-headline text-2xl font-bold text-on-surface">
-                {themeConfig.label}
-              </h3>
+              <h3 className="font-headline text-xl font-bold text-on-surface">{themeConfig.label}</h3>
             </div>
-            <div
-              className="rounded-[var(--radius-pill)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em]"
-              style={{
-                color: 'var(--text)',
-                background: 'color-mix(in srgb, var(--primary) 18%, transparent)',
-              }}
-            >
-              {themeConfig.motion.id}
+            <div className="flex gap-2">
+              {themeConfig.preview.map((color) => (
+                <span
+                  key={color}
+                  className="h-4 w-4 rounded-full border border-white/10"
+                  style={{ backgroundColor: color }}
+                />
+              ))}
             </div>
           </div>
-          <p className="text-sm text-on-surface-variant">{themeConfig.description}</p>
+
+          <Link href="/settings/theme" className="block">
+            <motion.div
+              whileHover={motionProps.whileHover}
+              whileTap={motionProps.whileTap}
+              transition={motionProps.transition}
+              className="theme-panel flex items-center justify-between gap-4 p-4"
+            >
+              <div>
+                <h4 className="font-headline text-xl font-bold text-on-surface">select theme</h4>
+              </div>
+              <ChevronRight size={18} className="shrink-0 text-on-surface-variant" />
+            </motion.div>
+          </Link>
         </GlassCard>
       </section>
 
@@ -162,39 +111,55 @@ export default function SettingsPage() {
         <SectionHeading
           kicker="preferences"
           title="daily controls"
-          subtitle="tight, thumb-friendly cards for the settings you touch most often."
         />
 
-        <div className="space-y-3">
-          <PreferenceItem icon={Bell} title="notifications" subtitle={user?.mobile || 'stay updated on class alerts'} hasToggle motionProps={motionProps} />
-          <PreferenceItem icon={School} title="course details" subtitle={user?.program || 'syllabus and credit management'} motionProps={motionProps} />
-          <PreferenceItem icon={MoonStar} title="motion behavior" subtitle={themeConfig.motion.id.replace('-', ' ')} motionProps={motionProps} />
-          <PreferenceItem icon={RefreshCw} title="sync" subtitle={syncLabel} actionIcon motionProps={motionProps} />
-        </div>
+        <GlassCard className="space-y-3.5 p-5">
+          <ToggleRow
+            icon={Bell}
+            title="notifications"
+            subtitle={user?.mobile || 'Stay updated on class alerts'}
+            checked={notificationsEnabled}
+            onChange={() => setNotificationsEnabled((current) => !current)}
+            motionProps={motionProps}
+          />
+          <PreferenceLink
+            href="/settings/theme"
+            icon={Sparkles}
+            title="select theme"
+            subtitle={themeConfig.label}
+            motionProps={motionProps}
+          />
+          <PreferenceRow
+            icon={MoonStar}
+            title="motion style"
+            subtitle={themeConfig.motion.id.replace(/-/g, ' ')}
+            motionProps={motionProps}
+          />
+          <PreferenceRow
+            icon={RefreshCw}
+            title="day-order source"
+            subtitle={dayOrderSource === 'calendar' ? 'calendar linked' : 'manual override'}
+            motionProps={motionProps}
+            tone={dayOrderSource === 'calendar' ? 'secondary' : 'primary'}
+          />
+          <PreferenceRow
+            icon={ShieldCheck}
+            title="privacy"
+            subtitle={user?.department || 'session and data'}
+            motionProps={motionProps}
+          />
+        </GlassCard>
       </section>
 
-      <section className="space-y-4">
-        <SectionHeading
-          kicker="others"
-          title="layout + account"
-          subtitle="secondary controls grouped into the same visual rhythm."
-        />
+      <DayOrderSelector />
 
-        <DayOrderSelector />
-
-        <div className="space-y-3">
-          <PreferenceItem icon={ShieldCheck} title="privacy" subtitle={user?.department || 'manage data and session visibility'} motionProps={motionProps} />
-          <PreferenceItem icon={Sparkles} title="appearance profile" subtitle={themeConfig.isFemaleFocused ? 'soft expressive palette enabled' : 'balanced premium palette enabled'} motionProps={motionProps} />
-        </div>
-      </section>
-
-      <section className="space-y-4 pt-2">
+      <section className="space-y-4 pt-1">
         <Button variant="brutalist" fullWidth onClick={handleLogout} disabled={logoutLoading}>
           <LogOut size={26} />
           {logoutLoading ? 'logging out...' : 'abort mission / logout'}
         </Button>
-        <p className="text-center text-[11px] uppercase tracking-[0.24em] text-on-surface-variant/70">
-          {user ? `${user.name.toLowerCase()} • ${user.regNumber}` : 'live SRM session'}
+        <p className="text-center text-[10px] uppercase tracking-[0.24em] text-on-surface-variant/70">
+          {user ? `${user.name.toLowerCase()} / ${user.regNumber}` : 'live SRM session'}
         </p>
       </section>
     </div>
@@ -208,89 +173,164 @@ function SectionHeading({
 }: {
   kicker: string;
   title: string;
-  subtitle: string;
+  subtitle?: string;
 }) {
   return (
-    <div className="space-y-2 px-1">
+    <div className="space-y-1.5 px-1">
       <p className="theme-kicker">{kicker}</p>
       <h2 className="font-headline text-3xl font-bold text-on-surface">{title}</h2>
-      <p className="max-w-sm text-sm text-on-surface-variant">{subtitle}</p>
+      {subtitle ? <p className="max-w-sm text-sm leading-6 text-on-surface-variant">{subtitle}</p> : null}
     </div>
   );
 }
 
-function StatPill({ label, value }: { label: string; value: string }) {
+function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      className="rounded-[var(--radius-md)] border px-4 py-3"
-      style={{
-        borderColor: 'var(--border)',
-        background: 'color-mix(in srgb, var(--surface-soft) 90%, transparent)',
-      }}
-    >
+    <div className="theme-panel min-h-[88px] px-4 py-3.5">
       <p className="theme-kicker">{label}</p>
-      <p className="mt-2 text-sm font-semibold capitalize text-on-surface">
+      <p className="mt-2 text-sm font-semibold capitalize leading-5 text-on-surface">
         {value}
       </p>
     </div>
   );
 }
 
-function PreferenceItem({
+function PreferenceLink({
+  href,
   icon: Icon,
   title,
   subtitle,
-  hasToggle,
-  actionIcon,
+  motionProps,
+}: {
+  href: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  title: string;
+  subtitle: string;
+  motionProps: ReturnType<typeof getInteractiveMotion>;
+}) {
+  return (
+    <Link href={href} className="block">
+      <PreferenceRow
+        icon={Icon}
+        title={title}
+        subtitle={subtitle}
+        motionProps={motionProps}
+        action={<ChevronRight size={18} className="text-on-surface-variant" />}
+      />
+    </Link>
+  );
+}
+
+function PreferenceRow({
+  icon: Icon,
+  title,
+  subtitle,
+  motionProps,
+  action,
+  tone = 'default',
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  title: string;
+  subtitle: string;
+  motionProps: ReturnType<typeof getInteractiveMotion>;
+  action?: React.ReactNode;
+  tone?: 'default' | 'secondary' | 'primary';
+}) {
+  return (
+    <motion.div
+      whileHover={motionProps.whileHover}
+      whileTap={motionProps.whileTap}
+      transition={motionProps.transition}
+      className="flex items-center justify-between gap-4 rounded-[var(--radius-md)] border p-3.5"
+      style={{ borderColor: 'var(--card-border)', background: 'color-mix(in srgb, var(--surface-soft) 90%, transparent)' }}
+    >
+      <div className="flex items-center gap-4">
+        <div
+          className={cn('flex h-10 w-10 items-center justify-center rounded-[16px] border', tone === 'secondary' ? 'text-secondary' : tone === 'primary' ? 'text-primary' : 'text-on-surface-variant')}
+          style={{
+            borderColor: tone === 'secondary'
+              ? 'color-mix(in srgb, var(--secondary) 28%, transparent)'
+              : tone === 'primary'
+                ? 'color-mix(in srgb, var(--primary) 28%, transparent)'
+                : 'var(--card-border)',
+            background: tone === 'secondary'
+              ? 'color-mix(in srgb, var(--secondary) 12%, transparent)'
+              : tone === 'primary'
+                ? 'color-mix(in srgb, var(--primary) 12%, transparent)'
+                : 'color-mix(in srgb, var(--surface-elevated) 84%, transparent)',
+          }}
+        >
+          <Icon size={18} />
+        </div>
+        <div>
+          <h3 className="font-headline text-lg font-bold text-on-surface">{title}</h3>
+          <p className="mt-1 text-[13px] leading-5 text-on-surface-variant">{subtitle}</p>
+        </div>
+      </div>
+      {action ?? <ChevronRight size={18} className="shrink-0 text-on-surface-variant" />}
+    </motion.div>
+  );
+}
+
+function ToggleRow({
+  icon: Icon,
+  title,
+  subtitle,
+  checked,
+  onChange,
   motionProps,
 }: {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   title: string;
   subtitle: string;
-  hasToggle?: boolean;
-  actionIcon?: boolean;
+  checked: boolean;
+  onChange: () => void;
   motionProps: ReturnType<typeof getInteractiveMotion>;
 }) {
   return (
     <motion.button
       type="button"
+      onClick={onChange}
       whileHover={motionProps.whileHover}
       whileTap={motionProps.whileTap}
       transition={motionProps.transition}
-      className="theme-card flex w-full items-center justify-between p-4 text-left"
+      className="flex w-full items-center justify-between gap-4 rounded-[var(--radius-md)] border p-3.5 text-left"
+      style={{ borderColor: 'var(--card-border)', background: 'color-mix(in srgb, var(--surface-soft) 90%, transparent)' }}
     >
       <div className="flex items-center gap-4">
         <div
-          className={cn(
-            'flex h-11 w-11 items-center justify-center rounded-[18px] border',
-            hasToggle ? 'text-secondary' : 'text-on-surface-variant'
-          )}
+          className="flex h-10 w-10 items-center justify-center rounded-[16px] border text-secondary"
           style={{
-            borderColor: hasToggle ? 'var(--border-strong)' : 'var(--border)',
-            background: hasToggle
-              ? 'color-mix(in srgb, var(--secondary) 16%, transparent)'
-              : 'color-mix(in srgb, var(--surface-soft) 88%, transparent)',
+            borderColor: 'color-mix(in srgb, var(--secondary) 28%, transparent)',
+            background: 'color-mix(in srgb, var(--secondary) 12%, transparent)',
           }}
         >
-          <Icon size={20} />
+          <Icon size={18} />
         </div>
         <div>
-          <h3 className="font-headline text-xl font-bold text-on-surface">{title}</h3>
-          <p className="mt-1 text-sm text-on-surface-variant">{subtitle}</p>
+          <h3 className="font-headline text-lg font-bold text-on-surface">{title}</h3>
+          <p className="mt-1 text-[13px] leading-5 text-on-surface-variant">{subtitle}</p>
         </div>
       </div>
-      {hasToggle ? (
-        <div
-          className="flex h-7 w-12 items-center rounded-[var(--radius-pill)] px-1"
-          style={{ background: 'color-mix(in srgb, var(--secondary) 20%, transparent)' }}
-        >
-          <div className="ml-auto h-5 w-5 rounded-full bg-secondary shadow-[var(--glow-secondary)]" />
-        </div>
-      ) : actionIcon ? (
-        <RefreshCw size={18} className="text-on-surface-variant" />
-      ) : (
-        <ChevronRight size={18} className="text-on-surface-variant" />
-      )}
+
+      <div
+        className="flex h-7 w-12 items-center rounded-[var(--radius-pill)] px-1"
+        style={{
+          background: checked
+            ? 'color-mix(in srgb, var(--secondary) 24%, transparent)'
+            : 'color-mix(in srgb, var(--surface-highlight) 86%, transparent)',
+        }}
+      >
+        <motion.div
+          animate={{ x: checked ? 20 : 0 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="h-5 w-5 rounded-full"
+          style={{
+            background: checked ? 'var(--secondary)' : 'var(--text-subtle)',
+            boxShadow: checked ? 'var(--glow-secondary)' : 'none',
+          }}
+        />
+      </div>
     </motion.button>
   );
 }

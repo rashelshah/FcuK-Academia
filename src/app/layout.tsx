@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
+import { AppStateProvider } from "@/context/AppStateContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import AppLayout from "@/components/layout/AppLayout";
+import { getThemeBootstrapScript } from "@/lib/theme";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -25,14 +27,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: getThemeBootstrapScript() }} />
+      </head>
       <body
+        suppressHydrationWarning
         className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}
       >
         <ThemeProvider>
-          <AppLayout>
-            {children}
-          </AppLayout>
+          <AppStateProvider>
+            <AppLayout>
+              {children}
+            </AppLayout>
+          </AppStateProvider>
         </ThemeProvider>
       </body>
     </html>

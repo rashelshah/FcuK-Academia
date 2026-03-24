@@ -2,7 +2,15 @@
 
 import React, { createContext, startTransition, useContext, useEffect, useState } from 'react';
 
-import { defaultTheme, getThemeCssVariables, isDarkTheme, themeOptions, themes } from '@/lib/theme';
+import {
+  defaultTheme,
+  getThemeCssVariables,
+  INTRO_STORAGE_KEY,
+  isDarkTheme,
+  THEME_STORAGE_KEY,
+  themeOptions,
+  themes,
+} from '@/lib/theme';
 import { ThemeDefinition, ThemeType } from '@/lib/types';
 
 interface ThemeContextType {
@@ -16,19 +24,38 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-const THEME_STORAGE_KEY = 'fcuk-academia-theme';
-const INTRO_STORAGE_KEY = 'fcuk-academia-intro-seen';
+
+function resolveStoredTheme() {
+  if (typeof document !== 'undefined') {
+    const themedFromDom = document.documentElement.dataset.theme as ThemeType | undefined;
+    if (themedFromDom && themes[themedFromDom]) return themedFromDom;
+  }
+
+  if (typeof window !== 'undefined') {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as ThemeType | null;
+    if (savedTheme && themes[savedTheme]) return savedTheme;
+  }
+
+  return defaultTheme;
+}
+
+function resolveIntroState() {
+  if (typeof document !== 'undefined') {
+    const introSeen = document.documentElement.dataset.introSeen;
+    if (introSeen === 'true') return false;
+    if (introSeen === 'false') return true;
+  }
+
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(INTRO_STORAGE_KEY) !== 'true';
+  }
+
+  return false;
+}
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeType>(() => {
-    if (typeof window === 'undefined') return defaultTheme;
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as ThemeType | null;
-    return savedTheme && themes[savedTheme] ? savedTheme : defaultTheme;
-  });
-  const [showIntro, setShowIntro] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem(INTRO_STORAGE_KEY) !== 'true';
-  });
+  const [theme, setThemeState] = useState<ThemeType>(resolveStoredTheme);
+  const [showIntro, setShowIntro] = useState(resolveIntroState);
   const themeConfig = themes[theme];
 
   const setTheme = (newTheme: ThemeType) => {
@@ -63,6 +90,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setShowIntro(false);
     if (typeof window !== 'undefined') {
       localStorage.setItem(INTRO_STORAGE_KEY, 'true');
+    }
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset.introSeen = 'true';
     }
   }
 
