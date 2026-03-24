@@ -85,8 +85,8 @@ export default function AttendancePage() {
               {[1, 2, 3].map((i) => <div key={i} className="h-40 bg-surface rounded-[28px]" />)}
             </div>
           ) : (
-            attendance.map((subject) => (
-              <SubjectCard key={subject.id} subject={subject} type="attendance" />
+            attendance.map((subject, index) => (
+              <SubjectCard key={`${subject.id}-${index}`} subject={subject} type="attendance" />
             ))
           )}
         </div>

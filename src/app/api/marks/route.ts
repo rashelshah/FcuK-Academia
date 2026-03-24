@@ -1,19 +1,21 @@
 import { NextResponse } from 'next/server';
 
-import { getMarks } from '@/lib/server/academia';
+import { getCachedDashboardData } from '@/lib/server/dashboard-cache';
 import { handleRouteError, requireSession } from '@/lib/server/route-utils';
 
 export async function GET() {
   try {
-    const { session, response } = await requireSession();
-    if (response) return response;
+    const { sessionId, session, response } = await requireSession();
+    if (response || !sessionId || !session) {
+      return response ?? NextResponse.json({ error: 'session expired' }, { status: 401 });
+    }
 
-    const result = await getMarks(session.cookies);
-    if (result.status !== 200) {
+    const result = await getCachedDashboardData(sessionId, session);
+    if (!result.snapshot) {
       return NextResponse.json({ error: 'session expired' }, { status: 401 });
     }
 
-    return NextResponse.json({ markList: result.markList });
+    return NextResponse.json({ markList: result.snapshot.markList });
   } catch (error) {
     return handleRouteError(error);
   }

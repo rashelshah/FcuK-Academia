@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 
 import { fetchJson, ApiError } from '@/lib/api/client';
-import type { UserResponse } from '@/lib/api/types';
+import type { DashboardData } from '@/lib/api/types';
 import { toUserProfile } from '@/lib/academia-ui';
 
 export function useUser() {
-  const [user, setUser] = useState<UserResponse['userInfo'] | null>(null);
+  const [user, setUser] = useState<DashboardData['userInfo'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +16,7 @@ export function useUser() {
       try {
         setLoading(true);
         setError(null);
-        const data = await fetchJson<UserResponse>('/api/user');
+        const data = await fetchJson<DashboardData>('/api/dashboard');
         if (!active) return;
         setUser(data.userInfo);
       } catch (err) {

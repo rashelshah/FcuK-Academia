@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 
 import { ApiError, fetchJson } from '@/lib/api/client';
-import type { AttendanceResponse, MarksResponse, TimetableResponse, UserResponse } from '@/lib/api/types';
-import type { RawAttendanceItem, RawMarkItem, RawTimetableItem, RawUserInfo } from '@/lib/server/academia';
+import type { DashboardData } from '@/lib/api/types';
+import type { RawAttendanceItem, RawCalendarMonth, RawMarkItem, RawTimetableItem, RawUserInfo } from '@/lib/server/academia';
 
 export function useDashboard() {
   const [user, setUser] = useState<RawUserInfo | null>(null);
   const [attendance, setAttendance] = useState<RawAttendanceItem[]>([]);
   const [marks, setMarks] = useState<RawMarkItem[]>([]);
   const [timetable, setTimetable] = useState<RawTimetableItem[]>([]);
+  const [calendar, setCalendar] = useState<RawCalendarMonth[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,18 +20,14 @@ export function useDashboard() {
       try {
         setLoading(true);
         setError(null);
-        const [userData, attendanceData, marksData, timetableData] = await Promise.all([
-          fetchJson<UserResponse>('/api/user'),
-          fetchJson<AttendanceResponse>('/api/attendance'),
-          fetchJson<MarksResponse>('/api/marks'),
-          fetchJson<TimetableResponse>('/api/timetable'),
-        ]);
+        const data = await fetchJson<DashboardData>('/api/dashboard');
 
         if (!active) return;
-        setUser(userData.userInfo);
-        setAttendance(attendanceData.attendance);
-        setMarks(marksData.markList);
-        setTimetable(timetableData.timetable);
+        setUser(data.userInfo);
+        setAttendance(data.attendance);
+        setMarks(data.markList);
+        setTimetable(data.timetable);
+        setCalendar(data.calendar);
       } catch (err) {
         if (!active) return;
         setError(err instanceof ApiError ? err.message : 'server error');
@@ -45,5 +42,5 @@ export function useDashboard() {
     };
   }, []);
 
-  return { user, attendance, marks, timetable, loading, error };
+  return { user, attendance, marks, timetable, calendar, loading, error };
 }

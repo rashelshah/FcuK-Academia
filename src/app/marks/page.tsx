@@ -14,11 +14,12 @@ import { createAvatarUrl, getMarksPercentage, getWeakestMark, inferGrade } from 
 export default function MarksPage() {
   const { marks, markList, loading, error } = useMarks();
   const { user } = useUser();
+  const validMarkList = markList.filter((item) => item.total.maxMark > 0);
 
-  const totalObtained = markList.reduce((sum, item) => sum + item.total.obtained, 0);
-  const totalMax = markList.reduce((sum, item) => sum + item.total.maxMark, 0);
-  const percentage = getMarksPercentage(markList);
-  const weakest = getWeakestMark(markList);
+  const totalObtained = validMarkList.reduce((sum, item) => sum + item.total.obtained, 0);
+  const totalMax = validMarkList.reduce((sum, item) => sum + item.total.maxMark, 0);
+  const percentage = getMarksPercentage(validMarkList);
+  const weakest = getWeakestMark(validMarkList);
   const predictedGrade = inferGrade(percentage);
   const probability = Math.min(97, Math.max(48, Math.round(percentage)));
   const avatarUrl = createAvatarUrl(user?.name || 'SRM Student');
@@ -96,8 +97,8 @@ export default function MarksPage() {
             {[1, 2, 3].map((i) => <div key={i} className="h-40 bg-surface rounded-[28px]" />)}
           </div>
         ) : (
-          marks.map((subject) => (
-            <SubjectCard key={subject.id} subject={subject} type="marks" />
+          marks.map((subject, index) => (
+            <SubjectCard key={`${subject.id}-${index}`} subject={subject} type="marks" />
           ))
         )}
       </div>

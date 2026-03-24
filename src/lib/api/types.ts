@@ -1,10 +1,11 @@
 import type { RawAttendanceItem, RawCalendarMonth, RawCourseItem, RawMarkItem, RawTimetableItem, RawUserInfo } from '@/lib/server/academia';
 
 export interface DashboardData {
-  user: RawUserInfo;
-  marks: RawMarkItem[];
+  userInfo: RawUserInfo;
   attendance: RawAttendanceItem[];
+  markList: RawMarkItem[];
   timetable: RawTimetableItem[];
+  calendar: RawCalendarMonth[];
 }
 
 export interface ApiErrorShape {

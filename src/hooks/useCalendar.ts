@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { fetchJson, ApiError } from '@/lib/api/client';
-import type { CalendarResponse } from '@/lib/api/types';
+import type { DashboardData } from '@/lib/api/types';
 import type { RawCalendarMonth } from '@/lib/server/academia';
 
 export function useCalendar() {
@@ -16,7 +16,7 @@ export function useCalendar() {
       try {
         setLoading(true);
         setError(null);
-        const data = await fetchJson<CalendarResponse>('/api/calendar');
+        const data = await fetchJson<DashboardData>('/api/dashboard');
         if (!active) return;
         setCalendar(data.calendar);
       } catch (err) {

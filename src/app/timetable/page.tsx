@@ -61,7 +61,7 @@ export default function TimetablePage() {
               const isPrimary = index === 2;
               const glow = index % 2 === 0 ? 'primary' : 'secondary';
               return (
-                <div key={`${item.slot}-${item.time}`} className="flex gap-6 relative">
+                <div key={`${item.slot}-${item.time}-${index}`} className="flex gap-6 relative">
                   <div className="relative mt-6">
                     <div className={`w-2.5 h-2.5 rounded-full z-10 relative ${glow === 'primary' ? 'shadow-[0_0_10px_var(--primary)] bg-primary' : 'shadow-[0_0_10px_var(--secondary)] bg-secondary'}`} />
                   </div>

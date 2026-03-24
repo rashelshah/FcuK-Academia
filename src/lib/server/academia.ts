@@ -361,34 +361,38 @@ function parseProfile(htmlContent: string | null): RawUserInfo {
     };
   }
 
-  const $ = cheerio.load(htmlContent);
+  const extractValue = (labelText: string) => {
+    const escaped = labelText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const patterns = [
+      new RegExp(`${escaped}\\s*:?\\s*<\\/td>\\s*<td[^>]*>\\s*<strong[^>]*>([\\s\\S]*?)<\\/strong>`, 'i'),
+      new RegExp(`${escaped}\\s*:?\\s*<\\/td>\\s*<td[^>]*>([\\s\\S]*?)<\\/td>`, 'i'),
+      new RegExp(`${escaped}\\s*:?\\s*<\\/td>\\s*<td[^>]*>\\s*:?\\s*<\\/td>\\s*<td[^>]*>\\s*<strong[^>]*>([\\s\\S]*?)<\\/strong>`, 'i'),
+    ];
 
-  const getValueByLabel = (labelText: string) => {
-    const labelNode = $('*')
-      .contents()
-      .filter((_, node) => cleanText($(node).text()).toLowerCase().includes(labelText.toLowerCase()))
-      .first();
-    const labelCell = labelNode.closest('td');
-    const valueCell = labelCell.next('td');
-    return cleanText(valueCell.find('strong').first().text() || valueCell.text());
+    for (const pattern of patterns) {
+      const match = htmlContent.match(pattern);
+      if (match?.[1]) {
+        const text = cleanText(cheerio.load(`<div>${match[1]}</div>`)('div').text());
+        if (text) return text;
+      }
+    }
+
+    return '';
   };
 
-  const departmentRaw = getValueByLabel('Department');
-  const departmentCell = $('td')
-    .filter((_, el) => cleanText($(el).text()).toLowerCase().includes('department'))
-    .first()
-    .next('td');
-  const section = cleanText(departmentCell.find('font').first().text()) || 'N/A';
+  const departmentRaw = extractValue('Department');
+  const sectionMatch = departmentRaw.match(/\(([^)]+Section)\)/i);
+  const section = sectionMatch?.[1] ? `(${sectionMatch[1]})` : 'N/A';
 
   return {
-    regNumber: getValueByLabel('Registration Number') || 'Unknown',
-    name: getValueByLabel('Name'),
-    mobile: getValueByLabel('Mobile') || 'N/A',
+    regNumber: extractValue('Registration Number') || 'Unknown',
+    name: extractValue('Name'),
+    mobile: extractValue('Mobile') || 'N/A',
     section,
-    program: getValueByLabel('Program') || 'N/A',
+    program: extractValue('Program') || 'N/A',
     department: departmentRaw.replace(section, '').replace(/-\s*$/, '').trim() || departmentRaw || 'N/A',
-    semester: getValueByLabel('Semester') || 'N/A',
-    batch: getValueByLabel('Batch') || 'N/A',
+    semester: extractValue('Semester') || 'N/A',
+    batch: extractValue('Batch') || 'N/A',
   };
 }
 
@@ -487,11 +491,16 @@ function parseAttendance(htmlContent: string | null, courseMap: Map<string, RawC
 function parseMarks(htmlContent: string | null): RawMarkItem[] {
   if (!htmlContent) return [];
   const $ = cheerio.load(htmlContent);
-  const rows = $('tr').toArray();
+  const table = $('table').filter((_, el) => $(el).text().includes('Test Performance')).first();
+  const rows = (
+    table.children('tbody').children('tr').length
+      ? table.children('tbody').children('tr')
+      : table.children('tr')
+  ).toArray();
   const marks: RawMarkItem[] = [];
 
   for (const row of rows) {
-    const cols = $(row).find('td').toArray();
+    const cols = $(row).children('td').toArray();
     if (cols.length < 3) continue;
 
     const course = cleanText($(cols[0]).text());
@@ -502,19 +511,16 @@ function parseMarks(htmlContent: string | null): RawMarkItem[] {
     let obtainedTotal = 0;
     let maxTotal = 0;
 
-    $(cols[2]).find('table td').each((_, cell) => {
-      const parts = $(cell)
-        .text()
-        .split(/\n+/)
-        .map((part) => cleanText(part))
-        .filter(Boolean);
+    const pushExam = (header: string, score: string) => {
+      const cleanedHeader = cleanText(header);
+      const cleanedScore = cleanText(score);
+      if (!cleanedHeader || !cleanedScore) return;
 
-      if (parts.length < 2) return;
+      const obtained = Number(cleanedScore.match(/-?\d+(\.\d+)?/)?.[0] ?? '0');
+      const [examName, maxMarkText = '0'] = cleanedHeader.split('/');
+      const maxMark = Number(cleanText(maxMarkText).match(/-?\d+(\.\d+)?/)?.[0] ?? '0');
+      if (!examName.trim()) return;
 
-      const header = parts[0];
-      const obtained = Number(parts[1]) || 0;
-      const [examName, maxMarkText = '0'] = header.split('/');
-      const maxMark = Number(cleanText(maxMarkText)) || 0;
       exams.push({
         exam: cleanText(examName),
         obtained,
@@ -522,7 +528,53 @@ function parseMarks(htmlContent: string | null): RawMarkItem[] {
       });
       obtainedTotal += obtained;
       maxTotal += maxMark;
+    };
+
+    $(cols[2]).find('table td').each((_, cell) => {
+      const cellHtml = $(cell).html() || '';
+      const strongText = cleanText($(cell).find('strong').first().text());
+      const remainingText = cleanText(
+        cheerio.load(`<div>${cellHtml.replace(/<br\s*\/?>/gi, '\n')}</div>`)('div').text().replace(strongText, ''),
+      );
+
+      if (strongText && remainingText) {
+        pushExam(strongText, remainingText);
+        return;
+      }
+
+      const parts = $(cell)
+        .text()
+        .split(/\n+/)
+        .map((part) => cleanText(part))
+        .filter(Boolean);
+
+      if (parts.length >= 2) {
+        pushExam(parts[0], parts[1]);
+      }
     });
+
+    if (!exams.length) {
+      const parts = $(cols[2])
+        .text()
+        .split(/\n+/)
+        .map((part) => cleanText(part))
+        .filter(Boolean);
+
+      for (let index = 0; index < parts.length - 1; index += 1) {
+        const current = parts[index];
+        const next = parts[index + 1];
+        const headerLike = current.includes('/') || /cat|fat|quiz|lab|assessment|test|model/i.test(current);
+        const scoreLike = /^-?\d+(\.\d+)?$/.test(next) || /^\d+(\.\d+)?\s*\/\s*\d+(\.\d+)?$/.test(next);
+        if (!headerLike || !scoreLike) continue;
+
+        if (next.includes('/')) {
+          const [obtained, maxMark] = next.split('/').map((value) => cleanText(value));
+          pushExam(`${current.split('/')[0]}/${maxMark}`, obtained);
+        } else {
+          pushExam(current, next);
+        }
+      }
+    }
 
     marks.push({
       course,
@@ -594,37 +646,48 @@ function parseTimetable(htmlContent: string | null, courseMap: Map<string, RawCo
 
 function parseCalendar(htmlContent: string | null): RawCalendarMonth[] {
   if (!htmlContent) return [];
-  const $ = cheerio.load(htmlContent);
-  const calendarTable = $('table').filter((_, el) => $(el).text().includes('Dt')).first();
-  if (!calendarTable.length) return [];
+  const tableMatch = htmlContent.match(/<table[^>]*>[\s\S]*?<\/table>/i);
+  if (!tableMatch?.[0]) return [];
 
-  const rows = calendarTable.find('tr').toArray();
-  if (!rows.length) return [];
+  const tableHtml = tableMatch[0];
+  const decodeCell = (cellHtml: string) => cleanText(cheerio.load(`<div>${cellHtml}</div>`)('div').text());
+  const rowMatches = [...tableHtml.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)];
+  if (!rowMatches.length) return [];
 
-  const monthHeaders = $(rows[0]).find('td,th').toArray().map((cell) => cleanText($(cell).text()));
+  const monthHeaders = [...rowMatches[0][1].matchAll(/>(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*'?\s*(\d{2})</gi)]
+    .map((match) => `${match[1]} '${match[2]}`);
+  if (!monthHeaders.length) return [];
+
   const months: RawCalendarMonth[] = monthHeaders.map((month) => ({ month, days: [] }));
 
-  for (const row of rows.slice(1)) {
-    const cells = $(row).find('td').toArray();
+  for (const rowMatch of rowMatches.slice(1)) {
+    const cells = [...rowMatch[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((match) => decodeCell(match[1]));
     if (!cells.length) continue;
 
-    for (let blockIndex = 0; blockIndex < Math.floor(cells.length / 4); blockIndex += 1) {
-      const start = blockIndex * 4;
-      const date = cleanText($(cells[start]).text());
+    for (let blockIndex = 0; blockIndex < monthHeaders.length; blockIndex += 1) {
+      const start = blockIndex * 5;
+      if (start + 3 >= cells.length) continue;
+
+      const date = cleanText(cells[start]);
       if (!/^\d+$/.test(date)) continue;
 
-      const monthLabel = monthHeaders[blockIndex] ?? `Month ${blockIndex + 1}`;
-      const monthEntry = months.find((entry) => entry.month === monthLabel);
-      monthEntry?.days.push({
+      months[blockIndex]?.days.push({
         date,
-        day: cleanText($(cells[start + 1]).text()),
-        event: cleanText($(cells[start + 2]).text()),
-        dayOrder: cleanText($(cells[start + 3]).text()) || '-',
+        day: cleanText(cells[start + 1]),
+        event: cleanText(cells[start + 2]),
+        dayOrder: cleanText(cells[start + 3]) || '-',
       });
     }
   }
 
-  return months.filter((month) => month.days.length > 0);
+  return months
+    .map((month) => ({
+      ...month,
+      days: month.days.filter((day, index, array) =>
+        array.findIndex((item) => item.date === day.date) === index,
+      ),
+    }))
+    .filter((month) => month.days.length > 0);
 }
 
 async function getProfileAndCourses(cookies: SessionCookies) {
@@ -665,6 +728,40 @@ export async function stabilizeSession(cookies: SessionCookies) {
     error: isAuthenticated && attendancePage.html ? undefined : 'session expired',
     profileCookies,
     profileHtml,
+  };
+}
+
+export async function getDashboardData(cookies: SessionCookies) {
+  const { userInfo, courseMap, session, isAuthenticated } = await getProfileAndCourses(cookies);
+  if (!isAuthenticated) {
+    return {
+      userInfo,
+      attendance: [] as RawAttendanceItem[],
+      markList: [] as RawMarkItem[],
+      timetable: [] as RawTimetableItem[],
+      calendar: [] as RawCalendarMonth[],
+      cookies,
+      status: 401,
+      error: 'session expired',
+    };
+  }
+
+  const batch = String(userInfo.batch).toLowerCase().trim() === '1' ? 'Batch_1' : 'batch_2';
+  const [attendancePage, gridPage, plannerPage] = await Promise.all([
+    fetchAcademiaPage(URLS.attendance, session),
+    fetchAcademiaPage(`${URLS.gridBase}_${batch}`, session),
+    fetchAcademiaPage(URLS.planner, session),
+  ]);
+
+  return {
+    userInfo,
+    attendance: parseAttendance(attendancePage.html, courseMap),
+    markList: parseMarks(attendancePage.html),
+    timetable: parseTimetable(gridPage.html, courseMap),
+    calendar: parseCalendar(plannerPage.html),
+    cookies: plannerPage.cookies,
+    status: attendancePage.html ? 200 : 401,
+    error: attendancePage.html ? undefined : 'session expired',
   };
 }
 

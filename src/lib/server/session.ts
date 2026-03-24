@@ -4,7 +4,14 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { SESSION_COOKIE } from '@/lib/auth-constants';
-import type { SessionCookies } from '@/lib/server/academia';
+import type {
+  RawAttendanceItem,
+  RawCalendarMonth,
+  RawMarkItem,
+  RawTimetableItem,
+  RawUserInfo,
+  SessionCookies,
+} from '@/lib/server/academia';
 
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 const SESSION_DIR = path.join(process.cwd(), '.session-store');
@@ -15,12 +22,25 @@ export interface UserSession {
   createdAt: number;
 }
 
+export interface SessionSnapshot {
+  userInfo: RawUserInfo;
+  attendance: RawAttendanceItem[];
+  markList: RawMarkItem[];
+  timetable: RawTimetableItem[];
+  calendar: RawCalendarMonth[];
+  updatedAt: number;
+}
+
 async function ensureSessionDir() {
   await fs.mkdir(SESSION_DIR, { recursive: true });
 }
 
 function getSessionPath(sessionId: string) {
   return path.join(SESSION_DIR, `${sessionId}.json`);
+}
+
+function getSnapshotPath(sessionId: string) {
+  return path.join(SESSION_DIR, `${sessionId}.snapshot.json`);
 }
 
 async function readSession(sessionId: string) {
@@ -56,10 +76,30 @@ export async function setUserSession(session: UserSession) {
   return sessionId;
 }
 
+export async function updateUserSession(sessionId: string, session: UserSession) {
+  await ensureSessionDir();
+  await fs.writeFile(getSessionPath(sessionId), JSON.stringify(session), 'utf8');
+}
+
+export async function getSessionSnapshot(sessionId: string) {
+  try {
+    const raw = await fs.readFile(getSnapshotPath(sessionId), 'utf8');
+    return JSON.parse(raw) as SessionSnapshot;
+  } catch {
+    return null;
+  }
+}
+
+export async function setSessionSnapshot(sessionId: string, snapshot: SessionSnapshot) {
+  await ensureSessionDir();
+  await fs.writeFile(getSnapshotPath(sessionId), JSON.stringify(snapshot), 'utf8');
+}
+
 export async function clearUserSession(sessionId?: string | null) {
   const activeSessionId = sessionId ?? null;
   if (activeSessionId) {
     await fs.rm(getSessionPath(activeSessionId), { force: true });
+    await fs.rm(getSnapshotPath(activeSessionId), { force: true });
   }
 }
 
@@ -93,5 +133,6 @@ export async function clearCurrentUserSession() {
   const sessionId = await getCurrentSessionId();
   if (sessionId) {
     await fs.rm(getSessionPath(sessionId), { force: true });
+    await fs.rm(getSnapshotPath(sessionId), { force: true });
   }
 }

@@ -7,11 +7,9 @@ import { Bell, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createAvatarUrl, getAverageMarks, getNextClass, getOverallAttendance, getWeakestMark, getDayOrders, getUpcomingCalendarEvents } from '@/lib/academia-ui';
 import { useDashboard } from '@/hooks/useDashboard';
-import { useCalendar } from '@/hooks/useCalendar';
 
 export default function HomePage() {
-  const { user, attendance, marks, timetable, loading, error } = useDashboard();
-  const { calendar } = useCalendar();
+  const { user, attendance, marks, timetable, calendar, loading, error } = useDashboard();
   const dayOrders = useMemo(() => getDayOrders(timetable), [timetable]);
   const [dayOrder, setDayOrder] = useState(dayOrders[0] || 1);
 
@@ -23,7 +21,7 @@ export default function HomePage() {
   const profileName = user?.name?.split(' ')[0]?.toLowerCase() || 'student';
   const avatarUrl = createAvatarUrl(user?.name || 'SRM Student');
 
-  const recentMarks = marks.slice(0, 3);
+  const recentMarks = marks.filter((item) => item.total.maxMark > 0).slice(0, 3);
 
   return (
     <div className="flex flex-col gap-10 pb-40 pt-4">
@@ -80,7 +78,7 @@ export default function HomePage() {
           <span className="font-label text-[9px] font-bold tracking-[0.2em] text-[#808080] uppercase">ATTENDANCE</span>
           <div className="font-headline text-[2.8rem] font-bold text-primary mt-1 leading-none tracking-tighter">{overallAttendance.toFixed(1)}%</div>
           <div className="font-label text-[10px] font-bold tracking-widest text-secondary mt-3 uppercase">
-            {overallAttendance >= 75 ? 'you&apos;re safe' : 'recovery mode'}
+            {overallAttendance >= 75 ? "you're safe" : 'recovery mode'}
           </div>
         </div>
         <div className="bg-[#121212] rounded-[32px] p-7 flex-1 border border-white/5">

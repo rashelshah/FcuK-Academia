@@ -16,10 +16,54 @@ export function toUserProfile(userInfo: RawUserInfo): UserProfile {
 }
 
 export function combineSubjects(attendance: RawAttendanceItem[], marks: RawMarkItem[]): Subject[] {
-  const markMap = new Map(marks.map((item) => [item.course, item]));
+  const groupedAttendance = new Map<string, RawAttendanceItem>();
+  const groupedMarks = new Map<string, RawMarkItem>();
 
-  return attendance.map((item) => {
-    const mark = markMap.get(item.courseCode);
+  for (const item of attendance) {
+    const existing = groupedAttendance.get(item.courseCode);
+    if (!existing) {
+      groupedAttendance.set(item.courseCode, { ...item });
+      continue;
+    }
+
+    const conducted = existing.courseConducted + item.courseConducted;
+    const absent = existing.courseAbsent + item.courseAbsent;
+    groupedAttendance.set(item.courseCode, {
+      ...existing,
+      courseConducted: conducted,
+      courseAbsent: absent,
+      courseAttendance: conducted ? (((conducted - absent) / conducted) * 100).toFixed(1) : '0',
+      courseFaculty: existing.courseFaculty || item.courseFaculty,
+      courseTitle: existing.courseTitle || item.courseTitle,
+      courseSlot: existing.courseSlot || item.courseSlot,
+      courseCategory: existing.courseCategory || item.courseCategory,
+    });
+  }
+
+  for (const item of marks) {
+    const existing = groupedMarks.get(item.course);
+    if (!existing) {
+      groupedMarks.set(item.course, {
+        ...item,
+        marks: [...item.marks],
+        total: { ...item.total },
+      });
+      continue;
+    }
+
+    groupedMarks.set(item.course, {
+      ...existing,
+      marks: [...existing.marks, ...item.marks],
+      total: {
+        obtained: existing.total.obtained + item.total.obtained,
+        maxMark: existing.total.maxMark + item.total.maxMark,
+      },
+      category: existing.category || item.category,
+    });
+  }
+
+  return [...groupedAttendance.values()].map((item) => {
+    const mark = groupedMarks.get(item.courseCode);
     const attended = Math.max(item.courseConducted - item.courseAbsent, 0);
     return {
       id: item.courseCode,
@@ -121,8 +165,14 @@ export function flattenCalendar(calendar: RawCalendarMonth[]) {
 
 export function getCurrentCalendarMonth(calendar: RawCalendarMonth[]) {
   const now = new Date();
-  const target = now.toLocaleString('en-US', { month: 'short' }).toLowerCase();
-  return calendar.find((month) => month.month.toLowerCase().includes(target)) ?? calendar[0] ?? null;
+  const shortTarget = now.toLocaleString('en-US', { month: 'short' }).toLowerCase();
+  const longTarget = now.toLocaleString('en-US', { month: 'long' }).toLowerCase();
+  return (
+    calendar.find((month) => {
+      const label = month.month.toLowerCase();
+      return label.includes(shortTarget) || label.includes(longTarget);
+    }) ?? calendar[0] ?? null
+  );
 }
 
 export function getTodayCalendarItem(calendar: RawCalendarMonth[]) {

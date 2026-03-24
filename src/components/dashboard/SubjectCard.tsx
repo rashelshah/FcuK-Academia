@@ -13,7 +13,9 @@ interface SubjectCardProps {
 export default function SubjectCard({ subject, type }: SubjectCardProps) {
   const isAttendance = type === 'attendance';
   const attPct = subject.attendance.percentage;
-  const marksPct = (subject.marks.internal / subject.marks.totalInternal) * 100;
+  const marksPct = subject.marks.totalInternal > 0
+    ? (subject.marks.internal / subject.marks.totalInternal) * 100
+    : 0;
 
   // Derive glow colors from images
   let colorClass = 'text-primary';

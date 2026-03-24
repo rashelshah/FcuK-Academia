@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { fetchJson, ApiError } from '@/lib/api/client';
-import type { TimetableResponse } from '@/lib/api/types';
+import type { DashboardData } from '@/lib/api/types';
 import { toTimetableEntries } from '@/lib/academia-ui';
 import type { RawTimetableItem } from '@/lib/server/academia';
 
@@ -17,7 +17,7 @@ export function useTimetable() {
       try {
         setLoading(true);
         setError(null);
-        const data = await fetchJson<TimetableResponse>('/api/timetable');
+        const data = await fetchJson<DashboardData>('/api/dashboard');
         if (!active) return;
         setTimetableRaw(data.timetable);
       } catch (err) {
