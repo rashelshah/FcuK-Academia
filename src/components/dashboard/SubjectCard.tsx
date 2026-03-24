@@ -4,7 +4,6 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import ProgressBar from '../ui/ProgressBar';
 import { Subject } from '@/lib/types';
-import GlowCard from '@/components/ui/GlowCard';
 
 interface SubjectCardProps {
   subject: Subject;

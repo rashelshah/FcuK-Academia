@@ -1,17 +1,40 @@
-import { useState, useEffect } from 'react';
-import { mockTimetable } from '@/lib/mockData';
+import { useEffect, useMemo, useState } from 'react';
+
+import { fetchJson, ApiError } from '@/lib/api/client';
+import type { TimetableResponse } from '@/lib/api/types';
+import { toTimetableEntries } from '@/lib/academia-ui';
+import type { RawTimetableItem } from '@/lib/server/academia';
 
 export function useTimetable() {
-  const [timetable, setTimetable] = useState(mockTimetable);
+  const [timetableRaw, setTimetableRaw] = useState<RawTimetableItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setTimetable(mockTimetable);
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    let active = true;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await fetchJson<TimetableResponse>('/api/timetable');
+        if (!active) return;
+        setTimetableRaw(data.timetable);
+      } catch (err) {
+        if (!active) return;
+        setError(err instanceof ApiError ? err.message : 'server error');
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  return { timetable, loading };
+  const timetable = useMemo(() => toTimetableEntries(timetableRaw), [timetableRaw]);
+
+  return { timetable, timetableRaw, loading, error };
 }
