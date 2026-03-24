@@ -267,12 +267,59 @@ export async function verifyPassword({
   captcha?: string;
   cdigest?: string;
 }): Promise<VerifyPasswordResponse> {
+  const normalizedUser = identifier.includes('@') ? identifier.split('@')[0] : identifier;
   return attemptVerifyPassword({
-    identifier,
+    identifier: normalizedUser,
     password,
     captcha,
     cdigest,
   });
+}
+
+async function forceLogoutSessions(client: AxiosInstance, html: string): Promise<boolean> {
+  const $ = cheerio.load(html);
+  const forms = $('form').toArray();
+  let terminateForm: any = null;
+
+  for (const form of forms) {
+    const text = $(form).text().toLowerCase();
+    if (text.includes('terminate') || $(form).find('input[value="Terminate All Sessions"]').length > 0) {
+      terminateForm = form;
+      break;
+    }
+  }
+
+  if (!terminateForm && forms.length > 0) {
+    terminateForm = forms[0];
+  }
+
+  if (!terminateForm) return false;
+
+  const action = $(terminateForm).attr('action') || '';
+  const actionUrl = action.startsWith('http') ? action : new URL(action, BASE_URL).toString();
+
+  const data: Record<string, string> = {};
+  $(terminateForm).find('input').each((_, inp) => {
+    const name = $(inp).attr('name');
+    if (name) {
+      data[name] = $(inp).attr('value') || '';
+    }
+  });
+
+  const submitBtn = $(terminateForm).find('button, input[type="submit"]').first();
+  const btnName = submitBtn.attr('name');
+  if (btnName) {
+    data[btnName] = submitBtn.attr('value') || '';
+  }
+
+  try {
+    const response = await client.post(actionUrl, new URLSearchParams(data).toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    return response.status === 200;
+  } catch {
+    return false;
+  }
 }
 
 async function attemptVerifyPassword({
@@ -285,65 +332,106 @@ async function attemptVerifyPassword({
   password: string;
   captcha?: string;
   cdigest?: string;
-}): Promise<VerifyPasswordResponse> {
+}, retryCount = 0): Promise<VerifyPasswordResponse> {
+  if (retryCount > 2) {
+    return { error: 'Too many retries', isAuthenticated: false };
+  }
+
   try {
-    const scriptPath = process.cwd() + '/scripts/academia_auth.py';
-    const payload = JSON.stringify({
-        username: identifier,
-        password,
-        captcha,
-        cdigest,
-      });
-    const { stdout } = await execFileAsync('python3', [scriptPath, payload], {
-      maxBuffer: 1024 * 1024,
+    const { client, jar } = await createSessionClient();
+    const LOGIN_URL = 'https://academia.srmist.edu.in/accounts/signin.ac';
+
+    const payload: Record<string, string> = {
+      username: identifier,
+      password,
+      client_portal: 'true',
+      portal: '10002227248',
+      servicename: 'ZohoCreator',
+      serviceurl: 'https://academia.srmist.edu.in/',
+      is_ajax: 'true',
+      grant_type: 'password',
+      service_language: 'en',
+    };
+
+    if (cdigest) payload.cdigest = cdigest;
+    if (captcha) payload.captcha = captcha;
+
+    const response = await client.post(LOGIN_URL, new URLSearchParams(payload).toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
 
-    const output = String(stdout);
-    const result = JSON.parse(output) as
-      | { success: true; cookies: SessionCookies }
-      | { success: false; error: string | { type?: string; message?: string; cdigest?: string | null; image?: string | null } };
+    const responseText = String(response.data);
 
-    if (!result.success) {
-      if (typeof result.error === 'object' && result.error?.type === 'CAPTCHA_REQUIRED') {
+    if (responseText.toLowerCase().includes('concurrent')) {
+      const loggedOut = await forceLogoutSessions(client, responseText);
+      if (loggedOut) {
+        return attemptVerifyPassword({ identifier, password, captcha, cdigest }, retryCount + 1);
+      }
+    }
+
+    let data: any;
+    try {
+      data = typeof response.data === 'string' ? JSON.parse(responseText) : response.data;
+    } catch {
+      return { error: 'Invalid server response', isAuthenticated: false };
+    }
+
+    if (data.status === 'fail') {
+      const code = data.code;
+      if (code === 'HIP_REQUIRED' || code === 'HIP_FAILED') {
+        const cdig = data.cdigest;
         return {
           data: {
             statusCode: 401,
-            message: result.error.message ?? 'Additional verification required',
+            message: data.message || 'Captcha required',
             captcha: {
               required: true,
-              digest: result.error.cdigest ?? null,
-              image: result.error.image ?? undefined,
+              digest: cdig || null,
+              image: cdig ? `https://academia.srmist.edu.in/accounts/p/40-10002227248/webclient/v1/captcha/${cdig}?darkmode=false` : undefined,
             },
           },
           isAuthenticated: false,
         };
       }
-
       return {
         data: {
           statusCode: 401,
-          message: typeof result.error === 'string' ? result.error : (result.error?.message ?? 'invalid credentials'),
+          message: data.error?.msg || data.message || 'Invalid credentials',
         },
         isAuthenticated: false,
       };
     }
 
+    if (data.data?.access_token) {
+      const token = data.data.access_token;
+      const redirectUrl = data.data.oauthorize_uri;
+      const finalAuthUrl = `${redirectUrl}&access_token=${token}`;
+
+      await client.get(finalAuthUrl);
+
+      const cookies = await jarToCookies(jar);
+      if (cookies.JSESSIONID) {
+        return {
+          data: {
+            cookies,
+            statusCode: 200,
+            message: 'authenticated',
+            captcha: { required: false, digest: null },
+          },
+          isAuthenticated: true,
+        };
+      }
+    }
+
     return {
-      data: {
-        cookies: result.cookies,
-        statusCode: 200,
-        message: 'authenticated',
-        captcha: {
-          required: false,
-          digest: null,
-        },
-      },
-      isAuthenticated: true,
+      data: { statusCode: 401, message: 'Invalid credentials' },
+      isAuthenticated: false,
     };
   } catch (error) {
     return {
       error: 'server error',
       errorReason: error,
+      isAuthenticated: false,
     };
   }
 }

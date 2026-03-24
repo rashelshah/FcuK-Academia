@@ -14,7 +14,9 @@ import type {
 } from '@/lib/server/academia';
 
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
-const SESSION_DIR = path.join(process.cwd(), '.session-store');
+const SESSION_DIR = process.env.NODE_ENV === 'production' 
+  ? path.join('/tmp', '.session-store')
+  : path.join(process.cwd(), '.session-store');
 
 export interface UserSession {
   email: string;
