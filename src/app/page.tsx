@@ -8,6 +8,7 @@ import AppHeader from '@/components/layout/AppHeader';
 import HomeFooter from '@/components/layout/HomeFooter';
 import DayOrderPills from '@/components/ui/DayOrderPills';
 import CountUp from '@/components/ui/CountUp';
+import TextType from '@/components/ui/TextType';
 import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
 import { useAppState } from '@/context/AppStateContext';
 import { formatDayOrderNumber, getDayOrders, getOverallAttendance, getScheduleSnapshot, getTotalMarks, getWeakestMark } from '@/lib/academia-ui';
@@ -94,7 +95,7 @@ export default function HomePage() {
         </RevealText>
         <RevealHeading>
           <h1 className="font-headline text-[3.6rem] font-bold leading-[0.84] tracking-tight text-on-surface">
-            {greeting}
+            <TextType text={loading ? 'loading' : greeting} typingSpeed={34} startDelay={40} />
           </h1>
         </RevealHeading>
       </section>
@@ -126,7 +127,11 @@ export default function HomePage() {
         </div>
 
         <h2 className="mt-6 max-w-full break-words font-headline text-[clamp(3.4rem,21vw,5rem)] font-bold leading-[0.9] tracking-tight text-primary [overflow-wrap:anywhere]">
-          {loading ? 'loading' : featuredClass?.courseTitle?.toLowerCase() || 'no class'}
+          <TextType
+            text={loading ? 'loading' : featuredClass?.courseTitle?.toLowerCase() || 'no class'}
+            typingSpeed={32}
+            startDelay={40}
+          />
         </h2>
         <p className="mt-3 font-headline text-2xl font-bold tracking-tight text-on-surface-variant">
           {featuredClass?.time || 'schedule unavailable'}

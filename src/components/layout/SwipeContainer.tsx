@@ -20,6 +20,7 @@ const DIRECTION_LOCK_RATIO = 1.1;
 function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const settleTimerRef = useRef<number | null>(null);
+  const programmaticTargetIndexRef = useRef<number | null>(null);
   const touchStartXRef = useRef(0);
   const touchStartYRef = useRef(0);
   const gestureLockRef = useRef<'x' | 'y' | null>(null);
@@ -71,6 +72,7 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
 
     const targetLeft = node.clientWidth * activeIndex;
     if (Math.abs(node.scrollLeft - targetLeft) < 1) return;
+    programmaticTargetIndexRef.current = activeIndex;
 
     node.scrollTo({
       left: targetLeft,
@@ -86,6 +88,20 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
       const width = node.clientWidth || 1;
       const nextIndex = Math.max(0, Math.min(screens.length - 1, Math.round(node.scrollLeft / width)));
       const nextPath = screens[nextIndex]?.href;
+      const programmaticTargetIndex = programmaticTargetIndexRef.current;
+
+      if (programmaticTargetIndex !== null) {
+        const targetLeft = width * programmaticTargetIndex;
+        const isNearTarget = Math.abs(node.scrollLeft - targetLeft) < 2;
+        const hasReachedTargetScreen = nextIndex === programmaticTargetIndex;
+
+        if (isNearTarget || hasReachedTargetScreen) {
+          activeIndexRef.current = programmaticTargetIndex;
+          programmaticTargetIndexRef.current = null;
+          toggleSwipeMode(false);
+          return;
+        }
+      }
 
       activeIndexRef.current = nextIndex;
       toggleSwipeMode(false);
@@ -99,6 +115,7 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
       const touch = event.touches[0];
       if (!touch) return;
 
+      programmaticTargetIndexRef.current = null;
       gestureLockRef.current = null;
       touchStartXRef.current = touch.clientX;
       touchStartYRef.current = touch.clientY;
