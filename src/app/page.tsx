@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
 
@@ -11,7 +11,7 @@ import CountUp from '@/components/ui/CountUp';
 import TextType from '@/components/ui/TextType';
 import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
 import { useAppState } from '@/context/AppStateContext';
-import { formatDayOrderNumber, getDayOrders, getOverallAttendance, getScheduleSnapshot, getTotalMarks, getWeakestMark } from '@/lib/academia-ui';
+import { formatDayOrderNumber, getClassesForDay, getCurrentClassIndex, getDayOrders, getOverallAttendance, getScheduleSnapshot, getTotalMarks, getWeakestMark } from '@/lib/academia-ui';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 
@@ -31,19 +31,61 @@ export default function HomePage() {
     ? activeDayOrder
     : dayOrders[0] || activeDayOrder || 1;
   const currentTime = useCurrentTime();
+  const [manualDaySelection, setManualDaySelection] = useState(false);
 
   const overallAttendance = getOverallAttendance(attendance);
   const totalMarks = getTotalMarks(marks);
-  const schedule = useMemo(
+  const autoSchedule = useMemo(
     () => getScheduleSnapshot(timetable, dayOrder, dayOrders, currentTime),
     [currentTime, dayOrder, dayOrders, timetable],
   );
+  const manualSchedule = useMemo(() => {
+    const classes = getClassesForDay(timetable, dayOrder);
+    const currentIndex = getCurrentClassIndex(classes, currentTime);
+
+    if (currentIndex >= 0) {
+      return {
+        status: 'current' as const,
+        classItem: classes[currentIndex] ?? null,
+        activeDayOrder: dayOrder,
+        displayDayOrder: dayOrder,
+      };
+    }
+
+    const currentMinutes = (currentTime.getHours() * 60) + currentTime.getMinutes();
+    const upcomingClass = classes.find((item) => {
+      const [hours, minutes] = item.time.split('-')[0]?.trim().split(':').map(Number) ?? [];
+      if (Number.isNaN(hours) || Number.isNaN(minutes)) return false;
+      return ((hours * 60) + minutes) > currentMinutes;
+    }) ?? null;
+
+    if (upcomingClass) {
+      return {
+        status: 'upcoming' as const,
+        classItem: upcomingClass,
+        activeDayOrder: dayOrder,
+        displayDayOrder: dayOrder,
+      };
+    }
+
+    return {
+      status: classes.length ? 'manual' as const : 'none' as const,
+      classItem: classes[0] ?? null,
+      activeDayOrder: dayOrder,
+      displayDayOrder: dayOrder,
+    };
+  }, [currentTime, dayOrder, timetable]);
+  const schedule = manualDaySelection ? manualSchedule : autoSchedule;
   const featuredClass = schedule.classItem;
+  const featuredTitle = loading ? 'loading' : featuredClass?.courseTitle?.toLowerCase() || 'no class';
+  const displayedDayOrder = schedule.displayDayOrder ?? dayOrder;
   const backgroundDayOrder = formatDayOrderNumber(schedule.displayDayOrder ?? dayOrder);
   const scheduleHeading = schedule.status === 'current'
     ? 'current class / subject'
     : schedule.status === 'tomorrow'
       ? "tomorrow's first class"
+      : schedule.status === 'manual'
+        ? 'first class / subject'
       : 'next class / subject';
   const weakestMark = getWeakestMark(marks);
   const firstName = user?.name?.split(' ')[0]?.trim() || 'student';
@@ -65,6 +107,42 @@ export default function HomePage() {
     const hash = [...seed].reduce((total, char, index) => total + (char.charCodeAt(0) * (index + 1)), 0);
     return greetings[hash % greetings.length] || greetings[0];
   }, [greetings, profileName, user?.regNumber]);
+  const footerMessages = useMemo(
+    () => [
+      'Study. Survive. Repeat.',
+      'Still Passing?',
+      'Stay Cooked!',
+      "Don’t Fail.",
+      'Barely Surviving.',
+      'Academically Alive.',
+      'Built to Survive.',
+    ],
+    [],
+  );
+  const footerTitle = useMemo(() => {
+    const seed = `${user?.regNumber || ''}${profileName}footer`;
+    const hash = [...seed].reduce((total, char, index) => total + (char.charCodeAt(0) * (index + 3)), 0);
+    return footerMessages[hash % footerMessages.length] || footerMessages[0];
+  }, [footerMessages, profileName, user?.regNumber]);
+  const featuredTitleSizeClass = useMemo(() => {
+    const longestWord = featuredTitle
+      .split(/\s+/)
+      .reduce((longest, word) => Math.max(longest, word.length), 0);
+
+    if (longestWord >= 12) {
+      return 'text-[clamp(2.35rem,13.8vw,3.8rem)]';
+    }
+
+    if (longestWord >= 10) {
+      return 'text-[clamp(2.55rem,14.8vw,4.1rem)]';
+    }
+
+    if (longestWord >= 8) {
+      return 'text-[clamp(2.85rem,16vw,4.45rem)]';
+    }
+
+    return 'text-[clamp(3.2rem,18vw,5rem)]';
+  }, [featuredTitle]);
   const courseTitleMap = useMemo(
     () => new Map(attendance.map((item) => [item.courseCode, item.courseTitle])),
     [attendance],
@@ -84,6 +162,10 @@ export default function HomePage() {
         })),
     [courseTitleMap, marks],
   );
+  const handleDayOrderSelect = (selectedDayOrder: number) => {
+    setManualDaySelection(true);
+    setActiveDayOrder(selectedDayOrder);
+  };
 
   return (
     <PageReveal className="flex flex-col gap-8 pb-40 pt-4">
@@ -103,8 +185,8 @@ export default function HomePage() {
       <section className="-mx-4 overflow-x-auto px-4 pb-2">
         <DayOrderPills
           days={dayOrders.length ? dayOrders : [1, 2, 3, 4, 5]}
-          activeDayOrder={dayOrder}
-          onSelect={setActiveDayOrder}
+          activeDayOrder={manualDaySelection ? dayOrder : displayedDayOrder}
+          onSelect={handleDayOrderSelect}
         />
       </section>
 
@@ -126,9 +208,9 @@ export default function HomePage() {
           <span className="font-label text-[9px] font-bold uppercase tracking-widest text-secondary">{scheduleHeading}</span>
         </div>
 
-        <h2 className="mt-6 max-w-full break-words font-headline text-[clamp(3.4rem,21vw,5rem)] font-bold leading-[0.9] tracking-tight text-primary [overflow-wrap:anywhere]">
+        <h2 className={`mt-6 max-w-full pr-2 whitespace-normal break-normal font-headline font-bold leading-[0.92] tracking-tight text-primary [overflow-wrap:break-word] [word-break:normal] [hyphens:none] ${featuredTitleSizeClass}`}>
           <TextType
-            text={loading ? 'loading' : featuredClass?.courseTitle?.toLowerCase() || 'no class'}
+            text={featuredTitle}
             typingSpeed={32}
             startDelay={40}
           />
@@ -205,7 +287,7 @@ export default function HomePage() {
       </section>
 
       <RevealItem>
-        <HomeFooter />
+        <HomeFooter title={footerTitle} />
       </RevealItem>
     </PageReveal>
   );
