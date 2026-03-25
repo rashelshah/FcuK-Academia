@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
@@ -24,7 +24,7 @@ interface NavbarProps {
   onNavigate?: (href: string) => void;
 }
 
-export default function Navbar({ activePath, onNavigate }: NavbarProps) {
+function Navbar({ activePath, onNavigate }: NavbarProps) {
   const pathname = usePathname();
   const { themeConfig } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -156,3 +156,5 @@ export default function Navbar({ activePath, onNavigate }: NavbarProps) {
     </nav>
   );
 }
+
+export default memo(Navbar);
