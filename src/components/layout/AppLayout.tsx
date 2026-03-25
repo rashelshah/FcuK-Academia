@@ -35,11 +35,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const hideNav = HIDE_NAV_PATHS.includes(pathname);
   const isSwipeablePath = SWIPEABLE_PATHS.includes(pathname as typeof SWIPEABLE_PATHS[number]);
-  const routePath = isSwipeablePath ? pathname as typeof SWIPEABLE_PATHS[number] : '/';
+  const routePath = isSwipeablePath ? pathname as typeof SWIPEABLE_PATHS[number] : null;
   const [optimisticPath, setOptimisticPath] = useState<typeof SWIPEABLE_PATHS[number] | null>(null);
   const activePath = optimisticPath ?? routePath;
-  const activeTabIndex = SWIPEABLE_PATHS.indexOf(activePath);
-  const isSwipeableRoute = activeTabIndex !== -1;
+  const swipeActivePath = activePath ?? SWIPEABLE_PATHS[0];
+  const activeTabIndex = SWIPEABLE_PATHS.indexOf(swipeActivePath);
+  const isSwipeableRoute = activePath !== null && activeTabIndex !== -1;
+  const navActivePath = pathname.startsWith('/settings') ? '/settings' : pathname;
 
   useEffect(() => {
     SWIPEABLE_PATHS.forEach((path) => {
@@ -48,7 +50,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   useEffect(() => {
-    if (!optimisticPath || optimisticPath !== routePath) return;
+    if (!optimisticPath) return;
+    if (routePath && optimisticPath !== routePath) return;
 
     const frame = window.requestAnimationFrame(() => {
       setOptimisticPath(null);
@@ -60,12 +63,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [optimisticPath, routePath]);
 
   const navigateToPath = useCallback((nextPath: typeof SWIPEABLE_PATHS[number]) => {
-    if (!nextPath || nextPath === activePath) return;
+    if (!nextPath || nextPath === (activePath ?? navActivePath)) return;
     setOptimisticPath(nextPath);
     startTransition(() => {
       router.replace(nextPath, { scroll: false });
     });
-  }, [activePath, router]);
+  }, [activePath, navActivePath, router]);
 
   const handleSwipeNavigate = useCallback((href: string) => {
     if (SWIPEABLE_PATHS.includes(href as typeof SWIPEABLE_PATHS[number])) {
@@ -81,7 +84,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <IntroOverlay />
 
       {isSwipeableRoute ? (
-        <SwipeContainer activePath={activePath} screens={TAB_SCREENS} onNavigate={handleSwipeNavigate} />
+        <SwipeContainer activePath={swipeActivePath} screens={TAB_SCREENS} onNavigate={handleSwipeNavigate} />
       ) : (
         <main className="px-4 pt-6 sm:px-6 sm:pt-8">
           {children}
@@ -89,7 +92,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       <Navbar
-        activePath={isSwipeableRoute ? activePath : pathname}
+        activePath={isSwipeableRoute ? swipeActivePath : navActivePath}
         onNavigate={isSwipeableRoute ? handleSwipeNavigate : undefined}
       />
     </div>

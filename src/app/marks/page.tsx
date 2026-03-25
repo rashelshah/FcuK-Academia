@@ -75,30 +75,30 @@ export default function MarksPage() {
       <RevealItem>
         <GlowCard glowColor="error" borderStyle="dashed" className="mt-1 p-0">
           <div
-            className="rounded-[inherit] p-6"
+            className="rounded-[inherit] p-5"
             style={{
               background: 'linear-gradient(180deg, color-mix(in srgb, var(--error) 10%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 100%)',
             }}
           >
-            <AlertTriangle className="absolute right-6 top-6 h-7 w-7 text-error" />
-            <div className="mb-6 w-full text-left">
-              <h3 className="font-headline text-3xl font-bold lowercase tracking-tight text-error">you&apos;re cooked</h3>
-              <p className="mt-1 text-sm text-on-surface-variant">subjects requiring immediate trauma recovery</p>
+            <AlertTriangle className="absolute right-5 top-5 h-6 w-6 text-error" />
+            <div className="mb-4 w-full text-left pr-10">
+              <h3 className="font-headline text-[2rem] font-bold normal-case tracking-tight text-error">you&apos;re FcuKed</h3>
+              <p className="mt-1 text-[13px] leading-5 text-on-surface-variant">subjects requiring immediate trauma recovery</p>
             </div>
             <div
-              className="flex flex-col gap-5 rounded-[24px] p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6"
+              className="flex flex-col gap-3 rounded-[20px] p-4 sm:flex-row sm:items-end sm:justify-between sm:p-5"
               style={{
                 background: 'color-mix(in srgb, var(--surface-soft) 92%, transparent)',
                 border: '1px solid color-mix(in srgb, var(--error) 16%, transparent)',
               }}
             >
               <div className="min-w-0 flex-1 text-left">
-                <h4 className="font-headline text-[2rem] font-bold lowercase leading-[1] text-on-surface">{weakestSubjectName}</h4>
-                <p className="mt-1 font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                <h4 className="font-headline text-[1.65rem] font-bold lowercase leading-[0.96] text-on-surface">{weakestSubjectName}</h4>
+                <p className="mt-1 font-label text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">
                   {weakest ? `${weakest.category} / INTERNAL: ${weakest.total.obtained}/${weakest.total.maxMark}` : 'live data / internals stable'}
                 </p>
               </div>
-              <span className="shrink-0 self-start font-headline text-[4.2rem] font-bold leading-none tracking-tight text-error sm:self-auto sm:text-5xl">
+              <span className="shrink-0 self-start font-headline text-[3.4rem] font-bold leading-none tracking-tight text-error sm:self-auto sm:text-[3.8rem]">
                 {weakest && weakest.total.maxMark
                   ? (loading ? '0.0' : <CountUp value={(weakest.total.obtained / weakest.total.maxMark) * 100} decimals={1} />)
                   : '--'}

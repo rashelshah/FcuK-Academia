@@ -60,7 +60,7 @@ export default function LoginPage() {
           <div className="space-y-8">
             <div className="space-y-3">
               <p className="theme-kicker">secure portal</p>
-              <h1 className="font-headline text-5xl font-bold normal-case tracking-tight text-primary">FucK Academia</h1>
+              <h1 className="font-headline text-5xl font-bold normal-case tracking-tight text-primary">FcuK Academia</h1>
               <p className="text-sm text-on-surface-variant">
                 sign in with your SRM account to load live attendance, marks, timetable, and calendar data.
               </p>

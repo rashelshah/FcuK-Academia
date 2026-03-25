@@ -20,7 +20,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "FucK Academia",
+  title: "FcuK Academia",
   description: "the future of rebellious learning",
 };
 
