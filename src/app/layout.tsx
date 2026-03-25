@@ -22,6 +22,25 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "FcuK Academia",
   description: "the future of rebellious learning",
+  manifest: "/manifest.webmanifest",
+  themeColor: "#f5a24f",
+  icons: {
+    icon: [
+      { url: "/icons/browser%20logo.jpeg", type: "image/jpeg" },
+      { url: "/icons/android%20logo.jpeg", sizes: "512x512", type: "image/jpeg" },
+    ],
+    apple: [
+      { url: "/icons/ios%20new%20logo.jpeg", type: "image/jpeg" },
+    ],
+    shortcut: [
+      { url: "/icons/browser%20logo.jpeg", type: "image/jpeg" },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "FcuK Academia",
+  },
 };
 
 export default function RootLayout({
