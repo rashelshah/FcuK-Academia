@@ -35,6 +35,10 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
 
   const activeIndex = Math.max(0, screens.findIndex((screen) => screen.href === activePath));
 
+  const toggleSwipeMode = useCallback((active: boolean) => {
+    document.body.classList.toggle('is-swiping', active);
+  }, []);
+
   const setTrackTransition = useCallback((enabled: boolean) => {
     if (!trackRef.current) return;
     trackRef.current.style.transition = enabled ? 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)' : 'none';
@@ -63,8 +67,9 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
       if (frameRef.current !== null) {
         window.cancelAnimationFrame(frameRef.current);
       }
+      toggleSwipeMode(false);
     };
-  }, []);
+  }, [toggleSwipeMode]);
 
   useEffect(() => {
     const node = containerRef.current;
@@ -117,6 +122,9 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
       if (!gestureLockRef.current) {
         if (Math.abs(deltaX) < 6 && Math.abs(deltaY) < 6) return;
         gestureLockRef.current = Math.abs(deltaX) > Math.abs(deltaY) * DIRECTION_LOCK_RATIO ? 'x' : 'y';
+        if (gestureLockRef.current === 'x') {
+          toggleSwipeMode(true);
+        }
       }
 
       if (gestureLockRef.current !== 'x') return;
@@ -159,6 +167,7 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
       gestureLockRef.current = null;
       isDraggingRef.current = false;
       dragOffsetRef.current = 0;
+      toggleSwipeMode(false);
     };
 
     node.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -172,7 +181,7 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
       node.removeEventListener('touchend', handleTouchEnd);
       node.removeEventListener('touchcancel', handleTouchEnd);
     };
-  }, [activePath, applyTranslate, onNavigate, scheduleTranslate, screens, setTrackTransition]);
+  }, [applyTranslate, onNavigate, scheduleTranslate, screens, setTrackTransition, toggleSwipeMode]);
 
   return (
     <main
@@ -182,7 +191,7 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
     >
       <div
         ref={trackRef}
-        className="flex h-full will-change-transform"
+        className="swipe-track flex h-full will-change-transform"
         style={{ transform: 'translate3d(0, 0, 0)' }}
       >
         {screens.map(({ href, Component }) => (
@@ -190,10 +199,14 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
             key={href}
             aria-hidden={href !== activePath}
             className={cn(
-              'h-full shrink-0 overflow-y-auto overscroll-y-contain touch-pan-y px-4 pt-6 sm:px-6 sm:pt-8',
+              'swipe-screen h-full shrink-0 overflow-y-auto overscroll-y-contain touch-pan-y px-4 pt-6 sm:px-6 sm:pt-8',
               href !== activePath && 'pointer-events-none',
             )}
-            style={{ width: containerWidth ? `${containerWidth}px` : '100%' }}
+            style={{
+              width: containerWidth ? `${containerWidth}px` : '100%',
+              contain: 'layout paint size',
+              transform: 'translateZ(0)',
+            }}
           >
             <Component />
           </section>

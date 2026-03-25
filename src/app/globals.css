@@ -112,6 +112,30 @@
       box-shadow 0.4s ease,
       filter 0.35s ease;
   }
+
+  body.is-swiping {
+    --glow-primary: 0 0 20px rgba(185, 255, 63, 0.16);
+    --glow-secondary: 0 0 18px rgba(126, 247, 255, 0.14);
+    --glow-accent: 0 0 16px rgba(255, 138, 91, 0.12);
+    --elevation-soft: 0 10px 22px rgba(0, 0, 0, 0.24);
+    --elevation-card: 0 12px 28px rgba(0, 0, 0, 0.28);
+    --elevation-strong: 0 14px 34px rgba(0, 0, 0, 0.3);
+    --elevation-floating: 0 14px 34px rgba(0, 0, 0, 0.3), 0 0 20px rgba(185, 255, 63, 0.08);
+    --elevation-nav: 0 14px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(185, 255, 63, 0.08);
+  }
+
+  body.is-swiping * {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+  }
+
+  body.is-swiping .swipe-track,
+  body.is-swiping .swipe-screen {
+    transform: translateZ(0);
+  }
 }
 
 @layer components {
@@ -247,4 +271,3 @@
 .animate-glow-pulse {
   animation: glow-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
-
