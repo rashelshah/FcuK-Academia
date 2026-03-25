@@ -34,8 +34,8 @@ export default function HomePage() {
   const weakestMark = getWeakestMark(marks);
   const firstName = user?.name?.split(' ')[0]?.trim() || 'student';
   const profileName = firstName ? `${firstName.charAt(0).toUpperCase()}${firstName.slice(1).toLowerCase()}` : 'Student';
-  const greeting = useMemo(() => {
-    const greetings = [
+  const greetings = useMemo(
+    () => [
       `you made it, ${profileName}`,
       `ready to suffer, ${profileName}?`,
       `lock in, ${profileName}`,
@@ -43,13 +43,14 @@ export default function HomePage() {
       `cooked yet, ${profileName}?`,
       `FcuKed yet, ${profileName}?`,
       `don't fail today, ${profileName}`,
-    ];
-    const todayKey = new Date().toISOString().slice(0, 10);
-    const seed = `${profileName}-${todayKey}`;
-    const hash = Array.from(seed).reduce((total, char, index) => total + (char.charCodeAt(0) * (index + 1)), 0);
-
-    return greetings[hash % greetings.length];
-  }, [profileName]);
+    ],
+    [profileName],
+  );
+  const greeting = useMemo(() => {
+    const seed = `${user?.regNumber || ''}${profileName}`;
+    const hash = [...seed].reduce((total, char, index) => total + (char.charCodeAt(0) * (index + 1)), 0);
+    return greetings[hash % greetings.length] || greetings[0];
+  }, [greetings, profileName, user?.regNumber]);
   const courseTitleMap = useMemo(
     () => new Map(attendance.map((item) => [item.courseCode, item.courseTitle])),
     [attendance],

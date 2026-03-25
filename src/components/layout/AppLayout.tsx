@@ -31,13 +31,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
   const touchStartXRef = useRef(0);
   const touchStartYRef = useRef(0);
   const touchStartTimeRef = useRef(0);
   const gestureLockRef = useRef<'x' | 'y' | null>(null);
+  const dragOffsetRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const frameRef = useRef<number | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [dragOffset, setDragOffset] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
   const hideNav = HIDE_NAV_PATHS.includes(pathname);
   const isSwipeablePath = SWIPEABLE_PATHS.includes(pathname as typeof SWIPEABLE_PATHS[number]);
   const routePath = isSwipeablePath ? pathname as typeof SWIPEABLE_PATHS[number] : '/';
@@ -81,15 +83,52 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     };
   }, [isSwipeableRoute]);
 
+  useEffect(() => {
+    return () => {
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    dragOffsetRef.current = 0;
+    if (!trackRef.current) return;
+    trackRef.current.style.transition = 'transform 0.26s cubic-bezier(0.22, 1, 0.36, 1)';
+    const offset = containerWidth ? -(activeTabIndex * containerWidth) : 0;
+    trackRef.current.style.transform = `translate3d(${offset}px, 0, 0)`;
+  }, [activeTabIndex, containerWidth]);
+
   if (hideNav) {
     return <>{children}</>;
+  }
+
+  function setTrackTransition(enabled: boolean) {
+    if (!trackRef.current) return;
+    trackRef.current.style.transition = enabled ? 'transform 0.26s cubic-bezier(0.22, 1, 0.36, 1)' : 'none';
+  }
+
+  function applyTranslate(extraOffset = dragOffsetRef.current) {
+    if (!trackRef.current) return;
+    const offset = containerWidth ? -(activeTabIndex * containerWidth) + extraOffset : extraOffset;
+    trackRef.current.style.transform = `translate3d(${offset}px, 0, 0)`;
+  }
+
+  function scheduleTranslate(extraOffset: number) {
+    dragOffsetRef.current = extraOffset;
+    if (frameRef.current !== null) return;
+
+    frameRef.current = window.requestAnimationFrame(() => {
+      applyTranslate();
+      frameRef.current = null;
+    });
   }
 
   function navigateToPath(nextPath: typeof SWIPEABLE_PATHS[number]) {
     if (!nextPath || nextPath === activePath) return;
     setOptimisticPath(nextPath);
-    setDragOffset(0);
-    setIsDragging(false);
+    dragOffsetRef.current = 0;
+    isDraggingRef.current = false;
     startTransition(() => {
       router.replace(nextPath, { scroll: false });
     });
@@ -103,7 +142,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     touchStartXRef.current = touch.clientX;
     touchStartYRef.current = touch.clientY;
     touchStartTimeRef.current = performance.now();
-    setIsDragging(false);
+    isDraggingRef.current = false;
   }
 
   function handleTouchMove(event: React.TouchEvent<HTMLElement>) {
@@ -125,8 +164,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const atLastTab = activeTabIndex === SWIPEABLE_PATHS.length - 1 && deltaX < 0;
     const resistedOffset = atFirstTab || atLastTab ? deltaX * 0.32 : deltaX;
 
-    setIsDragging(true);
-    setDragOffset(resistedOffset);
+    isDraggingRef.current = true;
+    setTrackTransition(false);
+    scheduleTranslate(resistedOffset);
     event.preventDefault();
   }
 
@@ -143,33 +183,32 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       const nextIndex = activeTabIndex + (deltaX < 0 ? 1 : -1);
       const nextPath = SWIPEABLE_PATHS[nextIndex];
       if (nextPath) {
+        setTrackTransition(true);
         navigateToPath(nextPath);
       }
+    } else if (gestureLockRef.current === 'x' && isDraggingRef.current) {
+      setTrackTransition(true);
+      scheduleTranslate(0);
     }
 
     gestureLockRef.current = null;
-    setIsDragging(false);
-    setDragOffset(0);
+    isDraggingRef.current = false;
+    dragOffsetRef.current = 0;
   }
-
-  const translateX = containerWidth ? -(activeTabIndex * containerWidth) + dragOffset : dragOffset;
-
   return (
-    <div className="relative mx-auto min-h-screen w-full max-w-[28rem] overflow-x-hidden pb-40 sm:max-w-[34rem] lg:max-w-[44rem] xl:max-w-[52rem]">
+    <div className="relative mx-auto min-h-screen w-full max-w-[28rem] overflow-x-hidden sm:max-w-[34rem] lg:max-w-[44rem] xl:max-w-[52rem]">
       <IntroOverlay />
 
       {isSwipeableRoute ? (
         <main
           ref={containerRef}
-          className="relative h-[calc(100dvh-9.5rem)] min-h-[calc(100dvh-9.5rem)] overflow-hidden"
+          className="relative h-[100dvh] min-h-[100dvh] overflow-hidden"
           style={{ touchAction: 'pan-y' }}
         >
           <div
+            ref={trackRef}
             className="flex h-full will-change-transform"
-            style={{
-              transform: `translate3d(${translateX}px, 0, 0)`,
-              transition: isDragging ? 'none' : 'transform 0.3s ease-out',
-            }}
+            style={{ transform: 'translate3d(0, 0, 0)' }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
