@@ -136,6 +136,14 @@
   body.is-swiping .swipe-screen {
     transform: translateZ(0);
   }
+
+  .swipe-viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .swipe-screen {
+    scroll-snap-stop: always;
+  }
 }
 
 @layer components {

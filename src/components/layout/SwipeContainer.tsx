@@ -15,23 +15,17 @@ interface SwipeContainerProps {
   onNavigate: (href: string) => void;
 }
 
-const SWIPE_THRESHOLD_PX = 72;
-const SWIPE_VELOCITY_THRESHOLD = 0.35;
 const DIRECTION_LOCK_RATIO = 1.1;
 
 function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  const frameRef = useRef<number | null>(null);
+  const settleTimerRef = useRef<number | null>(null);
   const touchStartXRef = useRef(0);
   const touchStartYRef = useRef(0);
-  const touchStartTimeRef = useRef(0);
   const gestureLockRef = useRef<'x' | 'y' | null>(null);
-  const dragOffsetRef = useRef(0);
   const activeIndexRef = useRef(0);
-  const containerWidthRef = useRef(0);
-  const isDraggingRef = useRef(false);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const activePathRef = useRef(activePath);
+  const [viewportWidth, setViewportWidth] = useState(0);
 
   const activeIndex = Math.max(0, screens.findIndex((screen) => screen.href === activePath));
 
@@ -39,33 +33,14 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
     document.body.classList.toggle('is-swiping', active);
   }, []);
 
-  const setTrackTransition = useCallback((enabled: boolean) => {
-    if (!trackRef.current) return;
-    trackRef.current.style.transition = enabled ? 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)' : 'none';
-  }, []);
-
-  const applyTranslate = useCallback((index = activeIndexRef.current, extraOffset = dragOffsetRef.current) => {
-    if (!trackRef.current) return;
-    const width = containerWidthRef.current;
-    const offset = width ? -(index * width) + extraOffset : extraOffset;
-    trackRef.current.style.transform = `translate3d(${offset}px, 0, 0)`;
-  }, []);
-
-  const scheduleTranslate = useCallback((index = activeIndexRef.current, extraOffset = dragOffsetRef.current) => {
-    dragOffsetRef.current = extraOffset;
-
-    if (frameRef.current !== null) return;
-
-    frameRef.current = window.requestAnimationFrame(() => {
-      applyTranslate(index, dragOffsetRef.current);
-      frameRef.current = null;
-    });
-  }, [applyTranslate]);
+  useEffect(() => {
+    activePathRef.current = activePath;
+  }, [activePath]);
 
   useEffect(() => {
     return () => {
-      if (frameRef.current !== null) {
-        window.cancelAnimationFrame(frameRef.current);
+      if (settleTimerRef.current !== null) {
+        window.clearTimeout(settleTimerRef.current);
       }
       toggleSwipeMode(false);
     };
@@ -77,8 +52,7 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
 
     const updateWidth = () => {
       const nextWidth = node.clientWidth;
-      containerWidthRef.current = nextWidth;
-      setContainerWidth((current) => (current === nextWidth ? current : nextWidth));
+      setViewportWidth((current) => (current === nextWidth ? current : nextWidth));
     };
 
     updateWidth();
@@ -92,24 +66,42 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
 
   useLayoutEffect(() => {
     activeIndexRef.current = activeIndex;
-    dragOffsetRef.current = 0;
-    setTrackTransition(true);
-    applyTranslate(activeIndex, 0);
-  }, [activeIndex, applyTranslate, setTrackTransition]);
+    const node = containerRef.current;
+    if (!node) return;
+
+    const targetLeft = node.clientWidth * activeIndex;
+    if (Math.abs(node.scrollLeft - targetLeft) < 1) return;
+
+    node.scrollTo({
+      left: targetLeft,
+      behavior: 'smooth',
+    });
+  }, [activeIndex]);
 
   useEffect(() => {
     const node = containerRef.current;
     if (!node) return;
+
+    const commitCurrentScreen = () => {
+      const width = node.clientWidth || 1;
+      const nextIndex = Math.max(0, Math.min(screens.length - 1, Math.round(node.scrollLeft / width)));
+      const nextPath = screens[nextIndex]?.href;
+
+      activeIndexRef.current = nextIndex;
+      toggleSwipeMode(false);
+
+      if (nextPath && nextPath !== activePathRef.current) {
+        onNavigate(nextPath);
+      }
+    };
 
     const handleTouchStart = (event: TouchEvent) => {
       const touch = event.touches[0];
       if (!touch) return;
 
       gestureLockRef.current = null;
-      isDraggingRef.current = false;
       touchStartXRef.current = touch.clientX;
       touchStartYRef.current = touch.clientY;
-      touchStartTimeRef.current = performance.now();
     };
 
     const handleTouchMove = (event: TouchEvent) => {
@@ -122,96 +114,83 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
       if (!gestureLockRef.current) {
         if (Math.abs(deltaX) < 6 && Math.abs(deltaY) < 6) return;
         gestureLockRef.current = Math.abs(deltaX) > Math.abs(deltaY) * DIRECTION_LOCK_RATIO ? 'x' : 'y';
-        if (gestureLockRef.current === 'x') {
-          toggleSwipeMode(true);
-        }
       }
 
-      if (gestureLockRef.current !== 'x') return;
-
-      const atFirstTab = activeIndexRef.current === 0 && deltaX > 0;
-      const atLastTab = activeIndexRef.current === screens.length - 1 && deltaX < 0;
-      const resistedOffset = atFirstTab || atLastTab ? deltaX * 0.32 : deltaX;
-
-      isDraggingRef.current = true;
-      setTrackTransition(false);
-      scheduleTranslate(activeIndexRef.current, resistedOffset);
+      if (gestureLockRef.current === 'x') {
+        toggleSwipeMode(true);
+      }
     };
 
-    const handleTouchEnd = (event: TouchEvent) => {
-      const touch = event.changedTouches[0];
-      if (!touch) return;
+    const handleTouchEnd = () => {
+      gestureLockRef.current = null;
 
-      const deltaX = touch.clientX - touchStartXRef.current;
-      const elapsed = Math.max(1, performance.now() - touchStartTimeRef.current);
-      const velocityX = Math.abs(deltaX / elapsed);
+      if (settleTimerRef.current === null) {
+        window.setTimeout(() => {
+          toggleSwipeMode(false);
+        }, 120);
+      }
+    };
 
-      if (gestureLockRef.current === 'x' && (Math.abs(deltaX) > SWIPE_THRESHOLD_PX || velocityX > SWIPE_VELOCITY_THRESHOLD)) {
-        const nextIndex = activeIndexRef.current + (deltaX < 0 ? 1 : -1);
-        const nextScreen = screens[nextIndex];
+    const handleScroll = () => {
+      toggleSwipeMode(true);
 
-        if (nextScreen) {
-          activeIndexRef.current = nextIndex;
-          setTrackTransition(true);
-          applyTranslate(nextIndex, 0);
-          onNavigate(nextScreen.href);
-        } else {
-          setTrackTransition(true);
-          scheduleTranslate(activeIndexRef.current, 0);
-        }
-      } else if (gestureLockRef.current === 'x' && isDraggingRef.current) {
-        setTrackTransition(true);
-        scheduleTranslate(activeIndexRef.current, 0);
+      if (settleTimerRef.current !== null) {
+        window.clearTimeout(settleTimerRef.current);
       }
 
-      gestureLockRef.current = null;
-      isDraggingRef.current = false;
-      dragOffsetRef.current = 0;
-      toggleSwipeMode(false);
+      settleTimerRef.current = window.setTimeout(() => {
+        settleTimerRef.current = null;
+        commitCurrentScreen();
+      }, 90);
     };
 
     node.addEventListener('touchstart', handleTouchStart, { passive: true });
     node.addEventListener('touchmove', handleTouchMove, { passive: true });
     node.addEventListener('touchend', handleTouchEnd, { passive: true });
     node.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+    node.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
       node.removeEventListener('touchstart', handleTouchStart);
       node.removeEventListener('touchmove', handleTouchMove);
       node.removeEventListener('touchend', handleTouchEnd);
       node.removeEventListener('touchcancel', handleTouchEnd);
+      node.removeEventListener('scroll', handleScroll);
+
+      if (settleTimerRef.current !== null) {
+        window.clearTimeout(settleTimerRef.current);
+        settleTimerRef.current = null;
+      }
     };
-  }, [applyTranslate, onNavigate, scheduleTranslate, screens, setTrackTransition, toggleSwipeMode]);
+  }, [onNavigate, screens, toggleSwipeMode]);
 
   return (
     <main
       ref={containerRef}
-      className="relative h-[100dvh] min-h-[100dvh] overflow-hidden"
-      style={{ touchAction: 'pan-y' }}
+      className="swipe-viewport relative flex h-[100dvh] min-h-[100dvh] snap-x snap-mandatory overflow-x-auto overflow-y-hidden"
+      style={{
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}
     >
-      <div
-        ref={trackRef}
-        className="swipe-track flex h-full will-change-transform"
-        style={{ transform: 'translate3d(0, 0, 0)' }}
-      >
-        {screens.map(({ href, Component }) => (
-          <section
-            key={href}
-            aria-hidden={href !== activePath}
-            className={cn(
-              'swipe-screen h-full shrink-0 overflow-y-auto overscroll-y-contain touch-pan-y px-4 pt-6 sm:px-6 sm:pt-8',
-              href !== activePath && 'pointer-events-none',
-            )}
-            style={{
-              width: containerWidth ? `${containerWidth}px` : '100%',
-              contain: 'layout paint size',
-              transform: 'translateZ(0)',
-            }}
-          >
-            <Component />
-          </section>
-        ))}
-      </div>
+      {screens.map(({ href, Component }) => (
+        <section
+          key={href}
+          aria-hidden={href !== activePath}
+          className={cn(
+            'swipe-screen h-full min-w-full flex-[0_0_100%] snap-start overflow-y-auto overscroll-y-contain px-4 pt-6 sm:px-6 sm:pt-8',
+            href !== activePath && 'pointer-events-none',
+          )}
+          style={{
+            width: viewportWidth ? `${viewportWidth}px` : '100%',
+            contain: 'layout paint size',
+            transform: 'translateZ(0)',
+          }}
+        >
+          <Component />
+        </section>
+      ))}
     </main>
   );
 }
