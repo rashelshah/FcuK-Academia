@@ -11,15 +11,15 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#f5a24f',
     icons: [
       {
-        src: '/icons/android%20logo.jpeg',
-        sizes: '512x512',
-        type: 'image/jpeg',
+        src: '/icons/android-icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/icons/android%20logo.jpeg',
+        src: '/icons/android-icon-512.png',
         sizes: '512x512',
-        type: 'image/jpeg',
+        type: 'image/png',
         purpose: 'maskable',
       },
       {
