@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useMemo, useState } from 'react';
-import { Bell, ChevronRight, LogOut, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Bell, ChevronRight, LogOut, RefreshCw, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
 
 import AppHeader from '@/components/layout/AppHeader';
 import DayOrderSelector from '@/components/settings/DayOrderSelector';
@@ -19,14 +20,6 @@ import { getInteractiveMotion } from '@/lib/motion';
 import { useUser } from '@/hooks/useUser';
 import { cn } from '@/lib/utils';
 
-const privacyNotes = [
-  'We do not store your data in any database.',
-  'Your credentials are processed locally inside your session.',
-  'Attendance, timetable, and calendar data are fetched live from your college portal.',
-  'Local caching is only used to keep the app responsive.',
-  'Clearing your browser data removes every locally stored detail.',
-];
-
 export default function SettingsPage() {
   const { themeConfig } = useTheme();
   const { user, loading } = useUser();
@@ -36,6 +29,7 @@ export default function SettingsPage() {
   const motionProps = getInteractiveMotion(themeConfig.motion);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
   const compactCourse = getCompactCourseLabel(user);
 
   const syncLabel = useMemo(() => {
@@ -99,7 +93,7 @@ export default function SettingsPage() {
           title="theme system"
         />
 
-        <GlassCard className="space-y-5 p-5">
+        <GlassCard className="space-y-6 px-4 py-5">
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-1">
               <p className="theme-kicker">active theme</p>
@@ -138,55 +132,37 @@ export default function SettingsPage() {
           title="daily controls"
         />
 
-        <GlassCard className="space-y-3.5 p-5">
-          <ToggleRow
-            icon={Bell}
-            title="notifications"
-            subtitle={user?.mobile || 'Stay updated on class alerts'}
-            checked={notificationsEnabled}
-            onChange={() => setNotificationsEnabled((current) => !current)}
-            motionProps={motionProps}
-          />
-          <PreferenceLink
-            href="/settings/theme"
-            icon={Sparkles}
-            title="select theme"
-            subtitle={themeConfig.label}
-            motionProps={motionProps}
-          />
-          <SyncRow
-            syncing={refreshing}
-            onSync={handleSync}
-            motionProps={motionProps}
-          />
+        <GlassCard className="p-5">
+          <div className="flex flex-col gap-6">
+            <ToggleRow
+              icon={Bell}
+              title="notifications"
+              subtitle={user?.mobile || 'Stay updated on class alerts'}
+              checked={notificationsEnabled}
+              onChange={() => setNotificationsEnabled((current) => !current)}
+              motionProps={motionProps}
+            />
+            <PreferenceLink
+              href="/settings/theme"
+              icon={Sparkles}
+              title="select theme"
+              subtitle={themeConfig.label}
+              motionProps={motionProps}
+            />
+            <SyncRow
+              syncing={refreshing}
+              onSync={handleSync}
+              motionProps={motionProps}
+            />
+            <PrivacyRow
+              onOpen={() => setPrivacyOpen(true)}
+              motionProps={motionProps}
+            />
+          </div>
         </GlassCard>
       </section>
 
       <DayOrderSelector />
-
-      <section className="space-y-4">
-        <SectionHeading kicker="privacy" title="Privacy" />
-        <GlassCard className="space-y-3.5 p-5">
-          <div className="flex items-start gap-4">
-            <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[16px] border text-secondary"
-              style={{
-                borderColor: 'color-mix(in srgb, var(--secondary) 28%, transparent)',
-                background: 'color-mix(in srgb, var(--secondary) 12%, transparent)',
-              }}
-            >
-              <ShieldCheck size={18} />
-            </div>
-            <div className="space-y-2">
-              {privacyNotes.map((note) => (
-                <p key={note} className="text-sm leading-6 text-on-surface-variant">
-                  {note}
-                </p>
-              ))}
-            </div>
-          </div>
-        </GlassCard>
-      </section>
 
       <section className="space-y-4 pt-1">
         <Button variant="brutalist" fullWidth onClick={handleLogout} disabled={logoutLoading}>
@@ -197,6 +173,8 @@ export default function SettingsPage() {
           {user ? `${user.name.toLowerCase()} / ${user.regNumber}` : 'live SRM session'}
         </p>
       </section>
+
+      <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
     </div>
   );
 }
@@ -276,12 +254,12 @@ function PreferenceRow({
       whileHover={motionProps.whileHover}
       whileTap={motionProps.whileTap}
       transition={motionProps.transition}
-      className="flex items-center justify-between gap-4 rounded-[var(--radius-md)] border p-3.5"
+      className="flex items-start justify-between gap-4 rounded-[var(--radius-md)] border p-4"
       style={{ borderColor: 'var(--card-border)', background: 'color-mix(in srgb, var(--surface-soft) 90%, transparent)' }}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex min-w-0 items-start gap-4">
         <div
-          className={cn('flex h-10 w-10 items-center justify-center rounded-[16px] border', tone === 'secondary' ? 'text-secondary' : tone === 'primary' ? 'text-primary' : 'text-on-surface-variant')}
+          className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-[16px] border', tone === 'secondary' ? 'text-secondary' : tone === 'primary' ? 'text-primary' : 'text-on-surface-variant')}
           style={{
             borderColor: tone === 'secondary'
               ? 'color-mix(in srgb, var(--secondary) 28%, transparent)'
@@ -297,12 +275,14 @@ function PreferenceRow({
         >
           <Icon size={18} />
         </div>
-        <div>
+        <div className="min-w-0">
           <h3 className="font-headline text-lg font-bold text-on-surface">{title}</h3>
           <p className="mt-1 text-[13px] leading-5 text-on-surface-variant">{subtitle}</p>
         </div>
       </div>
-      {action ?? <ChevronRight size={18} className="shrink-0 text-on-surface-variant" />}
+      <div className="self-center shrink-0">
+        {action ?? <ChevronRight size={18} className="text-on-surface-variant" />}
+      </div>
     </motion.div>
   );
 }
@@ -329,12 +309,12 @@ function ToggleRow({
       whileHover={motionProps.whileHover}
       whileTap={motionProps.whileTap}
       transition={motionProps.transition}
-      className="flex w-full items-center justify-between gap-4 rounded-[var(--radius-md)] border p-3.5 text-left"
+      className="flex w-full items-start justify-between gap-4 rounded-[var(--radius-md)] border p-4 text-left"
       style={{ borderColor: 'var(--card-border)', background: 'color-mix(in srgb, var(--surface-soft) 90%, transparent)' }}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex min-w-0 items-start gap-4">
         <div
-          className="flex h-10 w-10 items-center justify-center rounded-[16px] border text-secondary"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[16px] border text-secondary"
           style={{
             borderColor: 'color-mix(in srgb, var(--secondary) 28%, transparent)',
             background: 'color-mix(in srgb, var(--secondary) 12%, transparent)',
@@ -342,14 +322,14 @@ function ToggleRow({
         >
           <Icon size={18} />
         </div>
-        <div>
+        <div className="min-w-0">
           <h3 className="font-headline text-lg font-bold text-on-surface">{title}</h3>
           <p className="mt-1 text-[13px] leading-5 text-on-surface-variant">{subtitle}</p>
         </div>
       </div>
 
       <div
-        className="flex h-7 w-12 items-center rounded-[var(--radius-pill)] px-1"
+        className="flex h-7 w-12 shrink-0 self-center items-center rounded-[var(--radius-pill)] px-1"
         style={{
           background: checked
             ? 'color-mix(in srgb, var(--secondary) 24%, transparent)'
@@ -389,12 +369,12 @@ function SyncRow({
       whileTap={syncing ? undefined : motionProps.whileTap}
       transition={motionProps.transition}
       disabled={syncing}
-      className="flex w-full items-center justify-between gap-4 rounded-[var(--radius-md)] border p-3.5 text-left disabled:cursor-not-allowed disabled:opacity-90"
+      className="flex w-full items-center justify-between gap-4 rounded-[var(--radius-md)] border px-4 py-3.5 text-left disabled:cursor-not-allowed disabled:opacity-90"
       style={{ borderColor: 'var(--card-border)', background: 'color-mix(in srgb, var(--surface-soft) 90%, transparent)' }}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex min-w-0 flex-1 items-center gap-4">
         <div
-          className="flex h-10 w-10 items-center justify-center rounded-[16px] border text-primary"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[16px] border text-primary"
           style={{
             borderColor: 'color-mix(in srgb, var(--primary) 28%, transparent)',
             background: 'color-mix(in srgb, var(--primary) 12%, transparent)',
@@ -402,7 +382,7 @@ function SyncRow({
         >
           <RefreshCw size={18} />
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <h3 className="font-headline text-lg font-bold text-on-surface">sync</h3>
           <p className="mt-1 text-[13px] leading-5 text-on-surface-variant">
             Refresh attendance, timetable, calendar, and session data.
@@ -412,7 +392,7 @@ function SyncRow({
 
       <motion.div
         layout
-        className="inline-flex min-w-[108px] items-center justify-center gap-2 rounded-[var(--radius-pill)] px-4 py-2 font-label text-[10px] font-bold uppercase tracking-[0.22em]"
+        className="inline-flex h-10 shrink-0 self-center items-center gap-2 whitespace-nowrap rounded-[var(--radius-pill)] px-4 py-2 font-label text-[10px] font-bold uppercase leading-none tracking-[0.22em]"
         style={{
           background: syncing
             ? 'color-mix(in srgb, var(--secondary) 18%, transparent)'
@@ -431,5 +411,132 @@ function SyncRow({
         <span>{syncing ? 'syncing...' : 'sync'}</span>
       </motion.div>
     </motion.button>
+  );
+}
+
+function PrivacyRow({
+  onOpen,
+  motionProps,
+}: {
+  onOpen: () => void;
+  motionProps: ReturnType<typeof getInteractiveMotion>;
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onOpen}
+      whileHover={motionProps.whileHover}
+      whileTap={motionProps.whileTap}
+      transition={motionProps.transition}
+      className="flex w-full items-start justify-between gap-4 rounded-[var(--radius-md)] border p-4 text-left"
+      style={{ borderColor: 'var(--card-border)', background: 'color-mix(in srgb, var(--surface-soft) 90%, transparent)' }}
+    >
+      <div className="flex min-w-0 items-start gap-4">
+        <div
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[16px] border text-secondary"
+          style={{
+            borderColor: 'color-mix(in srgb, var(--secondary) 28%, transparent)',
+            background: 'color-mix(in srgb, var(--secondary) 12%, transparent)',
+          }}
+        >
+          <ShieldCheck size={18} />
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-headline text-lg font-bold text-on-surface">privacy</h3>
+          <p className="mt-1 text-[13px] leading-5 text-on-surface-variant">
+            See exactly how your data is used inside the app.
+          </p>
+        </div>
+      </div>
+      <ChevronRight size={18} className="shrink-0 text-on-surface-variant" />
+    </motion.button>
+  );
+}
+
+function PrivacyModal({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const previousTouchAction = document.body.style.touchAction;
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.touchAction = previousTouchAction;
+    };
+  }, [open]);
+
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  return createPortal(
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          className="fixed inset-0 z-[999] flex min-h-screen w-full items-end justify-center overflow-hidden bg-black/70 backdrop-blur-md"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+        >
+          <motion.div
+            className="relative flex h-[100dvh] w-full max-w-[28rem] flex-col overflow-hidden border px-4 pb-6 pt-5 sm:max-w-[34rem] sm:px-6 lg:max-w-[44rem] xl:max-w-[52rem]"
+            style={{
+              background: 'linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, black 4%) 0%, color-mix(in srgb, var(--surface-soft) 94%, transparent) 100%)',
+              borderColor: 'var(--border-strong)',
+              boxShadow: '0 28px 80px rgba(0,0,0,0.45)',
+            }}
+            initial={{ y: '100%', opacity: 0.9 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: '100%', opacity: 0.9 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+          >
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-48 opacity-70" style={{ background: 'var(--hero-gradient)' }} />
+
+            <div className="relative z-10 flex items-start justify-between gap-4">
+              <div>
+                <p className="theme-kicker">privacy</p>
+                <h2 className="mt-2 font-headline text-[2.6rem] font-bold leading-[0.9] tracking-tight text-on-surface">
+                  privacy (no shady stuff)
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="theme-icon-button flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
+                aria-label="Close privacy details"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="relative z-10 mt-6 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-2">
+              <div
+                className="rounded-[32px] border p-5"
+                style={{
+                  background: 'color-mix(in srgb, var(--surface-soft) 92%, transparent)',
+                  borderColor: 'color-mix(in srgb, var(--secondary) 24%, var(--border))',
+                  boxShadow: 'var(--elevation-card)',
+                }}
+              >
+                <p className="text-base leading-8 text-on-surface-variant">
+                  we&apos;re not here to spy on you, just to make your academic life less painful. your SRM login is only used to pull your marks, attendance, and timetable in real-time so you don&apos;t have to deal with that clunky portal again. we don&apos;t store your data, we don&apos;t sell it, and we&apos;re definitely not tracking you around the internet like some weird stalker 💀. everything stays between you and the official API, and we simply display it in a way that actually makes sense. if you turn on notifications, expect only useful stuff like “you&apos;re cooked 💀” alerts or attendance warnings, never spam. your data stays yours, always. we&apos;re just the middleman making things look cool.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>,
+    document.body,
   );
 }
