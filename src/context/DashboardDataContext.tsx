@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 import { ApiError, clearCachedJson, fetchJson, peekCachedJson } from '@/lib/api/client';
 import type { DashboardData } from '@/lib/api/types';
@@ -21,6 +22,7 @@ interface DashboardDataContextValue {
 const DashboardDataContext = createContext<DashboardDataContextValue | undefined>(undefined);
 
 export function DashboardDataProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const cachedDashboard = peekCachedJson<DashboardData>('/api/dashboard');
   const [userInfo, setUserInfo] = useState<RawUserInfo | null>(cachedDashboard?.userInfo ?? null);
   const [attendance, setAttendance] = useState<RawAttendanceItem[]>(cachedDashboard?.attendance ?? []);
@@ -81,10 +83,15 @@ export function DashboardDataProvider({ children }: { children: React.ReactNode 
   }, [cachedDashboard]);
 
   useEffect(() => {
+    if (pathname === '/login') {
+      autoSyncStartedRef.current = false;
+      return;
+    }
+
     if (autoSyncStartedRef.current) return;
     autoSyncStartedRef.current = true;
     void loadDashboard({ forceRefresh: true, preserveLoading: Boolean(cachedDashboard) });
-  }, [cachedDashboard, loadDashboard]);
+  }, [cachedDashboard, loadDashboard, pathname]);
 
   return (
     <DashboardDataContext.Provider
