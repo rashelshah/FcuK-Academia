@@ -1,18 +1,19 @@
 'use client';
 
-import React from 'react';
-import { AlertTriangle, ListFilter, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { AlertTriangle, TrendingUp } from 'lucide-react';
 
 import AppHeader from '@/components/layout/AppHeader';
+import TargetGradeSheet, { TargetGradeTrigger } from '@/components/marks/TargetGradeSheet';
 import CountUp from '@/components/ui/CountUp';
-import GlassCard from '@/components/ui/GlassCard';
 import GlowCard from '@/components/ui/GlowCard';
 import SubjectCard from '@/components/dashboard/SubjectCard';
 import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
 import { useMarks } from '@/hooks/useMarks';
-import { getMarksPercentage, getWeakestMark, inferGrade } from '@/lib/academia-ui';
+import { getMarksPercentage, getWeakestMark } from '@/lib/academia-ui';
 
 export default function MarksPage() {
+  const [targetOpen, setTargetOpen] = useState(false);
   const { marks, markList, loading, error } = useMarks();
   const validMarkList = markList.filter((item) => item.total.maxMark > 0);
 
@@ -23,8 +24,6 @@ export default function MarksPage() {
   const weakestSubjectName = marks.find((subject) => subject.code === weakest?.course)?.name
     ?? weakest?.course?.toLowerCase()
     ?? 'no weak link';
-  const predictedGrade = inferGrade(percentage);
-  const probability = Math.min(97, Math.max(48, Math.round(percentage)));
 
   return (
     <PageReveal className="flex flex-col gap-6 pb-28 pt-4">
@@ -51,26 +50,6 @@ export default function MarksPage() {
           </span>
         </div>
       </section>
-
-      <RevealItem>
-        <GlassCard className="mt-2 flex flex-col justify-between p-6">
-          <div>
-            <h2 className="font-headline text-3xl font-bold lowercase tracking-tight text-on-surface">future grade prediction</h2>
-            <p className="mt-1 text-sm text-on-surface-variant">based on current trajectory</p>
-          </div>
-          <div className="mt-8 flex items-end justify-between gap-4">
-            <div>
-              <span className="inline-block font-headline text-6xl font-bold leading-none text-secondary">{predictedGrade}</span>
-              <p className="mt-2 font-label text-[10px] font-bold uppercase tracking-widest text-secondary/80">
-                probability {loading ? '0%' : <CountUp value={probability} suffix="%" />}
-              </p>
-            </div>
-            <button type="button" className="theme-outline-button px-5 py-3 font-label text-[10px] font-bold uppercase tracking-widest">
-              simulate
-            </button>
-          </div>
-        </GlassCard>
-      </RevealItem>
 
       <RevealItem>
         <GlowCard glowColor="error" borderStyle="dashed" className="mt-1 p-0">
@@ -110,9 +89,7 @@ export default function MarksPage() {
 
       <RevealText className="mt-6 flex items-center justify-between">
         <h2 className="font-headline text-4xl font-bold lowercase tracking-tight text-on-surface">academic breakdown</h2>
-        <div className="theme-icon-button flex items-center justify-center">
-          <ListFilter size={18} />
-        </div>
+        <TargetGradeTrigger onClick={() => setTargetOpen(true)} />
       </RevealText>
 
       {error ? <p className="text-sm text-error font-body">{error}</p> : null}
@@ -129,6 +106,8 @@ export default function MarksPage() {
           ))
         )}
       </div>
+
+      <TargetGradeSheet open={targetOpen} subjects={marks} onClose={() => setTargetOpen(false)} />
     </PageReveal>
   );
 }

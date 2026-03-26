@@ -33,6 +33,33 @@ export default function AttendancePage() {
       .sort((left, right) => left.attendance.percentage - right.attendance.percentage)[0] ?? null,
     [displayAttendance],
   );
+  const lowestMarginSubject = useMemo(
+    () => [...displayAttendance]
+      .map((item) => ({
+        ...item,
+        margin: Math.max(0, Math.floor((item.attendance.attended / 0.75) - item.attendance.total)),
+      }))
+      .sort((left, right) => {
+        if (left.margin !== right.margin) return left.margin - right.margin;
+        return left.attendance.percentage - right.attendance.percentage;
+      })[0] ?? null,
+    [displayAttendance],
+  );
+  const recoveryCount = useMemo(
+    () => (critical ? Math.max(0, Math.ceil((0.75 * critical.attendance.total - critical.attendance.attended) / 0.25)) : 0),
+    [critical],
+  );
+  const hasRequiredClasses = Boolean(critical);
+  const survivedBlue = '#67b7ff';
+  const summaryTitle = hasRequiredClasses ? "you're cooked" : 'you survived (for now)';
+  const summaryGlowColor = hasRequiredClasses ? 'error' : 'secondary';
+  const summaryAccentColor = hasRequiredClasses ? 'var(--error)' : survivedBlue;
+  const summaryBody = hasRequiredClasses
+    ? `${critical?.name.toLowerCase()} is below the 75% safety threshold`
+    : `${lowestMarginSubject?.name.toLowerCase() || 'all tracked courses'} has the least margin`;
+  const summaryValue = hasRequiredClasses ? recoveryCount : (lowestMarginSubject?.margin ?? 0);
+  const summaryMeta = hasRequiredClasses ? 'to recover' : 'margin left';
+  const summarySubject = hasRequiredClasses ? critical?.name.toLowerCase() : lowestMarginSubject?.name.toLowerCase();
   const sortedAttendance = useMemo(
     () => [...displayAttendance].sort((left, right) => {
       const componentPriority = left.attendanceComponent === right.attendanceComponent
@@ -77,29 +104,35 @@ export default function AttendancePage() {
       </section>
 
       <RevealItem>
-        <GlowCard glowColor="error" className="p-0">
+        <GlowCard
+          glowColor={summaryGlowColor}
+          className="p-0"
+          style={hasRequiredClasses ? undefined : { borderColor: `color-mix(in srgb, ${survivedBlue} 58%, transparent)` }}
+        >
           <div
             className="rounded-[inherit] px-6 py-7"
             style={{
-              background: 'linear-gradient(180deg, color-mix(in srgb, var(--error) 10%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 100%)',
+              background: hasRequiredClasses
+                ? 'linear-gradient(180deg, color-mix(in srgb, var(--error) 10%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 100%)'
+                : `linear-gradient(180deg, color-mix(in srgb, ${survivedBlue} 14%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 100%)`,
             }}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="max-w-[60%]">
-                <h3 className="font-headline text-2xl font-bold lowercase tracking-tight text-error">you&apos;re cooked</h3>
+                <h3 className="font-headline text-2xl font-bold lowercase tracking-tight" style={{ color: summaryAccentColor }}>{summaryTitle}</h3>
                 <p className="mt-1 pr-4 text-xs text-on-surface-variant">
-                  {critical ? `${critical.name.toLowerCase()} is below the 75% safety threshold` : 'all tracked courses are above threshold'}
+                  {summaryBody}
                 </p>
               </div>
               <div className="text-right">
-                <span className="block font-headline text-5xl font-bold leading-none text-error">
-                  {loading ? '0' : <CountUp value={critical ? Math.max(0, Math.ceil((0.75 * critical.attendance.total - critical.attendance.attended) / 0.25)) : 0} />}
+                <span className="block font-headline text-5xl font-bold leading-none" style={{ color: summaryAccentColor }}>
+                  {loading ? '0' : <CountUp value={summaryValue} />}
                 </span>
-                <span className="mt-1 block font-headline text-xl font-bold lowercase leading-none text-error">classes</span>
-                <span className="mt-2 block font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">to recover</span>
-                {critical ? (
+                <span className="mt-1 block font-headline text-xl font-bold lowercase leading-none" style={{ color: summaryAccentColor }}>classes</span>
+                <span className="mt-2 block font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">{summaryMeta}</span>
+                {summarySubject ? (
                   <span className="mt-3 block max-w-[8rem] text-[11px] leading-tight text-on-surface-variant">
-                    {critical.name.toLowerCase()}
+                    {summarySubject}
                   </span>
                 ) : null}
               </div>

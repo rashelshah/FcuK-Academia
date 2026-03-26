@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Bell, ChevronLeft } from 'lucide-react';
+import { ChevronLeft, RefreshCw } from 'lucide-react';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 import ProfileCardDialog from '@/components/ui/ProfileCardDialog';
 import UserAvatar from '@/components/ui/UserAvatar';
+import { useDashboardDataContext } from '@/context/DashboardDataContext';
 import { useTheme } from '@/context/ThemeContext';
 import { getInteractiveMotion } from '@/lib/motion';
 import { useUser } from '@/hooks/useUser';
@@ -29,12 +30,18 @@ export default function AppHeader({
   const pathname = usePathname();
   const { themeConfig } = useTheme();
   const { user } = useUser();
+  const { refreshing, refreshDashboard } = useDashboardDataContext();
   const motionProps = getInteractiveMotion(themeConfig.motion);
   const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     setProfileOpen(false);
   }, [pathname]);
+
+  async function handleSync() {
+    if (refreshing) return;
+    await refreshDashboard();
+  }
 
   const leading = backHref ? (
     <Link href={backHref} aria-label="Go back" className="flex items-center justify-center">
@@ -87,13 +94,23 @@ export default function AppHeader({
           {showBell ? (
             <motion.button
               type="button"
+              onClick={() => {
+                void handleSync();
+              }}
               whileHover={motionProps.whileHover}
               whileTap={motionProps.whileTap}
               transition={motionProps.transition}
               className="theme-icon-button flex items-center justify-center"
-              aria-label="Notifications"
+              aria-label={refreshing ? 'Syncing data' : 'Sync data'}
+              disabled={refreshing}
             >
-              <Bell size={18} className="text-primary" />
+              <motion.span
+                animate={refreshing ? { rotate: 360 } : { rotate: 0 }}
+                transition={refreshing ? { duration: 0.9, repeat: Infinity, ease: 'linear' } : { duration: 0.2 }}
+                className="flex items-center justify-center"
+              >
+                <RefreshCw size={18} className="text-primary" />
+              </motion.span>
             </motion.button>
           ) : null}
         </div>

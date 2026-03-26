@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 import { ApiError, clearCachedJson, fetchJson, peekCachedJson } from '@/lib/api/client';
 import type { DashboardData } from '@/lib/api/types';
@@ -30,8 +30,9 @@ export function DashboardDataProvider({ children }: { children: React.ReactNode 
   const [loading, setLoading] = useState(!cachedDashboard);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const autoSyncStartedRef = useRef(false);
 
-  async function loadDashboard(options?: { forceRefresh?: boolean; preserveLoading?: boolean }) {
+  const loadDashboard = useCallback(async (options?: { forceRefresh?: boolean; preserveLoading?: boolean }) => {
     const forceRefresh = options?.forceRefresh ?? false;
     const preserveLoading = options?.preserveLoading ?? false;
 
@@ -40,8 +41,10 @@ export function DashboardDataProvider({ children }: { children: React.ReactNode 
         setRefreshing(true);
         clearCachedJson('/api/dashboard');
         clearCachedJson('/api/calendar');
-      } else if (!preserveLoading) {
-        setLoading((current) => current && !cachedDashboard);
+      }
+
+      if (!preserveLoading) {
+        setLoading((current) => (forceRefresh ? true : current && !cachedDashboard));
       }
 
       setError(null);
@@ -75,46 +78,13 @@ export function DashboardDataProvider({ children }: { children: React.ReactNode 
         setRefreshing(false);
       }
     }
-  }
+  }, [cachedDashboard]);
 
   useEffect(() => {
-    let active = true;
-
-    async function hydrateDashboard() {
-      try {
-        setLoading((current) => current && !cachedDashboard);
-        setError(null);
-        const data = await fetchJson<DashboardData>(`/api/dashboard?ts=${Date.now()}`);
-        if (!active) return;
-
-        setUserInfo(data.userInfo);
-        setAttendance(data.attendance);
-        setMarkList(data.markList);
-        setTimetable(data.timetable);
-        setCalendar(data.calendar);
-      } catch (loadError) {
-        if (!active) return;
-
-        if (cachedDashboard) {
-          setUserInfo(cachedDashboard.userInfo);
-          setAttendance(cachedDashboard.attendance);
-          setMarkList(cachedDashboard.markList);
-          setTimetable(cachedDashboard.timetable);
-          setCalendar(cachedDashboard.calendar);
-          setError(null);
-        } else {
-          setError(loadError instanceof ApiError ? loadError.message : 'server error');
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-
-    hydrateDashboard();
-    return () => {
-      active = false;
-    };
-  }, [cachedDashboard]);
+    if (autoSyncStartedRef.current) return;
+    autoSyncStartedRef.current = true;
+    void loadDashboard({ forceRefresh: true, preserveLoading: Boolean(cachedDashboard) });
+  }, [cachedDashboard, loadDashboard]);
 
   return (
     <DashboardDataContext.Provider
