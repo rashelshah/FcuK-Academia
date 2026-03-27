@@ -159,7 +159,7 @@ export default function LoginPage() {
                   autoComplete="username"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="bs3341"
+                  placeholder=""
                   aria-invalid={!emailIsValid}
                   className="login-placeholder login-placeholder-email login-themed-input h-[34px] min-w-0 flex-1 bg-transparent text-[18px] font-semibold tracking-[-0.03em] outline-none"
                   style={{

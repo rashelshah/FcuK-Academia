@@ -27,70 +27,15 @@ export default function ProfileCardDialog({ open, onClose, user }: ProfileCardDi
     if (!open) return;
 
     const previousBodyOverflow = document.body.style.overflow;
-    const previousBodyTouchAction = document.body.style.touchAction;
     const previousHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
     document.documentElement.style.overflow = 'hidden';
-    let isClosing = false;
-    let touchStartX = 0;
-    let touchStartY = 0;
-
-    function requestClose(event?: Event) {
-      if (isClosing) return;
-      isClosing = true;
-      event?.preventDefault();
-      onClose();
-    }
-
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') requestClose();
-    }
-
-    function handleWheel(event: WheelEvent) {
-      if (Math.abs(event.deltaX) < 1 && Math.abs(event.deltaY) < 1) return;
-      requestClose(event);
-    }
-
-    function handleTouchStart(event: TouchEvent) {
-      const touch = event.touches[0];
-      if (!touch) return;
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
-    }
-
-    function handleTouchMove(event: TouchEvent) {
-      const touch = event.touches[0];
-      if (!touch) return;
-
-      const deltaX = Math.abs(touch.clientX - touchStartX);
-      const deltaY = Math.abs(touch.clientY - touchStartY);
-
-      if (deltaX < 8 && deltaY < 8) return;
-      requestClose(event);
-    }
-
-    function handleScroll() {
-      requestClose();
-    }
-
-    window.addEventListener('keydown', handleEscape);
-    window.addEventListener('wheel', handleWheel, { passive: false, capture: true });
-    window.addEventListener('touchstart', handleTouchStart, { passive: true, capture: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
-    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
 
     return () => {
       document.body.style.overflow = previousBodyOverflow;
-      document.body.style.touchAction = previousBodyTouchAction;
       document.documentElement.style.overflow = previousHtmlOverflow;
-      window.removeEventListener('keydown', handleEscape);
-      window.removeEventListener('wheel', handleWheel, true);
-      window.removeEventListener('touchstart', handleTouchStart, true);
-      window.removeEventListener('touchmove', handleTouchMove, true);
-      window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [onClose, open]);
+  }, [open]);
 
   return (
     <AnimatePresence>
@@ -101,7 +46,7 @@ export default function ProfileCardDialog({ open, onClose, user }: ProfileCardDi
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.22, ease: EASE_OUT }}
-          className="fixed inset-0 z-[140] flex items-center justify-center px-5"
+          className="fixed inset-0 z-[140] flex items-center justify-center px-5 py-5"
           style={{
             background: 'var(--overlay-backdrop)',
             backdropFilter: `blur(var(--overlay-blur))`,
@@ -121,7 +66,7 @@ export default function ProfileCardDialog({ open, onClose, user }: ProfileCardDi
             role="dialog"
             aria-modal="true"
             aria-label="Student ID card"
-            className="relative w-full max-w-sm overflow-hidden rounded-[34px] border"
+            className="relative max-h-[calc(100dvh-2.5rem)] w-full max-w-sm overflow-hidden rounded-[34px] border"
             style={{
               borderColor: 'var(--card-border)',
               background: 'var(--surface-card)',
@@ -131,7 +76,7 @@ export default function ProfileCardDialog({ open, onClose, user }: ProfileCardDi
             <div className="absolute left-1/2 top-0 z-10 h-5 w-20 -translate-x-1/2 rounded-b-[18px]" style={{ background: 'color-mix(in srgb, var(--surface-card-elevated) 90%, transparent)', borderLeft: '1px solid var(--card-border)', borderRight: '1px solid var(--card-border)', borderBottom: '1px solid var(--card-border)' }} />
             <div className="absolute left-5 right-5 top-5 z-0 h-28 rounded-[24px]" style={{ background: 'var(--hero-gradient)', opacity: 0.92 }} />
 
-            <div className="relative z-10 flex flex-col gap-5 p-5">
+            <div className="relative z-10 flex max-h-[calc(100dvh-2.5rem)] flex-col gap-5 overflow-y-auto overscroll-contain p-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-2">
                   <p className="theme-kicker">student id card</p>
