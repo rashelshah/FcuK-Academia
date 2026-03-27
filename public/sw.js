@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'fcuk-academia-v1';
+const CACHE_VERSION = 'fcuk-academia-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_CACHE = `${CACHE_VERSION}-offline`;
 const OFFLINE_URL = '/offline.html';

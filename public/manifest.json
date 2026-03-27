@@ -3,7 +3,7 @@
   "name": "FcuK Academia",
   "short_name": "Academia",
   "description": "the future of rebellious learning",
-  "start_url": "/",
+  "start_url": "/login?source=pwa",
   "scope": "/",
   "display": "standalone",
   "display_override": [
@@ -31,7 +31,7 @@
       "src": "/maskable-icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "maskable any"
     }
   ]
 }

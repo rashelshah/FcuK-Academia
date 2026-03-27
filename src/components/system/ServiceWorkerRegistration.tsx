@@ -8,7 +8,10 @@ export default function ServiceWorkerRegistration() {
     if (!('serviceWorker' in navigator)) return;
 
     const registerServiceWorker = () => {
-      void navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      void navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
+        updateViaCache: 'none',
+      });
     };
 
     if (document.readyState === 'complete') {

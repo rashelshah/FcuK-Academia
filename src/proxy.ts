@@ -4,6 +4,13 @@ import type { NextRequest } from 'next/server';
 import { SESSION_COOKIE } from '@/lib/auth-constants';
 
 const PUBLIC_PATHS = ['/login'];
+const PUBLIC_FILE_PATTERN = /\.[^/]+$/;
+const PUBLIC_PWA_PATHS = new Set([
+  '/manifest.json',
+  '/sw.js',
+  '/offline.html',
+  '/maskable-icon-512x512.png',
+]);
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -11,7 +18,8 @@ export function proxy(request: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname === '/favicon.ico' ||
-    /\.(?:png|jpg|jpeg|gif|svg|webp|ico|ttf|otf)$/.test(pathname);
+    PUBLIC_PWA_PATHS.has(pathname) ||
+    PUBLIC_FILE_PATTERN.test(pathname);
 
   if (isStatic) return NextResponse.next();
 
@@ -30,5 +38,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 };
