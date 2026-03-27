@@ -52,8 +52,8 @@ export function DashboardDataProvider({ children }: { children: React.ReactNode 
       setError(null);
 
       const query = forceRefresh
-        ? `/api/dashboard?refresh=1&ts=${Date.now()}`
-        : `/api/dashboard?ts=${Date.now()}`;
+        ? '/api/dashboard?refresh=1'
+        : '/api/dashboard';
       const data = await fetchJson<DashboardData>(query);
 
       setUserInfo(data.userInfo);
@@ -90,7 +90,13 @@ export function DashboardDataProvider({ children }: { children: React.ReactNode 
 
     if (autoSyncStartedRef.current) return;
     autoSyncStartedRef.current = true;
-    void loadDashboard({ forceRefresh: true, preserveLoading: Boolean(cachedDashboard) });
+
+    if (cachedDashboard) {
+      void loadDashboard({ forceRefresh: true, preserveLoading: true });
+      return;
+    }
+
+    void loadDashboard({ forceRefresh: false, preserveLoading: false });
   }, [cachedDashboard, loadDashboard, pathname]);
 
   return (

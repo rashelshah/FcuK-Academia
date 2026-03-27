@@ -22,7 +22,6 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "FcuK Academia",
   description: "the future of rebellious learning",
-  manifest: "/manifest.webmanifest",
   themeColor: "#f5a24f",
   icons: {
     icon: [

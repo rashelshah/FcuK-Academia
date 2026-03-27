@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { verifyPassword, verifyUser } from '@/lib/server/academia';
-import { applySessionCookie } from '@/lib/server/session';
+import { getCachedDashboardData } from '@/lib/server/dashboard-cache';
+import { verifyPassword } from '@/lib/server/academia';
+import { createSessionCookieValue, getSessionCookieOptions, getSessionIdFromCookieValue } from '@/lib/server/session';
+import { SESSION_COOKIE } from '@/lib/auth-constants';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,11 +19,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Password is required' }, { status: 400 });
     }
 
-    const verifiedUser = await verifyUser(email);
-    const { identifier, digest } = verifiedUser.data.lookup;
     const authResult = await verifyPassword({
-      identifier,
-      digest,
+      identifier: email,
       password,
     });
 
@@ -39,12 +38,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = NextResponse.json({ success: true });
-    return applySessionCookie(response, {
+    const session = {
       email,
       cookies: authResult.data.cookies,
       createdAt: Date.now(),
-    });
+    };
+    const cookieValue = createSessionCookieValue(session);
+    const response = NextResponse.json({ success: true });
+    response.cookies.set(SESSION_COOKIE, cookieValue, getSessionCookieOptions());
+
+    // Warm the dashboard snapshot asynchronously so the first post-login load can reuse it.
+    void getCachedDashboardData(getSessionIdFromCookieValue(cookieValue), session).catch(() => undefined);
+
+    return response;
   } catch {
     return NextResponse.json({ error: 'server error' }, { status: 500 });
   }

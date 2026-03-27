@@ -106,6 +106,14 @@ export async function setUserSession(session: UserSession) {
   return encodeSession(session);
 }
 
+export function createSessionCookieValue(session: UserSession) {
+  return encodeSession(session);
+}
+
+export function getSessionIdFromCookieValue(cookieValue: string) {
+  return createSessionId(cookieValue);
+}
+
 export async function updateUserSession(sessionId: string, session: UserSession) {
   void sessionId;
   return encodeSession(session);
@@ -172,6 +180,6 @@ export async function clearCurrentUserSession() {
 }
 
 export function applySessionCookie(response: NextResponse, session: UserSession) {
-  response.cookies.set(SESSION_COOKIE, encodeSession(session), getSessionCookieOptions());
+  response.cookies.set(SESSION_COOKIE, createSessionCookieValue(session), getSessionCookieOptions());
   return response;
 }
