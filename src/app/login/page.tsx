@@ -46,7 +46,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace('/');
+      window.location.replace('/');
     } catch {
       setError('server error');
     } finally {
