@@ -1,9 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Bell, ChevronRight, LogOut, RefreshCw, ShieldCheck, Sparkles, X } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import {
+  AnimatePresence,
+  motion,
+  useAnimationFrame,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+  useVelocity,
+} from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 
@@ -172,9 +181,104 @@ export default function SettingsPage() {
         <p className="text-center text-[10px] uppercase tracking-[0.24em] text-on-surface-variant/70">
           {user ? `${user.name.toLowerCase()} / ${user.regNumber}` : 'live SRM session'}
         </p>
+        <DeveloperFooter />
       </section>
 
       <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
+    </div>
+  );
+}
+
+function DeveloperFooter() {
+  const developerNames = 'Rashel Shah and Biswajit Sahu';
+  const sponsorNames = 'Kanhaiya Kumar and Aprit Pandey and Vidharv Thakur';
+
+  return (
+    <div className="mx-auto mt-2 mb-2 flex max-w-[19rem] flex-col items-center gap-1.5 overflow-hidden px-1">
+      <div className="flex max-w-full items-center justify-center gap-2">
+        <span className="shrink-0 text-[10px] font-medium uppercase tracking-[0.22em] text-on-surface-variant/55">
+          developed by:
+        </span>
+        <span className="whitespace-nowrap text-[10px] font-semibold tracking-[0.12em] text-on-surface">
+          {developerNames}
+        </span>
+      </div>
+
+      <div className="flex w-full items-center justify-center gap-2 overflow-hidden">
+        <span className="shrink-0 text-[10px] font-medium uppercase tracking-[0.22em] text-on-surface-variant/55">
+          sponsored by:
+        </span>
+        <SponsorTicker text={sponsorNames} />
+      </div>
+    </div>
+  );
+}
+
+function SponsorTicker({ text }: { text: string }) {
+  const { scrollY } = useScroll();
+  const rawVelocity = useVelocity(scrollY);
+  const smoothedVelocity = useSpring(rawVelocity, { damping: 44, stiffness: 220 });
+  const velocityFactor = useTransform(smoothedVelocity, [-1600, 0, 1600], [-2.2, 0, 2.2]);
+  const baseX = useMotionValue(0);
+  const [contentWidth, setContentWidth] = useState(0);
+  const contentRef = useRef<HTMLSpanElement | null>(null);
+  const directionFactor = useRef(-1);
+
+  useEffect(() => {
+    const node = contentRef.current;
+    if (!node) return;
+
+    const updateWidth = () => {
+      setContentWidth(node.getBoundingClientRect().width);
+    };
+
+    updateWidth();
+
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useAnimationFrame((_, delta) => {
+    if (!contentWidth) return;
+
+    const velocity = velocityFactor.get();
+    if (velocity < 0) {
+      directionFactor.current = -1;
+    } else if (velocity > 0) {
+      directionFactor.current = 1;
+    }
+
+    const baseMove = 0.038 * delta;
+    const boostedMove = baseMove * Math.max(1, Math.abs(velocity) * 1.35);
+    let next = baseX.get() + (directionFactor.current * boostedMove);
+
+    if (next <= -contentWidth) {
+      next += contentWidth;
+    } else if (next >= 0) {
+      next -= contentWidth;
+    }
+
+    baseX.set(next);
+  });
+
+  return (
+    <div className="relative h-4 min-w-0 flex-1 overflow-hidden">
+      <motion.div
+        className="absolute left-0 top-0 flex whitespace-nowrap text-[10px] font-medium tracking-[0.12em] text-on-surface will-change-transform"
+        style={{ x: baseX }}
+      >
+        <span ref={contentRef} className="pr-8">
+          {text}
+        </span>
+        <span className="pr-8" aria-hidden="true">
+          {text}
+        </span>
+        <span className="pr-8" aria-hidden="true">
+          {text}
+        </span>
+      </motion.div>
     </div>
   );
 }

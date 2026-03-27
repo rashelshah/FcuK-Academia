@@ -30,16 +30,17 @@ export default function AppHeader({
   const pathname = usePathname();
   const { themeConfig } = useTheme();
   const { user } = useUser();
-  const { refreshing, refreshDashboard } = useDashboardDataContext();
+  const { loading, refreshing, refreshDashboard } = useDashboardDataContext();
   const motionProps = getInteractiveMotion(themeConfig.motion);
   const [profileOpen, setProfileOpen] = useState(false);
+  const isSyncing = loading || refreshing;
 
   useEffect(() => {
     setProfileOpen(false);
   }, [pathname]);
 
   async function handleSync() {
-    if (refreshing) return;
+    if (isSyncing) return;
     await refreshDashboard();
   }
 
@@ -101,12 +102,12 @@ export default function AppHeader({
               whileTap={motionProps.whileTap}
               transition={motionProps.transition}
               className="theme-icon-button flex items-center justify-center"
-              aria-label={refreshing ? 'Syncing data' : 'Sync data'}
-              disabled={refreshing}
+              aria-label={isSyncing ? 'Syncing data' : 'Sync data'}
+              disabled={isSyncing}
             >
               <motion.span
-                animate={refreshing ? { rotate: 360 } : { rotate: 0 }}
-                transition={refreshing ? { duration: 0.9, repeat: Infinity, ease: 'linear' } : { duration: 0.2 }}
+                animate={isSyncing ? { rotate: 360 } : { rotate: 0 }}
+                transition={isSyncing ? { duration: 0.9, repeat: Infinity, ease: 'linear' } : { duration: 0.2 }}
                 className="flex items-center justify-center"
               >
                 <RefreshCw size={18} className="text-primary" />
