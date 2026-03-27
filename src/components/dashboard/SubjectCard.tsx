@@ -343,7 +343,7 @@ function MarksCardBack({
                   domain={[0, 'dataMax']}
                 />
                 <Tooltip content={<MarksTooltip lineColor={lineColor} />} cursor={{ stroke: 'rgba(165,175,157,0.18)' }} />
-                <Bar dataKey="max" fill="color-mix(in srgb, var(--surface-highlight) 92%, transparent)" radius={[8, 8, 8, 8]} maxBarSize={34} />
+                <Bar dataKey="obtained" fill="color-mix(in srgb, var(--surface-highlight) 92%, transparent)" radius={[8, 8, 8, 8]} maxBarSize={34} />
                 <Line
                   type="monotone"
                   dataKey="obtained"
@@ -389,15 +389,23 @@ function MarksTooltip({
   lineColor,
 }: {
   active?: boolean;
-  payload?: Array<{ value?: number; payload?: { max?: number } }>;
+  payload?: Array<{
+    dataKey?: string | number;
+    value?: number;
+    payload?: {
+      obtained?: number;
+      max?: number;
+    };
+  }>;
   label?: string;
   lineColor: string;
 }) {
   if (!active || !payload?.length) return null;
 
-  const point = payload[0];
-  const obtained = Number(point.value ?? 0);
-  const max = Number(point.payload?.max ?? 0);
+  const chartPoint = payload[0]?.payload;
+  const obtainedSeries = payload.find((entry) => entry.dataKey === 'obtained');
+  const obtained = Number(chartPoint?.obtained ?? obtainedSeries?.value ?? 0);
+  const max = Number(chartPoint?.max ?? 0);
 
   return (
     <div

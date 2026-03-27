@@ -23,7 +23,6 @@ type TargetSubject = {
   completedInternalMax: number;
   remainingInternalMax: number;
   totalInternalCap: number;
-  currentRecordedPercentage: number;
   isFullyInternal: boolean;
   semesterExamMax: number;
 };
@@ -36,16 +35,7 @@ const GRADE_OPTIONS: GradeOption[] = [
   { label: 'B', min: 56, points: 6 },
   { label: 'C', min: 50, points: 5 },
 ];
-
-function inferGradeLabel(score: number) {
-  if (score >= 91) return 'O';
-  if (score >= 81) return 'A+';
-  if (score >= 71) return 'A';
-  if (score >= 61) return 'B+';
-  if (score >= 56) return 'B';
-  if (score >= 50) return 'C';
-  return 'F';
-}
+const DEFAULT_TARGET_GRADE_MIN = GRADE_OPTIONS.find((grade) => grade.label === 'A')?.min ?? 71;
 
 function getGradePoints(label: string) {
   return GRADE_OPTIONS.find((grade) => grade.label === label)?.points ?? 0;
@@ -79,7 +69,6 @@ function buildTargetSubject(subject: Subject): TargetSubject {
   const isFullyInternal = inferFullyInternal(subject);
   const totalInternalCap = isFullyInternal ? 100 : 60;
   const remainingInternalMax = Math.max(0, totalInternalCap - completedInternalMax);
-  const currentRecordedPercentage = completedInternalMax > 0 ? (currentInternals / completedInternalMax) * 100 : 0;
 
   return {
     id: subject.id,
@@ -90,7 +79,6 @@ function buildTargetSubject(subject: Subject): TargetSubject {
     completedInternalMax,
     remainingInternalMax,
     totalInternalCap,
-    currentRecordedPercentage,
     isFullyInternal,
     semesterExamMax: isFullyInternal ? 0 : 75,
   };
@@ -129,7 +117,9 @@ function TargetGradeSheetContent({
     ? activeSubjectId
     : (targetSubjects[0]?.id ?? null);
   const activeSubject = targetSubjects.find((subject) => subject.id === resolvedActiveSubjectId) ?? null;
-  const currentTargetGrade = activeSubject ? (targetGrades[activeSubject.id] ?? 71) : 71;
+  const currentTargetGrade = activeSubject
+    ? (targetGrades[activeSubject.id] ?? DEFAULT_TARGET_GRADE_MIN)
+    : DEFAULT_TARGET_GRADE_MIN;
   const maxExpectedMarks = activeSubject
     ? activeSubject.remainingInternalMax
     : 0;
@@ -147,19 +137,21 @@ function TargetGradeSheetContent({
     : 0;
 
   const projectedSgpa = useMemo(() => {
-    const consideredSubjects = targetSubjects.filter((subject) => subject.credits > 0);
-    const totalCredits = consideredSubjects.reduce((sum, subject) => sum + subject.credits, 0);
-    if (!totalCredits) return '0.00';
+    let totalCredits = 0;
+    let totalWeightedPoints = 0;
 
-    const totalPoints = consideredSubjects.reduce((sum, subject) => {
-      const explicitTarget = targetGrades[subject.id];
-      const gradeLabel = explicitTarget
-        ? (GRADE_OPTIONS.find((grade) => grade.min === explicitTarget)?.label ?? 'O')
-        : inferGradeLabel(subject.currentRecordedPercentage);
-      return sum + (subject.credits * getGradePoints(gradeLabel));
-    }, 0);
+    targetSubjects.forEach((subject) => {
+      if (subject.credits <= 0) return;
 
-    return (totalPoints / totalCredits).toFixed(2);
+      const resolvedGradeMin = targetGrades[subject.id] ?? DEFAULT_TARGET_GRADE_MIN;
+      const gradeLabel = GRADE_OPTIONS.find((grade) => grade.min === resolvedGradeMin)?.label ?? 'A';
+      const gradePoints = getGradePoints(gradeLabel);
+
+      totalCredits += subject.credits;
+      totalWeightedPoints += gradePoints * subject.credits;
+    });
+
+    return totalCredits ? (totalWeightedPoints / totalCredits).toFixed(2) : '0.00';
   }, [targetGrades, targetSubjects]);
 
   const neededMessage = !activeSubject

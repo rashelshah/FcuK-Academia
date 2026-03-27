@@ -24,17 +24,69 @@ export default function ProfileCardDialog({ open, onClose, user }: ProfileCardDi
   useEffect(() => {
     if (!open) return;
 
-    const previousOverflow = document.body.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyTouchAction = document.body.style.touchAction;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    document.documentElement.style.overflow = 'hidden';
+    let isClosing = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    function requestClose(event?: Event) {
+      if (isClosing) return;
+      isClosing = true;
+      event?.preventDefault();
+      onClose();
+    }
 
     function handleEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') requestClose();
+    }
+
+    function handleWheel(event: WheelEvent) {
+      if (Math.abs(event.deltaX) < 1 && Math.abs(event.deltaY) < 1) return;
+      requestClose(event);
+    }
+
+    function handleTouchStart(event: TouchEvent) {
+      const touch = event.touches[0];
+      if (!touch) return;
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    }
+
+    function handleTouchMove(event: TouchEvent) {
+      const touch = event.touches[0];
+      if (!touch) return;
+
+      const deltaX = Math.abs(touch.clientX - touchStartX);
+      const deltaY = Math.abs(touch.clientY - touchStartY);
+
+      if (deltaX < 8 && deltaY < 8) return;
+      requestClose(event);
+    }
+
+    function handleScroll() {
+      requestClose();
     }
 
     window.addEventListener('keydown', handleEscape);
+    window.addEventListener('wheel', handleWheel, { passive: false, capture: true });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true, capture: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.touchAction = previousBodyTouchAction;
+      document.documentElement.style.overflow = previousHtmlOverflow;
       window.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('wheel', handleWheel, true);
+      window.removeEventListener('touchstart', handleTouchStart, true);
+      window.removeEventListener('touchmove', handleTouchMove, true);
+      window.removeEventListener('scroll', handleScroll, true);
     };
   }, [onClose, open]);
 
