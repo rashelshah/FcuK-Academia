@@ -77,6 +77,15 @@
     scroll-behavior: smooth;
   }
 
+  html[data-app-visible='false'] .app-shell {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  html[data-app-visible='true'] .app-shell {
+    opacity: 1;
+  }
+
   body {
     @apply bg-background text-on-surface font-body;
     min-height: 100dvh;

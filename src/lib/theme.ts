@@ -1101,7 +1101,9 @@ export function getThemeBootstrapScript(initialTheme: ThemeType = defaultTheme) 
 
         root.dataset.theme = theme;
         root.dataset.themeMode = modes[theme] || 'dark';
-        root.dataset.introSeen = localStorage.getItem(introKey) === 'true' ? 'true' : 'false';
+        const introSeen = sessionStorage.getItem(introKey) === 'true';
+        root.dataset.introSeen = introSeen ? 'true' : 'false';
+        root.dataset.appVisible = introSeen ? 'true' : 'false';
         root.style.colorScheme = root.dataset.themeMode;
         root.classList.toggle('dark', root.dataset.themeMode === 'dark');
         localStorage.setItem(storageKey, theme);

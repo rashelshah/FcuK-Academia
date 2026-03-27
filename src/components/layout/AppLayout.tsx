@@ -81,18 +81,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="relative mx-auto min-h-screen w-full max-w-[28rem] overflow-x-hidden sm:max-w-[34rem] lg:max-w-[44rem] xl:max-w-[52rem]">
       <IntroOverlay />
 
-      {isSwipeableRoute ? (
-        <SwipeContainer activePath={swipeActivePath} screens={TAB_SCREENS} onNavigate={handleSwipeNavigate} />
-      ) : (
-        <main className="px-4 pt-6 sm:px-6 sm:pt-8">
-          {children}
-        </main>
-      )}
+      <div className="app-shell transition-opacity duration-300">
+        {isSwipeableRoute ? (
+          <SwipeContainer activePath={swipeActivePath} screens={TAB_SCREENS} onNavigate={handleSwipeNavigate} />
+        ) : (
+          <main className="px-4 pt-6 sm:px-6 sm:pt-8">
+            {children}
+          </main>
+        )}
 
-      <Navbar
-        activePath={isSwipeableRoute ? swipeActivePath : navActivePath}
-        onNavigate={isSwipeableRoute ? handleNavbarNavigate : undefined}
-      />
+        <Navbar
+          activePath={isSwipeableRoute ? swipeActivePath : navActivePath}
+          onNavigate={isSwipeableRoute ? handleNavbarNavigate : undefined}
+        />
+      </div>
     </div>
   );
 }

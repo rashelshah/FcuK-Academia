@@ -51,7 +51,7 @@ function resolveIntroState() {
   }
 
   if (typeof window !== 'undefined') {
-    return localStorage.getItem(INTRO_STORAGE_KEY) !== 'true';
+    return sessionStorage.getItem(INTRO_STORAGE_KEY) !== 'true';
   }
 
   return false;
@@ -109,13 +109,19 @@ export function ThemeProvider({
     return () => window.cancelAnimationFrame(frameId);
   }, []);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.dataset.appVisible = showIntro ? 'false' : 'true';
+  }, [showIntro]);
+
   function dismissIntro() {
     setShowIntro(false);
     if (typeof window !== 'undefined') {
-      localStorage.setItem(INTRO_STORAGE_KEY, 'true');
+      sessionStorage.setItem(INTRO_STORAGE_KEY, 'true');
     }
     if (typeof document !== 'undefined') {
       document.documentElement.dataset.introSeen = 'true';
+      document.documentElement.dataset.appVisible = 'true';
     }
   }
 
