@@ -161,6 +161,7 @@
     box-shadow: var(--elevation-card);
     position: relative;
     overflow: hidden;
+    isolation: isolate;
     transition:
       background-color 0.35s ease,
       border-color 0.35s ease,
@@ -173,6 +174,7 @@
     inset: 0;
     background: var(--surface-gradient);
     pointer-events: none;
+    z-index: -1;
   }
 
   .theme-panel {

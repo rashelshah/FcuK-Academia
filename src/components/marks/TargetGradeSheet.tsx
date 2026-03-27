@@ -105,7 +105,7 @@ export function TargetGradeTrigger({
     <button
       type="button"
       onClick={onClick}
-      className="theme-outline-button inline-flex items-center gap-2 px-4 py-2.5 font-label text-[10px] font-bold uppercase tracking-[0.26em]"
+      className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-primary px-5 py-2.5 font-label text-[10px] font-bold uppercase tracking-[0.26em] text-[var(--text-inverse)] shadow-[var(--glow-primary)] transition-all active:scale-95"
     >
       <Calculator className="h-3.5 w-3.5" />
       target

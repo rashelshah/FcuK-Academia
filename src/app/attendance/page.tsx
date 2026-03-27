@@ -153,7 +153,10 @@ export default function AttendancePage() {
               }
               setPredictOpen(true);
             }}
-            className="theme-outline-button px-4 py-3 font-label text-[10px] font-bold uppercase tracking-widest"
+            className={predictedAttendance
+              ? "theme-outline-button px-4 py-3 font-label text-[10px] font-bold uppercase tracking-widest"
+              : "rounded-[var(--radius-pill)] bg-primary px-5 py-3 font-label text-[10px] font-bold uppercase tracking-widest text-[var(--text-inverse)] shadow-[var(--glow-primary)] transition-all active:scale-95"
+            }
           >
             {predictedAttendance ? <X size={14} /> : 'predict'}
           </button>

@@ -325,8 +325,8 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
       secondary: '#4b7bb8',
       accent: '#73b7ff',
       text: '#162230',
-      textMuted: '#566677',
-      textSubtle: '#7a8898',
+      textMuted: '#3d4f63',
+      textSubtle: '#596d80',
       textInverse: '#f8fbff',
       success: '#2d9f67',
       warning: '#d18b34',
@@ -356,7 +356,7 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     },
     effects: {
       pageGradient: 'radial-gradient(circle at 12% 10%, rgba(115, 183, 255, 0.14), transparent 26%), radial-gradient(circle at 88% 10%, rgba(220, 233, 247, 0.7), transparent 22%), linear-gradient(180deg, #f7f9fc 0%, #f1f5fa 52%, #edf2f7 100%)',
-      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.86) 0%, rgba(255,255,255,0.56) 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.12) 100%)',
       heroGradient: 'linear-gradient(135deg, rgba(31, 63, 102, 0.08), rgba(115, 183, 255, 0.12) 62%, rgba(255, 255, 255, 0.72) 100%)',
     },
     motion: motionPresets.lightMinimal,
@@ -382,8 +382,8 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
       secondary: '#a495dc',
       accent: '#f1abbb',
       text: '#46312b',
-      textMuted: '#8c736b',
-      textSubtle: '#af958c',
+      textMuted: '#6b5249',
+      textSubtle: '#8a7069',
       textInverse: '#fff8f3',
       success: '#76b88f',
       warning: '#d7a65f',
@@ -413,7 +413,7 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     },
     effects: {
       pageGradient: 'radial-gradient(circle at 14% 10%, rgba(241, 171, 187, 0.24), transparent 24%), radial-gradient(circle at 86% 10%, rgba(164, 149, 220, 0.18), transparent 24%), linear-gradient(180deg, #fbf3ee 0%, #f8eee6 52%, #f4e7df 100%)',
-      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.74) 0%, rgba(255,255,255,0.44) 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.12) 100%)',
       heroGradient: 'linear-gradient(135deg, rgba(241, 171, 187, 0.18), rgba(164, 149, 220, 0.16) 58%, rgba(255, 255, 255, 0.68) 100%)',
     },
     motion: motionPresets.claySoft,
@@ -439,8 +439,8 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
       secondary: '#f49db7',
       accent: '#ffc0a8',
       text: '#442842',
-      textMuted: '#866d83',
-      textSubtle: '#a88ea3',
+      textMuted: '#674f64',
+      textSubtle: '#876e84',
       textInverse: '#fff8fe',
       success: '#7dbd99',
       warning: '#d89967',
@@ -470,7 +470,7 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     },
     effects: {
       pageGradient: 'radial-gradient(circle at 16% 10%, rgba(244, 157, 183, 0.24), transparent 24%), radial-gradient(circle at 84% 10%, rgba(161, 108, 245, 0.18), transparent 22%), linear-gradient(180deg, #fff7fb 0%, #fff1f5 54%, #ffedf2 100%)',
-      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.74) 0%, rgba(255,255,255,0.44) 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.12) 100%)',
       heroGradient: 'linear-gradient(135deg, rgba(161, 108, 245, 0.16), rgba(244, 157, 183, 0.18) 52%, rgba(255, 192, 168, 0.14) 100%)',
     },
     motion: motionPresets.elegantFloat,
@@ -664,8 +664,8 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
       secondary: '#9c7cff',
       accent: '#c5b0ff',
       text: '#33264d',
-      textMuted: '#615676',
-      textSubtle: '#807392',
+      textMuted: '#4a3e60',
+      textSubtle: '#655882',
       textInverse: '#faf7ff',
       success: '#6db991',
       warning: '#daaa66',
@@ -695,7 +695,7 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     },
     effects: {
       pageGradient: 'radial-gradient(circle at 14% 8%, rgba(156, 124, 255, 0.18), transparent 24%), radial-gradient(circle at 86% 10%, rgba(213, 109, 146, 0.12), transparent 20%), linear-gradient(180deg, #fdfbff 0%, #f7f3ff 52%, #f2edff 100%)',
-      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.5) 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.14) 100%)',
       heroGradient: 'linear-gradient(135deg, rgba(156, 124, 255, 0.18), rgba(120, 82, 216, 0.14) 52%, rgba(197, 176, 255, 0.12) 100%)',
     },
     motion: motionPresets.elegantFloat,
@@ -720,8 +720,8 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
       secondary: '#f6a88e',
       accent: '#ffcfbf',
       text: '#34263b',
-      textMuted: '#66556d',
-      textSubtle: '#87758c',
+      textMuted: '#524158',
+      textSubtle: '#6d5e75',
       textInverse: '#fff9f7',
       success: '#6fb489',
       warning: '#d79558',
@@ -751,7 +751,7 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     },
     effects: {
       pageGradient: 'radial-gradient(circle at 12% 10%, rgba(246, 168, 142, 0.2), transparent 24%), radial-gradient(circle at 84% 8%, rgba(122, 86, 223, 0.16), transparent 22%), linear-gradient(180deg, #fffaf8 0%, #fff3ef 52%, #ffede8 100%)',
-      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.48) 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.14) 100%)',
       heroGradient: 'linear-gradient(135deg, rgba(122, 86, 223, 0.16), rgba(246, 168, 142, 0.18) 52%, rgba(255, 207, 191, 0.14) 100%)',
     },
     motion: motionPresets.elegantFloat,
@@ -776,8 +776,8 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
       secondary: '#7fd6bf',
       accent: '#9fe7d4',
       text: '#19312d',
-      textMuted: '#49625d',
-      textSubtle: '#6d8580',
+      textMuted: '#37514c',
+      textSubtle: '#566f6a',
       textInverse: '#f7fffd',
       success: '#3ca874',
       warning: '#c79242',
@@ -807,7 +807,7 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     },
     effects: {
       pageGradient: 'radial-gradient(circle at 14% 10%, rgba(127, 214, 191, 0.18), transparent 24%), radial-gradient(circle at 86% 10%, rgba(211, 223, 224, 0.5), transparent 24%), linear-gradient(180deg, #f8fcfc 0%, #f1f8f7 52%, #edf4f3 100%)',
-      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.84) 0%, rgba(255,255,255,0.58) 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0.16) 100%)',
       heroGradient: 'linear-gradient(135deg, rgba(44, 117, 103, 0.08), rgba(127, 214, 191, 0.12) 58%, rgba(255, 255, 255, 0.74) 100%)',
     },
     motion: motionPresets.freshBreeze,
@@ -833,8 +833,8 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
       secondary: '#dca28d',
       accent: '#f4b7c2',
       text: '#432c32',
-      textMuted: '#70555d',
-      textSubtle: '#8d737a',
+      textMuted: '#5c4249',
+      textSubtle: '#755c64',
       textInverse: '#fff8f9',
       success: '#78b38e',
       warning: '#d39b56',
@@ -864,7 +864,7 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     },
     effects: {
       pageGradient: 'radial-gradient(circle at 14% 10%, rgba(244, 183, 194, 0.18), transparent 24%), radial-gradient(circle at 86% 10%, rgba(220, 162, 141, 0.14), transparent 22%), linear-gradient(180deg, #fffaf8 0%, #fff4f1 54%, #f9efeb 100%)',
-      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.48) 100%)',
+      surfaceGradient: 'linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.14) 100%)',
       heroGradient: 'linear-gradient(135deg, rgba(183, 108, 130, 0.12), rgba(244, 183, 194, 0.18) 52%, rgba(220, 162, 141, 0.16) 100%)',
     },
     motion: motionPresets.elegantFloat,
@@ -946,9 +946,9 @@ function getAccessibleTokens(theme: ThemeDefinition) {
   const lightText = '#f8fbff';
   const darkText = '#18222f';
   const mutedLightText = '#d6deea';
-  const mutedDarkText = '#435365';
+  const mutedDarkText = '#3a4b5c';
   const subtleLightText = '#a6b5c7';
-  const subtleDarkText = '#647487';
+  const subtleDarkText = '#546476';
 
   const resolvedText = ensureContrast(
     theme.colors.text,
@@ -959,14 +959,14 @@ function getAccessibleTokens(theme: ThemeDefinition) {
 
   const resolvedTextMuted = ensureContrast(
     theme.colors.textMuted,
-    theme.colors.backgroundAlt,
+    theme.colors.surface,
     4.5,
     theme.mode === 'light' ? mutedDarkText : mutedLightText,
   );
 
   const resolvedTextSubtle = ensureContrast(
     theme.colors.textSubtle,
-    theme.colors.backgroundAlt,
+    theme.colors.surface,
     3.2,
     theme.mode === 'light' ? subtleDarkText : subtleLightText,
   );
