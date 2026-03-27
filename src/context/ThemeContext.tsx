@@ -7,6 +7,8 @@ import {
   getThemeCssVariables,
   INTRO_STORAGE_KEY,
   isDarkTheme,
+  isValidTheme,
+  THEME_COOKIE_KEY,
   THEME_STORAGE_KEY,
   themeOptions,
   themes,
@@ -25,7 +27,9 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-function resolveStoredTheme() {
+function resolveStoredTheme(initialTheme?: ThemeType) {
+  if (initialTheme && themes[initialTheme]) return initialTheme;
+
   if (typeof document !== 'undefined') {
     const themedFromDom = document.documentElement.dataset.theme as ThemeType | undefined;
     if (themedFromDom && themes[themedFromDom]) return themedFromDom;
@@ -53,8 +57,14 @@ function resolveIntroState() {
   return false;
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeType>(resolveStoredTheme);
+export function ThemeProvider({
+  children,
+  initialTheme,
+}: {
+  children: React.ReactNode;
+  initialTheme?: ThemeType;
+}) {
+  const [theme, setThemeState] = useState<ThemeType>(() => resolveStoredTheme(initialTheme));
   const [showIntro, setShowIntro] = useState(resolveIntroState);
   const themeConfig = themes[theme];
 
@@ -67,6 +77,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     if (typeof window !== 'undefined') {
       localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+      document.cookie = `${THEME_COOKIE_KEY}=${newTheme}; path=/; max-age=31536000; SameSite=Lax`;
     }
   };
 
@@ -84,7 +95,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.style.colorScheme = themeConfig.mode;
     root.classList.toggle('dark', isDarkTheme(theme));
     body.dataset.theme = theme;
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+    document.cookie = `${THEME_COOKIE_KEY}=${theme}; path=/; max-age=31536000; SameSite=Lax`;
   }, [theme, themeConfig]);
+
+  useEffect(() => {
+    const domTheme = document.documentElement.dataset.theme;
+    if (!isValidTheme(domTheme)) return;
+    const frameId = window.requestAnimationFrame(() => {
+      setThemeState((current) => (current === domTheme ? current : domTheme));
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
 
   function dismissIntro() {
     setShowIntro(false);

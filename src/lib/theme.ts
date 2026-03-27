@@ -3,6 +3,7 @@ import { ThemeDefinition, ThemeType } from '@/lib/types';
 
 export const defaultTheme: ThemeType = 'neon-lime';
 export const THEME_STORAGE_KEY = 'fcuk-academia-theme';
+export const THEME_COOKIE_KEY = 'fcuk-academia-theme';
 export const INTRO_STORAGE_KEY = 'fcuk-academia-intro-seen';
 
 export const themeOrder: ThemeType[] = [
@@ -997,6 +998,11 @@ function getAccessibleTokens(theme: ThemeDefinition) {
 
 export const themeOptions = themeOrder.map((themeId) => themes[themeId]);
 
+export function isValidTheme(theme: string | null | undefined): theme is ThemeType {
+  if (!theme) return false;
+  return Object.hasOwn(themes, theme);
+}
+
 export function isDarkTheme(theme: ThemeType) {
   return themes[theme].mode === 'dark';
 }
@@ -1069,18 +1075,24 @@ const themeCssVariableMap = Object.fromEntries(
   themeOptions.map((theme) => [theme.id, getThemeCssVariables(theme)]),
 ) as Record<ThemeType, ReturnType<typeof getThemeCssVariables>>;
 
-export function getThemeBootstrapScript() {
+export function getThemeBootstrapScript(initialTheme: ThemeType = defaultTheme) {
   return `
     (() => {
       try {
         const themes = ${JSON.stringify(themeCssVariableMap)};
         const modes = ${JSON.stringify(themeModeMap)};
         const storageKey = ${JSON.stringify(THEME_STORAGE_KEY)};
+        const cookieKey = ${JSON.stringify(THEME_COOKIE_KEY)};
         const introKey = ${JSON.stringify(INTRO_STORAGE_KEY)};
-        const fallbackTheme = ${JSON.stringify(defaultTheme)};
+        const fallbackTheme = ${JSON.stringify(initialTheme)};
         const root = document.documentElement;
+        const domTheme = root.dataset.theme;
         const storedTheme = localStorage.getItem(storageKey);
-        const theme = storedTheme && themes[storedTheme] ? storedTheme : fallbackTheme;
+        const theme = storedTheme && themes[storedTheme]
+          ? storedTheme
+          : domTheme && themes[domTheme]
+            ? domTheme
+            : fallbackTheme;
         const variables = themes[theme];
 
         Object.entries(variables).forEach(([key, value]) => {
@@ -1092,9 +1104,15 @@ export function getThemeBootstrapScript() {
         root.dataset.introSeen = localStorage.getItem(introKey) === 'true' ? 'true' : 'false';
         root.style.colorScheme = root.dataset.themeMode;
         root.classList.toggle('dark', root.dataset.themeMode === 'dark');
+        localStorage.setItem(storageKey, theme);
+        document.cookie = cookieKey + '=' + theme + '; path=/; max-age=31536000; SameSite=Lax';
 
         if (document.body) {
           document.body.dataset.theme = theme;
+        } else {
+          document.addEventListener('DOMContentLoaded', () => {
+            document.body.dataset.theme = theme;
+          }, { once: true });
         }
       } catch (error) {
         void error;

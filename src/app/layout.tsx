@@ -1,11 +1,23 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
+import { cookies } from "next/headers";
+import Script from "next/script";
 import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import { AppStateProvider } from "@/context/AppStateContext";
 import { DashboardDataProvider } from "@/context/DashboardDataContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import AppLayout from "@/components/layout/AppLayout";
-import { getThemeBootstrapScript } from "@/lib/theme";
+import {
+  defaultTheme,
+  getThemeBootstrapScript,
+  getThemeCssVariables,
+  isDarkTheme,
+  isValidTheme,
+  THEME_COOKIE_KEY,
+  themes,
+} from "@/lib/theme";
+import type { ThemeType } from "@/lib/types";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -43,21 +55,41 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const cookieTheme = cookieStore.get(THEME_COOKIE_KEY)?.value;
+  const initialTheme: ThemeType = isValidTheme(cookieTheme) ? cookieTheme : defaultTheme;
+  const initialThemeConfig = themes[initialTheme];
+  const initialCssVariables = getThemeCssVariables(initialThemeConfig);
+  const htmlStyle = Object.fromEntries(
+    Object.entries(initialCssVariables).map(([key, value]) => [`--${key}`, value]),
+  ) as CSSProperties;
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: getThemeBootstrapScript() }} />
-      </head>
+    <html
+      lang="en"
+      data-theme={initialTheme}
+      data-theme-mode={initialThemeConfig.mode}
+      className={isDarkTheme(initialTheme) ? "dark" : undefined}
+      style={{ ...htmlStyle, colorScheme: initialThemeConfig.mode }}
+      suppressHydrationWarning
+    >
       <body
         suppressHydrationWarning
         className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}
       >
-        <ThemeProvider>
+        <Script
+          id="theme-bootstrap"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: getThemeBootstrapScript(initialTheme),
+          }}
+        />
+        <ThemeProvider initialTheme={initialTheme}>
           <DashboardDataProvider>
             <AppStateProvider>
               <AppLayout>
