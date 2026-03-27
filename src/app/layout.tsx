@@ -19,6 +19,7 @@ import {
   themes,
 } from "@/lib/theme";
 import type { ThemeType } from "@/lib/types";
+import { Analytics } from "@vercel/analytics/react";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -104,6 +105,7 @@ export default async function RootLayout({
             </AppStateProvider>
           </DashboardDataProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
