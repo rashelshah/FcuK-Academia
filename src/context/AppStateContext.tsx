@@ -3,8 +3,8 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
 
 import {
+  getCalendarEntryForDate,
   getCalendarDayByKey,
-  getCalendarDayForDayOrder,
   getCalendarDayOrders,
   getCurrentCalendarMonth,
   getFirstCalendarDayWithDayOrder,
@@ -21,21 +21,15 @@ interface AppStateContextType {
   calendarError: string | null;
   activeDayOrder: number | null;
   availableDayOrders: number[];
-  dayOrderSource: 'calendar';
+  dayOrderSource: 'automatic' | 'manual';
   selectedCalendarDay: CalendarSelection | null;
-  setSelectedCalendarDay: (selection: CalendarSelection, dayOrder?: number | null) => void;
+  setSelectedCalendarDay: (selection: CalendarSelection) => void;
   setActiveDayOrder: (dayOrder: number) => void;
 }
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
 
-function getDefaultCalendarSelection(calendar: RawCalendarMonth[], activeDayOrder: number | null) {
-  const preferredMonth = getCurrentCalendarMonth(calendar)?.month ?? null;
-  const byActiveOrder = activeDayOrder
-    ? getCalendarDayForDayOrder(calendar, activeDayOrder, preferredMonth)
-    : null;
-  if (byActiveOrder) return byActiveOrder;
-
+function getDefaultCalendarSelection(calendar: RawCalendarMonth[]) {
   const currentMonth = getCurrentCalendarMonth(calendar);
   const today = getTodayCalendarItem(calendar);
   if (currentMonth && today) {
@@ -56,8 +50,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   const availableDayOrders = useMemo(() => getCalendarDayOrders(calendar), [calendar]);
   const fallbackSelection = useMemo(
-    () => getDefaultCalendarSelection(calendar, activeDayOrderState),
-    [activeDayOrderState, calendar],
+    () => getDefaultCalendarSelection(calendar),
+    [calendar],
   );
   const selectedDay = useMemo(
     () => (selectedCalendarDayState ? getCalendarDayByKey(calendar, selectedCalendarDayState) : null),
@@ -74,40 +68,29 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
     return null;
   }, [fallbackSelection, selectedDay]);
-  const activeDayOrder = useMemo(() => {
-    const selectedDayOrder = Number(selectedDay?.day.dayOrder);
-    if (!Number.isNaN(selectedDayOrder) && selectedDayOrder > 0) {
-      return selectedDayOrder;
+  const automaticDayOrder = useMemo(() => {
+    const todayEntry = getCalendarEntryForDate(calendar);
+    const todayDayOrder = Number(todayEntry?.day.dayOrder);
+    if (!Number.isNaN(todayDayOrder) && todayDayOrder > 0) {
+      return todayDayOrder;
     }
 
+    return null;
+  }, [calendar]);
+  const activeDayOrder = useMemo(() => {
     if (activeDayOrderState !== null && availableDayOrders.includes(activeDayOrderState)) {
       return activeDayOrderState;
     }
 
-    const fallbackDayOrder = Number(fallbackSelection?.day.dayOrder);
-    if (!Number.isNaN(fallbackDayOrder) && fallbackDayOrder > 0) {
-      return fallbackDayOrder;
-    }
+    return automaticDayOrder;
+  }, [activeDayOrderState, automaticDayOrder, availableDayOrders]);
 
-    return null;
-  }, [activeDayOrderState, availableDayOrders, fallbackSelection, selectedDay]);
-
-  function setSelectedCalendarDay(selection: CalendarSelection, dayOrder?: number | null) {
+  function setSelectedCalendarDay(selection: CalendarSelection) {
     setSelectedCalendarDayState(selection);
-
-    if (typeof dayOrder === 'number' && dayOrder > 0) {
-      setActiveDayOrderState(dayOrder);
-    }
   }
 
   function setActiveDayOrder(dayOrder: number) {
     if (Number.isNaN(dayOrder) || dayOrder <= 0) return;
-
-    const preferredMonth = selectedCalendarDay?.month ?? getCurrentCalendarMonth(calendar)?.month ?? null;
-    const target = getCalendarDayForDayOrder(calendar, dayOrder, preferredMonth);
-    if (!target) return;
-
-    setSelectedCalendarDayState({ month: target.month, date: target.day.date });
     setActiveDayOrderState(dayOrder);
   }
 
@@ -119,7 +102,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         calendarError,
         activeDayOrder,
         availableDayOrders,
-        dayOrderSource: 'calendar',
+        dayOrderSource: activeDayOrderState !== null ? 'manual' : 'automatic',
         selectedCalendarDay,
         setSelectedCalendarDay,
         setActiveDayOrder,

@@ -12,8 +12,11 @@ import { useAppState } from '@/context/AppStateContext';
 import { cn } from '@/lib/utils';
 import {
   formatMonthTitle,
+  getCalendarWeekdayIndex,
+  getCalendarWeekdayLabel,
   getCurrentCalendarMonth,
   getTodayCalendarItem,
+  isCalendarHoliday,
 } from '@/lib/academia-ui';
 import type { RawCalendarMonth } from '@/lib/server/academia';
 
@@ -25,11 +28,10 @@ function getDayKey(month: string, date: string) {
   return `${month}-${date}`;
 }
 
-function getCalendarTone(event: string, day?: string) {
-  const normalized = event.toLowerCase().trim();
-  if ((!normalized || normalized === '-') && /^sat/i.test(day || '')) return 'holiday' as CalendarTone;
+function getCalendarTone(day: RawCalendarMonth['days'][number], month: RawCalendarMonth) {
+  const normalized = (day.event || '').toLowerCase().trim();
+  if (isCalendarHoliday(day, month)) return 'holiday' as CalendarTone;
   if (!normalized || normalized === '-') return 'default' as CalendarTone;
-  if (/(holiday|leave|vacation|break|festival|closed|holi)/i.test(normalized)) return 'holiday' as CalendarTone;
   if (/exam|test|assessment|quiz|cat|fat/i.test(normalized)) return 'exam' as CalendarTone;
   return 'event' as CalendarTone;
 }
@@ -67,7 +69,15 @@ export default function CalendarPage() {
   }, [initialMonthIndex]);
 
   const activeMonth = calendar[activeMonthIndex] ?? derivedCurrentMonth;
-  const dates = activeMonth?.days ?? [];
+  const dates = useMemo(() => activeMonth?.days ?? [], [activeMonth]);
+  const leadingEmptyCells = useMemo(() => {
+    if (!activeMonth || !dates.length) return 0;
+
+    const weekdayIndex = getCalendarWeekdayIndex(activeMonth, dates[0]?.date ?? '');
+    if (weekdayIndex === null) return 0;
+
+    return (weekdayIndex + 6) % 7;
+  }, [activeMonth, dates]);
 
   useEffect(() => {
     if (!activeMonth) {
@@ -102,6 +112,11 @@ export default function CalendarPage() {
     if (!activeMonth || !derivedToday || activeMonth.month !== derivedCurrentMonth?.month) return null;
     return getDayKey(activeMonth.month, derivedToday.date);
   }, [activeMonth, derivedCurrentMonth?.month, derivedToday]);
+  const selectedDayLabel = useMemo(() => {
+    if (!activeMonth || !selectedDay) return null;
+
+    return getCalendarWeekdayLabel(activeMonth, selectedDay.date) ?? selectedDay.day.toLowerCase();
+  }, [activeMonth, selectedDay]);
 
   const monthEventItems = useMemo(() => {
     if (!activeMonth) return [];
@@ -124,13 +139,7 @@ export default function CalendarPage() {
     if (!activeMonth) return;
     setSelectedDayKey(getDayKey(activeMonth.month, date));
 
-    const selectedDay = activeMonth.days.find((item) => item.date === date);
-    const parsedDayOrder = Number(selectedDay?.dayOrder);
-
-    setSelectedCalendarDay(
-      { month: activeMonth.month, date },
-      Number.isNaN(parsedDayOrder) || parsedDayOrder <= 0 ? null : parsedDayOrder,
-    );
+    setSelectedCalendarDay({ month: activeMonth.month, date });
   }
 
   function goToPreviousMonth() {
@@ -165,7 +174,7 @@ export default function CalendarPage() {
             {loading
               ? 'calendar syncing...'
               : selectedDay && activeMonth
-                ? `${selectedDay.day.toLowerCase()}, ${activeMonth.month.toLowerCase()} ${selectedDay.date}`
+                ? `${selectedDayLabel ?? selectedDay.day.toLowerCase()}, ${activeMonth.month.toLowerCase()} ${selectedDay.date}`
                 : activeMonth
                   ? `${formatMonthTitle(activeMonth.month).toLowerCase()} calendar loaded`
                   : 'calendar loading'}
@@ -203,11 +212,14 @@ export default function CalendarPage() {
           {days.map((day) => (
             <div key={day} className="font-label text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">{day}</div>
           ))}
+          {Array.from({ length: leadingEmptyCells }).map((_, index) => (
+            <div key={`empty-${activeMonth?.month || 'month'}-${index}`} aria-hidden="true" />
+          ))}
           {(loading ? [] : dates).map((date, index) => {
             const dateKey = activeMonth ? getDayKey(activeMonth.month, date.date) : `${date.date}-${index}`;
             const isSelected = dateKey === selectedDayKey;
             const isToday = dateKey === todayDayKey;
-            const tone = getCalendarTone(date.event || '', date.day);
+            const tone = activeMonth ? getCalendarTone(date, activeMonth) : 'default';
 
             return (
               <button
@@ -265,18 +277,21 @@ export default function CalendarPage() {
             ? monthEventItems
             : [{ date: selectedDay?.date || '--', day: selectedDay?.day || 'stay tuned', dayOrder: selectedDay?.dayOrder || '-', event: selectedDay?.event && selectedDay.event !== '-' ? selectedDay.event : 'no upcoming events' }]
           ).map((item, index) => {
-            const tone = getCalendarTone(item.event || '', item.day);
+            const tone = activeMonth ? getCalendarTone(item, activeMonth) : 'default';
             const isSelected =
               activeMonth &&
               selectedDay &&
               getDayKey(activeMonth.month, item.date) === getDayKey(activeMonth.month, selectedDay.date);
+            const weekdayLabel = activeMonth
+              ? getCalendarWeekdayLabel(activeMonth, item.date) ?? item.day.toLowerCase()
+              : item.day.toLowerCase();
 
             return (
               <RevealItem key={`${item.date}-${item.event}-${index}`}>
                 <AgendaItem
                   time={item.date || '--'}
                   title={(item.event || 'no upcoming events').toLowerCase()}
-                  subtitle={`${(item.day || 'stay tuned').toLowerCase()} / day ${item.dayOrder || '-'}`}
+                  subtitle={`${weekdayLabel || 'stay tuned'} / day ${item.dayOrder || '-'}`}
                   tone={tone}
                   active={isSelected || index === 0}
                 />

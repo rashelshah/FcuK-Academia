@@ -26,7 +26,7 @@ export default function DayOrderSelector() {
           </span>
         </div>
         <p className="text-sm leading-5 text-on-surface-variant">
-          Calendar drives the shared day order across the app.
+          Calendar selection is view-only. The shared day order is automatic unless you pick one manually.
         </p>
       </div>
 

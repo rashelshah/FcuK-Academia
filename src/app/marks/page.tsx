@@ -13,6 +13,13 @@ import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/
 import { useMarks } from '@/hooks/useMarks';
 import { getMarksPercentage, getWeakestMark } from '@/lib/academia-ui';
 
+function formatMarkValue(value: number) {
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
+
 export default function MarksPage() {
   const [targetOpen, setTargetOpen] = useState(false);
   const { marks, markList, loading, error } = useMarks();
@@ -79,7 +86,7 @@ export default function MarksPage() {
               <div className="min-w-0 flex-1 text-left">
                 <h4 className="font-headline text-[1.65rem] font-bold lowercase leading-[0.96] text-on-surface">{weakestSubjectName}</h4>
                 <p className="mt-1 font-label text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">
-                  {weakest ? `${weakest.category} / INTERNAL: ${weakest.total.obtained}/${weakest.total.maxMark}` : 'live data / internals stable'}
+                  {weakest ? `${weakest.category} / INTERNAL: ${formatMarkValue(weakest.total.obtained)}/${formatMarkValue(weakest.total.maxMark)}` : 'live data / internals stable'}
                 </p>
               </div>
               <span className="shrink-0 self-start font-headline text-[3.4rem] font-bold leading-none tracking-tight text-error sm:self-auto sm:text-[3.8rem]">

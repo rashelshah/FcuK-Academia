@@ -4,7 +4,7 @@ import type { Subject, TimetableEntry, UserProfile } from '@/lib/types';
 type RawClassItem = RawTimetableItem['class'][number];
 
 export interface ScheduleSnapshot {
-  status: 'current' | 'upcoming' | 'tomorrow' | 'none';
+  status: 'current' | 'upcoming' | 'tomorrow' | 'holiday' | 'none';
   classItem: RawClassItem | null;
   activeDayOrder: number | null;
   displayDayOrder: number | null;
@@ -301,11 +301,35 @@ export function getScheduleSnapshot(
   dayOrder: number,
   orderedDayOrders?: number[],
   referenceDate = new Date(),
+  calendar: RawCalendarMonth[] = [],
 ): ScheduleSnapshot {
   const classes = getClassesForDay(timetable, dayOrder);
   const currentMinutes = (referenceDate.getHours() * 60) + referenceDate.getMinutes();
   const availableDayOrders = (orderedDayOrders?.length ? orderedDayOrders : getDayOrders(timetable))
     .filter((value) => value > 0);
+  const todayCalendarEntry = getCalendarEntryForDate(calendar, referenceDate);
+  const immediateNextCalendarEntry = getNextCalendarEntry(calendar, referenceDate);
+
+  if (todayCalendarEntry && isCalendarHoliday(todayCalendarEntry.day, todayCalendarEntry.month)) {
+    if (immediateNextCalendarEntry && !isCalendarHoliday(immediateNextCalendarEntry.day, immediateNextCalendarEntry.month)) {
+      const nextDayOrder = Number(immediateNextCalendarEntry.day.dayOrder);
+      const nextDayClasses = nextDayOrder > 0 ? getClassesForDay(timetable, nextDayOrder) : [];
+
+      return {
+        status: nextDayClasses.length ? 'tomorrow' : 'none',
+        classItem: nextDayClasses[0] ?? null,
+        activeDayOrder: Number(todayCalendarEntry.day.dayOrder) > 0 ? Number(todayCalendarEntry.day.dayOrder) : null,
+        displayDayOrder: nextDayClasses.length ? nextDayOrder : null,
+      };
+    }
+
+    return {
+      status: 'holiday',
+      classItem: null,
+      activeDayOrder: Number(todayCalendarEntry.day.dayOrder) > 0 ? Number(todayCalendarEntry.day.dayOrder) : null,
+      displayDayOrder: null,
+    };
+  }
 
   const currentIndex = getCurrentClassIndex(classes, referenceDate);
   if (currentIndex >= 0) {
@@ -328,6 +352,27 @@ export function getScheduleSnapshot(
       classItem: upcomingClass,
       activeDayOrder: dayOrder,
       displayDayOrder: dayOrder,
+    };
+  }
+
+  if (immediateNextCalendarEntry) {
+    if (isCalendarHoliday(immediateNextCalendarEntry.day, immediateNextCalendarEntry.month)) {
+      return {
+        status: 'holiday',
+        classItem: null,
+        activeDayOrder: dayOrder,
+        displayDayOrder: null,
+      };
+    }
+
+    const nextCalendarDayOrder = Number(immediateNextCalendarEntry.day.dayOrder);
+    const nextCalendarClasses = nextCalendarDayOrder > 0 ? getClassesForDay(timetable, nextCalendarDayOrder) : [];
+
+    return {
+      status: nextCalendarClasses.length ? 'tomorrow' : 'none',
+      classItem: nextCalendarClasses[0] ?? null,
+      activeDayOrder: dayOrder,
+      displayDayOrder: nextCalendarClasses.length ? nextCalendarDayOrder : null,
     };
   }
 
@@ -403,6 +448,10 @@ export function getCalendarDayForDayOrder(
   return null;
 }
 
+function normalizeCalendarDate(value: Date) {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+}
+
 function parseCalendarMonthLabel(label: string) {
   const match = label.match(/([A-Za-z]{3,9})\s*'?\s*(\d{2,4})/);
   if (!match) return null;
@@ -418,13 +467,79 @@ function parseCalendarMonthLabel(label: string) {
   };
 }
 
-function toCalendarDate(month: RawCalendarMonth, date: string) {
+export function toCalendarDate(month: RawCalendarMonth, date: string) {
   const parsedMonth = parseCalendarMonthLabel(month.month);
   const numericDate = Number(date);
   if (!parsedMonth || Number.isNaN(numericDate)) return null;
 
   const value = new Date(parsedMonth.year, parsedMonth.monthIndex, numericDate);
   return Number.isNaN(value.getTime()) ? null : value;
+}
+
+export function getCalendarWeekdayIndex(month: RawCalendarMonth, date: string) {
+  return toCalendarDate(month, date)?.getDay() ?? null;
+}
+
+export function getCalendarWeekdayLabel(month: RawCalendarMonth, date: string) {
+  const weekdayIndex = getCalendarWeekdayIndex(month, date);
+  if (weekdayIndex === null) return null;
+
+  return ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][weekdayIndex] ?? null;
+}
+
+export function isCalendarHoliday(
+  day: RawCalendarMonth['days'][number],
+  month?: RawCalendarMonth | null,
+) {
+  const normalizedEvent = (day.event || '').trim().toLowerCase();
+  const normalizedWeekday = (day.day || '').trim().toLowerCase();
+  const weekdayIndex = month ? getCalendarWeekdayIndex(month, day.date) : null;
+  const isWeekend = normalizedWeekday.startsWith('sat')
+    || normalizedWeekday.startsWith('sun')
+    || weekdayIndex === 0
+    || weekdayIndex === 6;
+
+  if (isWeekend) return true;
+  if (!normalizedEvent || normalizedEvent === '-') return false;
+
+  return /(holiday|leave|vacation|break|festival|closed|holi|no class)/i.test(normalizedEvent);
+}
+
+export function getCalendarEntryForDate(calendar: RawCalendarMonth[], referenceDate = new Date()) {
+  const targetDate = normalizeCalendarDate(referenceDate).getTime();
+
+  for (const month of calendar) {
+    for (const day of month.days) {
+      const calendarDate = toCalendarDate(month, day.date);
+      if (calendarDate && normalizeCalendarDate(calendarDate).getTime() === targetDate) {
+        return { month, day };
+      }
+    }
+  }
+
+  return null;
+}
+
+export function getNextCalendarEntry(calendar: RawCalendarMonth[], referenceDate = new Date()) {
+  const targetDate = normalizeCalendarDate(referenceDate).getTime();
+
+  let closestEntry: { month: RawCalendarMonth; day: RawCalendarMonth['days'][number] } | null = null;
+  let closestTime = Number.POSITIVE_INFINITY;
+
+  for (const month of calendar) {
+    for (const day of month.days) {
+      const calendarDate = toCalendarDate(month, day.date);
+      if (!calendarDate) continue;
+
+      const time = normalizeCalendarDate(calendarDate).getTime();
+      if (time <= targetDate || time >= closestTime) continue;
+
+      closestTime = time;
+      closestEntry = { month, day };
+    }
+  }
+
+  return closestEntry;
 }
 
 export function getCurrentCalendarMonth(calendar: RawCalendarMonth[]) {

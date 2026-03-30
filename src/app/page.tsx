@@ -16,7 +16,7 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 
 export default function HomePage() {
-  const { user, attendance, marks, timetable, loading, error } = useDashboard();
+  const { user, attendance, marks, timetable, calendar, loading, error } = useDashboard();
   const {
     activeDayOrder,
     availableDayOrders,
@@ -36,8 +36,8 @@ export default function HomePage() {
   const overallAttendance = getOverallAttendance(attendance);
   const totalMarks = getTotalMarks(marks);
   const autoSchedule = useMemo(
-    () => getScheduleSnapshot(timetable, dayOrder, dayOrders, currentTime),
-    [currentTime, dayOrder, dayOrders, timetable],
+    () => getScheduleSnapshot(timetable, dayOrder, dayOrders, currentTime, calendar),
+    [calendar, currentTime, dayOrder, dayOrders, timetable],
   );
   const manualSchedule = useMemo(() => {
     const classes = getClassesForDay(timetable, dayOrder);
@@ -76,16 +76,23 @@ export default function HomePage() {
   }, [currentTime, dayOrder, timetable]);
   const schedule = manualDaySelection ? manualSchedule : autoSchedule;
   const featuredClass = schedule.classItem;
-  const featuredTitle = loading ? 'loading' : featuredClass?.courseTitle?.toLowerCase() || 'no class';
-  const displayedDayOrder = schedule.displayDayOrder ?? dayOrder;
-  const backgroundDayOrder = formatDayOrderNumber(schedule.displayDayOrder ?? dayOrder);
+  const featuredTitle = loading
+    ? 'loading'
+    : schedule.status === 'holiday'
+      ? 'holiday detected. brain shutting down…'
+      : featuredClass?.courseTitle?.toLowerCase() || 'no class';
+  const isHolidayState = !manualDaySelection && schedule.status === 'holiday';
+  const displayedDayOrder = isHolidayState ? null : (schedule.displayDayOrder ?? dayOrder);
+  const backgroundDayOrder = formatDayOrderNumber(displayedDayOrder);
   const scheduleHeading = schedule.status === 'current'
     ? 'current class / subject'
+    : schedule.status === 'holiday'
+      ? 'current status'
     : schedule.status === 'tomorrow'
       ? "tomorrow's first class"
       : schedule.status === 'manual'
         ? 'first class / subject'
-      : 'next class / subject';
+        : 'next class / subject';
   const weakestMark = getWeakestMark(marks);
   const firstName = user?.name?.split(' ')[0]?.trim() || 'student';
   const profileName = firstName ? `${firstName.charAt(0).toUpperCase()}${firstName.slice(1).toLowerCase()}` : 'Student';
@@ -184,7 +191,7 @@ export default function HomePage() {
       <section className="-mx-4 overflow-x-auto px-4 pb-2">
         <DayOrderPills
           days={dayOrders.length ? dayOrders : [1, 2, 3, 4, 5]}
-          activeDayOrder={manualDaySelection ? dayOrder : displayedDayOrder}
+          activeDayOrder={manualDaySelection ? dayOrder : (isHolidayState ? null : activeDayOrder)}
           onSelect={handleDayOrderSelect}
         />
       </section>
@@ -215,7 +222,7 @@ export default function HomePage() {
           />
         </h2>
         <p className="mt-3 font-headline text-2xl font-bold tracking-tight text-on-surface-variant">
-          {featuredClass?.time || 'schedule unavailable'}
+          {schedule.status === 'holiday' ? 'student holiday' : featuredClass?.time || 'schedule unavailable'}
         </p>
       </RevealItem>
 
