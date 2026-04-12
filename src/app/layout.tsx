@@ -9,6 +9,7 @@ import { DashboardDataProvider } from "@/context/DashboardDataContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import AppLayout from "@/components/layout/AppLayout";
 import GoogleAnalytics from "@/components/system/GoogleAnalytics";
+import CommunityPopup from "@/components/system/CommunityPopup";
 import ServiceWorkerRegistration from "@/components/system/ServiceWorkerRegistration";
 import {
   defaultTheme,
@@ -101,6 +102,7 @@ export default async function RootLayout({
         <ThemeProvider initialTheme={initialTheme}>
           <DashboardDataProvider>
             <AppStateProvider>
+              <CommunityPopup />
               <AppLayout>
                 {children}
               </AppLayout>
