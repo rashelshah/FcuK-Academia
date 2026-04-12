@@ -115,12 +115,6 @@ export default function CommunityPopup() {
     }, 30);
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        setOpen(false);
-        return;
-      }
-
       if (event.key !== 'Tab') return;
 
       const focusable = getFocusableElements(modalRef.current);
@@ -198,7 +192,7 @@ export default function CommunityPopup() {
           className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6"
           style={backdropStyle}
           onClick={(event) => {
-            if (event.target === event.currentTarget) setOpen(false);
+            // Dismissal via backdrop click disabled by request
           }}
         >
           <motion.div
