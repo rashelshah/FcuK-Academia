@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo, startTransition, useCallback, useEffect } from 'react';
+import React, { memo, startTransition, useCallback, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import HomePage from '@/app/page';
@@ -36,6 +36,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const activeTabPath = useActiveTabPath();
+  const [swipePreviewPath, setSwipePreviewPath] = useState<string | null>(null);
   const hideNav = HIDE_NAV_PATHS.includes(pathname);
   const isSwipeablePath = SWIPEABLE_PATHS.includes(pathname as typeof SWIPEABLE_PATHS[number]);
   const routePath = isSwipeablePath ? pathname as typeof SWIPEABLE_PATHS[number] : null;
@@ -78,6 +79,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (hideNav) {
     return <>{children}</>;
   }
+
+  const navbarActivePath = isSwipeableRoute
+    ? (swipePreviewPath && swipePreviewPath !== routePath ? swipePreviewPath : swipeActivePath)
+    : navActivePath;
+
   return (
     <div className="relative mx-auto min-h-screen w-full max-w-[28rem] overflow-x-hidden sm:max-w-[34rem] lg:max-w-[44rem] xl:max-w-[52rem]">
       <IntroOverlay />
@@ -85,7 +91,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       <div className="app-shell transition-opacity duration-300">
         {isSwipeableRoute ? (
-          <SwipeContainer activePath={swipeActivePath} screens={TAB_SCREENS} onNavigate={handleSwipeNavigate} />
+          <SwipeContainer
+            activePath={swipeActivePath}
+            screens={TAB_SCREENS}
+            onNavigate={handleSwipeNavigate}
+            onPreviewPathChange={setSwipePreviewPath}
+          />
         ) : (
           <main className="px-4 pt-6 sm:px-6 sm:pt-8">
             {children}
@@ -93,7 +104,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         )}
 
         <Navbar
-          activePath={isSwipeableRoute ? swipeActivePath : navActivePath}
+          activePath={navbarActivePath}
           onNavigate={isSwipeableRoute ? handleNavbarNavigate : undefined}
         />
       </div>

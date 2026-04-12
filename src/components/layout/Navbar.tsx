@@ -4,7 +4,7 @@ import React, { memo, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
-import { Home, BarChart2, CheckSquare, Clock, Calendar, Settings, type LucideIcon } from 'lucide-react';
+import { BarChart2, Calendar, CheckSquare, Clock, Home, Settings, type LucideIcon } from 'lucide-react';
 
 import { useTheme } from '@/context/ThemeContext';
 import { getInteractiveMotion } from '@/lib/motion';
@@ -18,7 +18,9 @@ const navItems = [
   { href: '/timetable', icon: Clock, label: 'timetable' },
   { href: '/calendar', icon: Calendar, label: 'calendar' },
   { href: '/settings', icon: Settings, label: 'settings' },
-];
+] as const;
+
+const NAV_INSET_PX = 5;
 
 interface NavbarProps {
   activePath?: string;
@@ -45,51 +47,41 @@ const NavItemButton = memo(function NavItemButton({
   onNavigate,
 }: NavItemButtonProps) {
   const motionProps = getInteractiveMotion(motionPreset);
-  const itemClassName = cn(
-    'relative flex h-11 w-11 items-center justify-center rounded-full transition-all duration-300 ease-out',
-    isActive
-      ? 'scale-110 text-primary'
-      : 'scale-100 text-on-surface-variant',
-  );
-
-  const iconGlowClassName = cn(
-    'absolute inset-0 rounded-full transition-all duration-300 ease-out',
-    isActive
-      ? 'shadow-[var(--glow-primary)]'
-      : 'bg-transparent',
-  );
-
-  const iconHighlightClassName = cn(
-    'absolute inset-[1px] rounded-full transition-opacity duration-300',
-    isActive
-      ? 'opacity-100'
-      : 'opacity-0',
-  );
-
-  const iconClassName = cn(
-    'relative z-10 transition-all duration-300 ease-out',
-    isActive
-      ? ''
-      : 'drop-shadow-none',
-  );
-
   const content = (
-    <>
-      <div
-        className={iconGlowClassName}
-        style={isActive ? { background: 'var(--hero-gradient)' } : undefined}
-      />
-      <div
-        className={iconHighlightClassName}
-        style={isActive ? { background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 48%, rgba(255,255,255,0) 100%)' } : undefined}
+    <div
+      className={cn(
+        'relative z-10 flex h-14 w-full items-center justify-center rounded-[999px] transition-colors duration-300',
+        isActive ? 'text-[var(--text)]' : 'text-on-surface-variant',
+      )}
+      style={{
+        WebkitTapHighlightColor: 'transparent',
+        transform: 'translateZ(0)',
+        backfaceVisibility: 'hidden',
+      }}
+    >
+      <span
+        className={cn(
+          'absolute inset-x-3 inset-y-[7px] rounded-[999px] transition-opacity duration-300',
+          isActive ? 'opacity-100' : 'opacity-0',
+        )}
+        style={{
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 42%, rgba(255,255,255,0) 100%)',
+        }}
       />
       <Icon
-        size={22}
-        strokeWidth={isActive ? 2.5 : 2.1}
-        className={iconClassName}
-        style={isActive ? { filter: 'drop-shadow(0 0 10px color-mix(in srgb, var(--primary) 64%, transparent))' } : undefined}
+        size={20}
+        strokeWidth={isActive ? 2.45 : 2.1}
+        className="relative z-10 shrink-0 transition-transform duration-300 ease-out"
+        style={{
+          vectorEffect: 'non-scaling-stroke',
+          shapeRendering: 'geometricPrecision',
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          WebkitTransform: 'translateZ(0)',
+          ...(isActive ? { filter: 'drop-shadow(0 0 12px color-mix(in srgb, var(--primary) 42%, transparent))' } : undefined),
+        }}
       />
-    </>
+    </div>
   );
 
   const inner = mounted ? (
@@ -97,12 +89,12 @@ const NavItemButton = memo(function NavItemButton({
       whileHover={motionProps.whileHover}
       whileTap={motionProps.whileTap}
       transition={motionProps.transition}
-      className={itemClassName}
+      className="relative w-full"
     >
       {content}
     </motion.div>
   ) : (
-    <div className={itemClassName}>
+    <div className="relative w-full">
       {content}
     </div>
   );
@@ -112,8 +104,14 @@ const NavItemButton = memo(function NavItemButton({
       <button
         type="button"
         aria-label={label}
+        aria-current={isActive ? 'page' : undefined}
         onClick={() => onNavigate(href)}
-        className="relative flex items-center justify-center bg-transparent"
+        className="relative flex min-w-0 items-center justify-center bg-transparent outline-none"
+        style={{
+          WebkitTapHighlightColor: 'transparent',
+          WebkitAppearance: 'none',
+          appearance: 'none',
+        }}
       >
         {inner}
       </button>
@@ -124,7 +122,9 @@ const NavItemButton = memo(function NavItemButton({
     <Link
       href={href}
       aria-label={label}
-      className="relative flex items-center justify-center"
+      aria-current={isActive ? 'page' : undefined}
+      className="relative flex min-w-0 items-center justify-center"
+      style={{ WebkitTapHighlightColor: 'transparent' }}
     >
       {inner}
     </Link>
@@ -136,6 +136,9 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
   const { themeConfig } = useTheme();
   const [mounted, setMounted] = useState(false);
   const resolvedPath = activePath ?? (pathname.startsWith('/settings') ? '/settings' : pathname);
+  const activeIndex = Math.max(0, navItems.findIndex((item) => item.href === resolvedPath));
+  const indicatorLeft = `calc(${NAV_INSET_PX}px + ${activeIndex} * ((100% - ${NAV_INSET_PX * 2}px) / ${navItems.length}))`;
+  const indicatorWidth = `calc((100% - ${NAV_INSET_PX * 2}px) / ${navItems.length})`;
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -147,35 +150,110 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
 
   return (
     <nav
-      className="fixed bottom-4 left-1/2 z-50 w-[min(92%,28rem)] max-w-[28rem] -translate-x-1/2 px-1 sm:w-[min(92%,30rem)] sm:max-w-[30rem] lg:w-[min(88%,34rem)] lg:max-w-[34rem]"
+      className="liquid-nav fixed bottom-4 left-1/2 z-50 w-[min(92%,28rem)] max-w-[28rem] -translate-x-1/2 sm:w-[min(92%,30rem)] sm:max-w-[30rem] lg:w-[min(88%,34rem)] lg:max-w-[34rem]"
       aria-label="Primary"
     >
+      <svg aria-hidden="true" className="absolute h-0 w-0 overflow-hidden">
+        <defs>
+          <filter id="liquid-nav-glass" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="0.9" result="blurred" />
+            <feColorMatrix
+              in="blurred"
+              type="matrix"
+              values="
+                1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 18 -8
+              "
+              result="goo"
+            />
+            <feBlend in="SourceGraphic" in2="goo" />
+          </filter>
+        </defs>
+      </svg>
+
       <div
-        className="relative overflow-hidden rounded-[var(--radius-pill)] border px-3 pt-3 backdrop-blur-[16px]"
+        className="relative overflow-hidden rounded-[34px] border p-[5px] backdrop-blur-[18px]"
         style={{
-          borderColor: 'var(--card-border)',
-          background: 'var(--nav-background)',
+          borderColor: 'color-mix(in srgb, var(--border-strong) 62%, transparent)',
+          background: 'linear-gradient(180deg, color-mix(in srgb, var(--nav-background) 92%, rgba(255,255,255,0.04)) 0%, color-mix(in srgb, var(--surface) 88%, transparent) 100%)',
           boxShadow: 'var(--elevation-nav)',
-          paddingBottom: 'calc(0.75rem + max(env(safe-area-inset-bottom), 0px))',
+          paddingBottom: `calc(5px + max(env(safe-area-inset-bottom), 0px))`,
         }}
       >
-        <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ background: 'var(--surface-gradient)' }} />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-90"
+          style={{ background: 'var(--surface-gradient)' }}
+        />
+        <div
+          className="pointer-events-none absolute inset-x-5 top-0 h-16 opacity-75 blur-2xl"
+          style={{ background: 'radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 24%, transparent), transparent 72%)' }}
+        />
 
-        <div className="relative grid grid-cols-6 items-center gap-1">
-          {navItems.map((item) => {
-            return (
-              <NavItemButton
-                key={item.href}
-                href={item.href}
-                icon={item.icon}
-                isActive={resolvedPath === item.href}
-                label={item.label}
-                motionPreset={themeConfig.motion}
-                mounted={mounted}
-                onNavigate={onNavigate}
-              />
-            );
-          })}
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-[calc(5px+max(env(safe-area-inset-bottom),0px))] top-[5px]"
+          animate={{ left: indicatorLeft }}
+          initial={false}
+          transition={{
+            duration: 0.38,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          style={{
+            width: indicatorWidth,
+            willChange: 'left, transform',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+          }}
+        >
+          <div
+            className="relative h-full w-full overflow-hidden border"
+            style={{
+              borderRadius: '26px',
+              borderColor: 'color-mix(in srgb, var(--primary) 36%, rgba(255,255,255,0.28))',
+              background: 'linear-gradient(180deg, color-mix(in srgb, rgba(255,255,255,0.26) 48%, var(--surface-highlight)) 0%, color-mix(in srgb, var(--primary) 10%, var(--surface-elevated) 90%) 100%)',
+              boxShadow: '0 16px 32px rgba(0, 0, 0, 0.22), 0 0 24px color-mix(in srgb, var(--primary) 18%, transparent)',
+              filter: 'url(#liquid-nav-glass)',
+            }}
+          >
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 34%, rgba(255,255,255,0) 100%)',
+              }}
+            />
+            <div
+              className="absolute inset-[1px]"
+              style={{
+                borderRadius: '25px',
+                background: 'linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 22%, rgba(255,255,255,0.18)) 0%, color-mix(in srgb, var(--primary) 12%, transparent) 48%, rgba(255,255,255,0.04) 100%)',
+              }}
+            />
+            <div
+              className="absolute inset-x-4 top-1 h-4 rounded-full blur-lg"
+              style={{ background: 'color-mix(in srgb, rgba(255,255,255,0.34) 75%, transparent)' }}
+            />
+            <div
+              className="absolute inset-x-3 bottom-0 h-5 rounded-full blur-xl opacity-80"
+              style={{ background: 'color-mix(in srgb, var(--primary) 26%, transparent)' }}
+            />
+          </div>
+        </motion.div>
+
+        <div className="relative grid grid-cols-6 items-center">
+          {navItems.map((item) => (
+            <NavItemButton
+              key={item.href}
+              href={item.href}
+              icon={item.icon}
+              isActive={resolvedPath === item.href}
+              label={item.label}
+              motionPreset={themeConfig.motion}
+              mounted={mounted}
+              onNavigate={onNavigate}
+            />
+          ))}
         </div>
       </div>
     </nav>

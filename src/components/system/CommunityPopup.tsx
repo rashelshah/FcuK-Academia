@@ -252,10 +252,17 @@ export default function CommunityPopup() {
                   whileTap={motionProps.whileTap}
                   transition={motionProps.transition}
                   className={cn(
-                    'inline-flex min-h-12 w-full items-center justify-center rounded-full px-5 py-3 text-center font-label text-[11px] font-bold uppercase tracking-[0.18em]',
+                    'inline-flex min-h-12 w-full items-center justify-center rounded-full border-0 px-5 py-3 text-center font-label text-[11px] font-bold uppercase tracking-[0.18em] outline-none focus-visible:outline-none',
                     'transition-[transform,box-shadow,filter] duration-200',
                   )}
-                  style={primaryButtonStyle}
+                  style={{
+                    ...primaryButtonStyle,
+                    border: 'none',
+                    outline: 'none',
+                    WebkitAppearance: 'none',
+                    appearance: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
                   onClick={() => {
                     window.open(WHATSAPP_COMMUNITY_POPUP_CONFIG.whatsappUrl, '_blank', 'noopener,noreferrer');
                     setOpen(false);
@@ -270,10 +277,16 @@ export default function CommunityPopup() {
                   whileTap={motionProps.whileTap}
                   transition={motionProps.transition}
                   className={cn(
-                    'inline-flex min-h-12 w-full items-center justify-center rounded-full border px-5 py-3 text-center font-label text-[11px] font-bold uppercase tracking-[0.18em]',
+                    'inline-flex min-h-12 w-full items-center justify-center rounded-full border px-5 py-3 text-center font-label text-[11px] font-bold uppercase tracking-[0.18em] outline-none focus-visible:outline-none',
                     'transition-[transform,box-shadow,border-color] duration-200',
                   )}
-                  style={secondaryButtonStyle}
+                  style={{
+                    ...secondaryButtonStyle,
+                    outline: 'none',
+                    WebkitAppearance: 'none',
+                    appearance: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
                   onClick={() => setOpen(false)}
                 >
                   maybe later

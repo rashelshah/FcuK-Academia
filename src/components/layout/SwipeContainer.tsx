@@ -15,12 +15,13 @@ interface SwipeContainerProps {
   activePath: string;
   screens: readonly SwipeScreen[];
   onNavigate: (href: string) => void;
+  onPreviewPathChange?: (href: string) => void;
 }
 
 const DIRECTION_LOCK_RATIO = 1.1;
 const NAV_TRANSITION_DURATION_MS = 250;
 
-function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps) {
+function SwipeContainer({ activePath, screens, onNavigate, onPreviewPathChange }: SwipeContainerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const settleTimerRef = useRef<number | null>(null);
   const navTimerRef = useRef<number | null>(null);
@@ -136,6 +137,7 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
         programmaticTargetIndexRef.current = nextIndex;
         activeIndexRef.current = nextIndex;
         navigationSourceRef.current = options?.source ?? 'route';
+        onPreviewPathChange?.(href);
         toggleSwipeMode(true);
 
         if (options?.source === 'nav' && !options.immediate) {
@@ -157,7 +159,15 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
     return () => {
       registerTabNavigationController(null);
     };
-  }, [clearNavigationMode, scheduleNavigationModeReset, screens, toggleNavigationMode, toggleSwipeMode, viewportWidth]);
+  }, [clearNavigationMode, onPreviewPathChange, scheduleNavigationModeReset, screens, toggleNavigationMode, toggleSwipeMode, viewportWidth]);
+
+  const updatePreviewPath = useCallback((scrollLeft: number, viewport: number) => {
+    const nextIndex = Math.max(0, Math.min(screens.length - 1, Math.round(scrollLeft / Math.max(viewport, 1))));
+    const nextPath = screens[nextIndex]?.href;
+    if (nextPath) {
+      onPreviewPathChange?.(nextPath);
+    }
+  }, [onPreviewPathChange, screens]);
 
   useEffect(() => {
     const node = containerRef.current;
@@ -175,6 +185,7 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
         clearNavigationMode();
 
         if (nextPath) {
+          onPreviewPathChange?.(nextPath);
           if (navigationSourceRef.current === 'swipe' && nextPath !== activePath) {
             trackEvent('screen_swipe', {
               from: activePath,
@@ -246,6 +257,7 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
 
     const handleScroll = () => {
       toggleSwipeMode(true);
+      updatePreviewPath(node.scrollLeft, node.clientWidth || viewportWidth || 1);
 
       if (settleTimerRef.current !== null) {
         window.clearTimeout(settleTimerRef.current);
@@ -275,7 +287,11 @@ function SwipeContainer({ activePath, screens, onNavigate }: SwipeContainerProps
         settleTimerRef.current = null;
       }
     };
-  }, [activePath, clearNavigationMode, onNavigate, screens, toggleSwipeMode]);
+  }, [activePath, clearNavigationMode, onNavigate, onPreviewPathChange, screens, toggleSwipeMode, updatePreviewPath, viewportWidth]);
+
+  useEffect(() => {
+    onPreviewPathChange?.(activePath);
+  }, [activePath, onPreviewPathChange]);
 
   return (
     <main

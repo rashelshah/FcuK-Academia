@@ -344,8 +344,8 @@
     --elevation-nav: 0 14px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(185, 255, 63, 0.08);
   }
 
-  body.is-swiping *,
-  body.is-navigating * {
+  body.is-swiping :not(.liquid-nav):not(.liquid-nav *),
+  body.is-navigating :not(.liquid-nav):not(.liquid-nav *) {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
     box-shadow: none !important;
