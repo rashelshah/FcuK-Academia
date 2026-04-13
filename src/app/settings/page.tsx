@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, ChevronRight, LogOut, RefreshCw, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { Bell, ChevronRight, LogOut, MessageCircle, RefreshCw, ShieldCheck, Sparkles, X } from 'lucide-react';
 import {
   AnimatePresence,
   motion,
@@ -186,6 +186,7 @@ export default function SettingsPage() {
               onOpen={() => setPrivacyOpen(true)}
               motionProps={motionProps}
             />
+            <CommunityRow />
           </div>
         </GlassCard>
       </section>
@@ -622,6 +623,56 @@ function PrivacyRow({
       </div>
       <ChevronRight size={18} className="shrink-0 text-on-surface-variant" />
     </motion.button>
+  );
+}
+
+function CommunityRow() {
+  const handleCommunityClick = () => {
+    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      (window as any).gtag('event', 'community_click', {
+        location: 'settings'
+      });
+    }
+    window.open('https://chat.whatsapp.com/YOUR_LINK', '_blank');
+  };
+
+  return (
+    <motion.div
+      role="button"
+      tabIndex={0}
+      onClick={handleCommunityClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCommunityClick();
+        }
+      }}
+      whileHover={{ scale: 0.99, borderColor: 'color-mix(in srgb, var(--accent) 40%, transparent)', boxShadow: '0 4px 12px 0px color-mix(in srgb, var(--accent) 15%, transparent)' }}
+      whileTap={{ scale: 0.97, borderColor: 'color-mix(in srgb, var(--accent) 60%, transparent)', boxShadow: '0 0 16px 0px color-mix(in srgb, var(--accent) 30%, transparent)' }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      className="flex w-full cursor-pointer items-start justify-between gap-4 rounded-[var(--radius-md)] border p-4 text-left"
+      style={{ borderColor: 'var(--card-border)', background: 'color-mix(in srgb, var(--surface-soft) 90%, transparent)' }}
+    >
+      <div className="flex min-w-0 items-start gap-4">
+        <div
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[16px] border transition-colors duration-200"
+          style={{
+            color: 'var(--accent)',
+            borderColor: 'color-mix(in srgb, var(--accent) 28%, transparent)',
+            background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+          }}
+        >
+          <MessageCircle size={18} />
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-headline text-lg font-bold text-on-surface">community</h3>
+          <p className="mt-1 text-[13px] leading-5 text-on-surface-variant">
+            join the gng. updates, fixes & chaos.
+          </p>
+        </div>
+      </div>
+      <ChevronRight size={18} className="shrink-0 self-center text-on-surface-variant" />
+    </motion.div>
   );
 }
 
