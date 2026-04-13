@@ -299,17 +299,29 @@ function MarksCardBack({
   chartData: { exam: string; obtained: number; max: number; remaining: number }[];
   lineColor: string;
 }) {
+  const isCompact = chartData.length > 2;
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="theme-kicker">marks trend</p>
-          <h3 className="mt-1.5 font-headline text-[1.55rem] font-bold lowercase leading-[0.92] text-on-surface max-[380px]:text-[1.35rem]">
+          <h3
+            className={cn(
+              'mt-1.5 font-headline font-bold lowercase leading-[0.92] text-on-surface',
+              isCompact
+                ? 'text-[1.4rem] max-[380px]:text-[1.22rem]'
+                : 'text-[1.55rem] max-[380px]:text-[1.35rem]',
+            )}
+          >
             {subject.name}
           </h3>
         </div>
         <div
-          className="rounded-full px-2.5 py-1 font-label text-[8px] font-bold uppercase tracking-[0.16em] text-on-surface max-[380px]:px-2 max-[380px]:text-[7px]"
+          className={cn(
+            'rounded-full font-label text-[8px] font-bold uppercase tracking-[0.16em] text-on-surface max-[380px]:px-2 max-[380px]:text-[7px]',
+            isCompact ? 'px-2 py-0.5' : 'px-2.5 py-1',
+          )}
           style={{
             background: 'color-mix(in srgb, var(--surface-elevated) 88%, transparent)',
             border: '1px solid var(--border)',
@@ -320,14 +332,17 @@ function MarksCardBack({
       </div>
 
       <div
-        className="mt-3.5 flex min-h-0 flex-1 flex-col rounded-[18px] border p-3 max-[380px]:mt-3 max-[380px]:rounded-[16px] max-[380px]:p-2.5"
+        className={cn(
+          'mt-3.5 flex min-h-0 flex-1 flex-col rounded-[18px] border max-[380px]:mt-3 max-[380px]:rounded-[16px]',
+          isCompact ? 'p-2.5 max-[380px]:p-2' : 'p-3 max-[380px]:p-2.5',
+        )}
         style={{
           background: 'color-mix(in srgb, var(--surface-soft) 90%, transparent)',
           borderColor: 'color-mix(in srgb, var(--border) 88%, transparent)',
         }}
       >
         {chartData.length ? (
-          <div className="h-32 w-full shrink-0 max-[380px]:h-28">
+          <div className={cn('w-full shrink-0', isCompact ? 'h-24 max-[380px]:h-20' : 'h-32 max-[380px]:h-28')}>
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={chartData} margin={{ top: 10, right: 4, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke="rgba(165,175,157,0.12)" vertical={false} />
@@ -358,24 +373,60 @@ function MarksCardBack({
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="flex h-32 items-center justify-center rounded-[16px] border border-dashed border-[var(--border)] text-center text-sm font-semibold text-on-surface-variant max-[380px]:h-28 max-[380px]:text-[13px]">
+          <div
+            className={cn(
+              'flex items-center justify-center rounded-[16px] border border-dashed border-[var(--border)] text-center font-semibold text-on-surface-variant',
+              isCompact
+                ? 'h-24 text-[13px] max-[380px]:h-20 max-[380px]:text-xs'
+                : 'h-32 text-sm max-[380px]:h-28 max-[380px]:text-[13px]',
+            )}
+          >
             no chart data yet
           </div>
         )}
 
-        <div className="mt-2.5 grid grid-cols-2 gap-2 max-[380px]:mt-2 max-[380px]:gap-1.5">
+        <div
+          className={cn(
+            'grid grid-cols-2',
+            isCompact ? 'mt-2 gap-1.5 max-[380px]:mt-1.5 max-[380px]:gap-1' : 'mt-2.5 gap-2 max-[380px]:mt-2 max-[380px]:gap-1.5',
+          )}
+        >
           {chartData.map((point) => (
             <div
               key={point.exam}
-              className="rounded-[12px] border px-2.5 py-2 max-[380px]:rounded-[10px] max-[380px]:px-2 max-[380px]:py-1.5"
+              className={cn(
+                'rounded-[12px] border max-[380px]:rounded-[10px]',
+                isCompact ? 'px-2 py-1.5 max-[380px]:px-1.5 max-[380px]:py-1.5' : 'px-2.5 py-2 max-[380px]:px-2 max-[380px]:py-1.5',
+              )}
               style={{
                 background: 'color-mix(in srgb, var(--surface-elevated) 84%, transparent)',
                 borderColor: 'color-mix(in srgb, var(--border) 90%, transparent)',
               }}
             >
-              <p className="truncate font-label text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant max-[380px]:text-[8px]">{point.exam}</p>
-              <p className="mt-1 font-headline text-[1.05rem] font-bold text-on-surface max-[380px]:text-[0.95rem]">{point.obtained.toFixed(2)}</p>
-              <p className="font-label text-[9px] font-bold tracking-[0.14em] text-on-surface-variant max-[380px]:text-[8px]">of {point.max.toFixed(2)}</p>
+              <p
+                className={cn(
+                  'truncate font-label font-bold uppercase tracking-[0.18em] text-on-surface-variant',
+                  isCompact ? 'text-[8px] max-[380px]:text-[7px]' : 'text-[9px] max-[380px]:text-[8px]',
+                )}
+              >
+                {point.exam}
+              </p>
+              <p
+                className={cn(
+                  'font-headline font-bold text-on-surface',
+                  isCompact ? 'mt-0.5 text-[0.95rem] max-[380px]:text-[0.88rem]' : 'mt-1 text-[1.05rem] max-[380px]:text-[0.95rem]',
+                )}
+              >
+                {point.obtained.toFixed(2)}
+              </p>
+              <p
+                className={cn(
+                  'font-label font-bold tracking-[0.14em] text-on-surface-variant',
+                  isCompact ? 'text-[8px] max-[380px]:text-[7px]' : 'text-[9px] max-[380px]:text-[8px]',
+                )}
+              >
+                of {point.max.toFixed(2)}
+              </p>
             </div>
           ))}
         </div>
