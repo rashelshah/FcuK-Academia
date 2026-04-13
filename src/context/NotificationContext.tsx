@@ -111,16 +111,51 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, []);
 
   const enqueueNotification = useCallback((payload: NotificationPayload) => {
-    const item = createToastItem(payload);
+    // ─── ROUTING RULE ──────────────────────────────────────────────────────────
+    // system  → in-app toast   (settings feedback, toggle state, etc.)
+    // all others (good/bad/warning/class/broadcast) → OS system notification
+    // ───────────────────────────────────────────────────────────────────────────
+    const isSystemEvent = payload.type === 'system';
 
+    if (!isSystemEvent) {
+      // Academic / push-only event → fire OS notification, never toast.
+      if (
+        typeof window !== 'undefined'
+        && 'Notification' in window
+        && Notification.permission === 'granted'
+      ) {
+        try {
+          // eslint-disable-next-line no-new
+          new Notification(payload.title, {
+            body: payload.message,
+            icon: '/icons/android-icon-192.png',
+            badge: '/icons/android-icon-192.png',
+            tag: `fcuk-${payload.type}-${payload.id ?? Date.now()}`,
+          });
+        } catch {
+          // Silently skip if Notification constructor is unavailable.
+        }
+      }
+
+      // Still play sound + vibrate even for push-type events.
+      if (!payload.silent) {
+        void playNotificationSound(payload.sound ?? payload.type);
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          navigator.vibrate(payload.type === 'bad' ? [80, 40, 80] : 80);
+        }
+      }
+
+      return; // Do NOT add to in-app toast queue.
+    }
+
+    // System event → add to toast queue as before.
+    const item = createToastItem(payload);
     setNotificationQueue((current) => [item, ...current].slice(0, NOTIFICATIONS_STACK_LIMIT));
 
     if (!payload.silent) {
       void playNotificationSound(payload.sound ?? payload.type);
-
-      // Haptic feedback — double-pulse for urgent (bad), single tap for all others.
       if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-        navigator.vibrate(payload.type === 'bad' ? [80, 40, 80] : 80);
+        navigator.vibrate(80);
       }
     }
   }, []);
@@ -135,11 +170,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const refreshPushToken = useCallback(async () => {
     if (!notificationsActive) return null;
 
-    const permission = await requestNotificationPermission();
-    setPermissionState(permission);
-    setStoredNotificationPermission(permission);
+    // ⚠️ Do NOT call requestNotificationPermission() here — that would auto-prompt
+    // the browser on every page load. Permission is only requested when the user
+    // explicitly enables notifications via the toggle in Settings.
+    const currentPermission = resolvePermissionState();
+    setPermissionState(currentPermission);
+    setStoredNotificationPermission(currentPermission);
 
-    if (permission !== 'granted') {
+    if (currentPermission !== 'granted') {
       return null;
     }
 
@@ -202,18 +240,34 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     const nextPayload = fromFcmPayload(payload);
     if (!nextPayload) return;
 
-    triggerNotification(nextPayload.type, {
-      id: nextPayload.id,
-      title: nextPayload.title,
-      message: nextPayload.message,
-      sound: nextPayload.sound,
-      deepLink: nextPayload.deepLink,
-      source: nextPayload.source,
-      metadata: nextPayload.metadata,
-      silent: nextPayload.silent,
-      durationMs: nextPayload.durationMs,
-    });
-  }, [triggerNotification]);
+    // All FCM foreground messages → OS system notification (not toast).
+    // Background messages are already handled by the service worker.
+    if (
+      typeof window !== 'undefined'
+      && 'Notification' in window
+      && Notification.permission === 'granted'
+    ) {
+      try {
+        // eslint-disable-next-line no-new
+        new Notification(nextPayload.title, {
+          body: nextPayload.message,
+          icon: '/icons/android-icon-192.png',
+          badge: '/icons/android-icon-192.png',
+          tag: `fcuk-fcm-${nextPayload.id ?? Date.now()}`,
+        });
+      } catch {
+        // Silently skip — service worker push is the reliable delivery path.
+      }
+    }
+
+    // Sound + haptic still fire even for foreground push messages.
+    if (!nextPayload.silent) {
+      void playNotificationSound(nextPayload.sound ?? nextPayload.type);
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(nextPayload.type === 'bad' ? [80, 40, 80] : 80);
+      }
+    }
+  }, []);
 
   const setNotificationsEnabled = useCallback(async (enabled: boolean) => {
     setNotificationsEnabledPreference(enabled);
@@ -223,8 +277,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       clearEngineTimer();
       await clearNotificationToken();
       enqueueNotification({
-        title: 'notification mode off',
-        message: 'silence restored. no push, no buzz, no academic jump-scares.',
+        title: 'silent mode on 🕊️',
+        message: 'koi ping nahi, koi drama nahi. peace restored.',
         type: 'system',
         sound: 'warning',
         source: 'settings',
@@ -232,6 +286,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       return;
     }
 
+    // User explicitly enabled — this is the ONLY place we call requestPermission.
+    // No auto-prompting anywhere else in the app.
     const permission = await requestNotificationPermission();
     setPermissionState(permission);
     setStoredNotificationPermission(permission);
@@ -239,9 +295,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (permission === 'granted') {
       await initNotifications({ forceRefresh: true });
       enqueueNotification({
-        title: 'notifications unlocked',
-        message: 'FCM is armed. now the app can ping you before academia does.',
-        type: 'good',
+        title: 'notifications on 🔔',
+        message: 'ab bachke rehna 😈 attendance, marks sab ping karega.',
+        type: 'system',
         sound: 'good',
         source: 'settings',
       });
@@ -249,16 +305,29 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       return;
     }
 
+    if (permission === 'denied') {
+      // User denied the browser prompt → force toggle back OFF.
+      // No in-app fallback mode — this app is push-only for academic events.
+      setNotificationsEnabledPreference(false);
+      setNotificationsEnabledState(false);
+      enqueueNotification({
+        title: 'permission denied 😤',
+        message: 'theek hai bhai, fir mat bolna bataya nahi.',
+        type: 'system',
+        sound: 'warning',
+        source: 'settings',
+      });
+      return;
+    }
+
+    // Unsupported device.
     enqueueNotification({
-      title: 'fallback mode active',
-      message: permission === 'denied'
-        ? 'push permission said no, so we are sticking to in-app alerts only.'
-        : 'device push is not supported here, but in-app alerts are still live.',
-      type: 'warning',
+      title: 'push not supported 📵',
+      message: 'yeh device push support nahi karta. sorry bhai.',
+      type: 'system',
       sound: 'warning',
       source: 'settings',
     });
-    scheduleNotificationEngine();
   }, [clearEngineTimer, enqueueNotification, scheduleNotificationEngine]);
 
   useEffect(() => {
