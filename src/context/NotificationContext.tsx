@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { usePathname } from 'next/navigation';
 import React, {
   createContext,
   useCallback,
@@ -10,32 +11,31 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { usePathname } from 'next/navigation';
+import type { MessagePayload } from 'firebase/messaging';
 
+import { useDashboardDataContext } from '@/context/DashboardDataContext';
 import { evaluateNotificationEngine, getNextNotificationEngineDelay } from '@/lib/notificationEngine';
-import {
-  clearNotificationToken,
-  getNotificationToken,
-  requestNotificationPermission,
-  syncNotificationToken,
-} from '@/lib/notifications/getToken';
 import {
   NOTIFICATIONS_DEFAULT_DURATION_MS,
   NOTIFICATIONS_STACK_LIMIT,
 } from '@/lib/notifications/constants';
 import {
+  clearNotificationToken,
+  initNotifications,
+  requestNotificationPermission,
+} from '@/lib/notifications/getToken';
+import { playNotificationSound, primeNotificationAudio } from '@/lib/notifications/sounds';
+import {
   getNotificationsEnabledPreference,
   setNotificationsEnabledPreference,
   setStoredNotificationPermission,
 } from '@/lib/notifications/storage';
-import { playNotificationSound, primeNotificationAudio } from '@/lib/notifications/sounds';
 import type {
-  NotificationPermissionState,
   NotificationPayload,
+  NotificationPermissionState,
   NotificationToastItem,
   NotificationType,
 } from '@/lib/notifications/types';
-import { useDashboardDataContext } from '@/context/DashboardDataContext';
 
 const NotificationStack = dynamic(() => import('@/components/notifications/NotificationStack'), {
   ssr: false,
@@ -67,8 +67,8 @@ function createToastItem(payload: NotificationPayload): NotificationToastItem {
   };
 }
 
-function fromFcmPayload(payload: Record<string, unknown>): NotificationPayload | null {
-  const data = (payload.data && typeof payload.data === 'object' ? payload.data : {}) as Record<string, unknown>;
+function fromFcmPayload(payload: MessagePayload): NotificationPayload | null {
+  const data = payload.data ?? {};
   const title = String(data.title ?? '').trim();
   const message = String(data.message ?? '').trim();
 
@@ -79,6 +79,7 @@ function fromFcmPayload(payload: Record<string, unknown>): NotificationPayload |
     : 'broadcast';
 
   return {
+    id: payload.messageId ?? undefined,
     title,
     message,
     type: nextType,
@@ -101,6 +102,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [permissionState, setPermissionState] = useState<NotificationPermissionState>('unknown');
   const [notificationQueue, setNotificationQueue] = useState<NotificationToastItem[]>([]);
   const engineTimerRef = useRef<number | null>(null);
+  const seenForegroundMessageIdsRef = useRef<string[]>([]);
+
+  const notificationsActive = notificationsEnabled && pathname !== '/login';
 
   const dismissNotification = useCallback((id: string) => {
     setNotificationQueue((current) => current.filter((item) => item.id !== id));
@@ -113,6 +117,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     if (!payload.silent) {
       void playNotificationSound(payload.sound ?? payload.type);
+
+      // Haptic feedback — double-pulse for urgent (bad), single tap for all others.
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(payload.type === 'bad' ? [80, 40, 80] : 80);
+      }
     }
   }, []);
 
@@ -124,24 +133,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, [enqueueNotification]);
 
   const refreshPushToken = useCallback(async () => {
-    if (!notificationsEnabled) return;
+    if (!notificationsActive) return null;
 
     const permission = await requestNotificationPermission();
     setPermissionState(permission);
     setStoredNotificationPermission(permission);
 
     if (permission !== 'granted') {
-      return;
+      return null;
     }
 
-    const token = await getNotificationToken();
-    if (token) {
-      await syncNotificationToken(token);
-    }
-  }, [notificationsEnabled]);
+    return initNotifications();
+  }, [notificationsActive]);
 
   const runNotificationEngine = useCallback(() => {
-    if (!notificationsEnabled || loading || pathname === '/login') return;
+    if (!notificationsActive || loading) return;
 
     const nextNotifications = evaluateNotificationEngine({
       attendance,
@@ -151,7 +157,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     });
 
     nextNotifications.forEach((payload) => enqueueNotification(payload));
-  }, [attendance, calendar, enqueueNotification, loading, markList, notificationsEnabled, pathname, timetable]);
+  }, [attendance, calendar, enqueueNotification, loading, markList, notificationsActive, timetable]);
 
   const clearEngineTimer = useCallback(() => {
     if (engineTimerRef.current !== null) {
@@ -163,7 +169,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const scheduleNotificationEngine = useCallback(() => {
     clearEngineTimer();
 
-    if (!notificationsEnabled || pathname === '/login') return;
+    if (!notificationsActive) return;
 
     const delay = getNextNotificationEngineDelay({
       timetable,
@@ -178,7 +184,36 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       runNotificationEngine();
       scheduleNotificationEngine();
     }, Math.max(delay, 1000));
-  }, [calendar, clearEngineTimer, notificationsEnabled, pathname, runNotificationEngine, timetable]);
+  }, [calendar, clearEngineTimer, notificationsActive, runNotificationEngine, timetable]);
+
+  const handleForegroundMessage = useCallback((payload: MessagePayload) => {
+    const messageId = payload.messageId ?? null;
+    if (messageId) {
+      if (seenForegroundMessageIdsRef.current.includes(messageId)) {
+        return;
+      }
+
+      seenForegroundMessageIdsRef.current = [
+        messageId,
+        ...seenForegroundMessageIdsRef.current,
+      ].slice(0, 40);
+    }
+
+    const nextPayload = fromFcmPayload(payload);
+    if (!nextPayload) return;
+
+    triggerNotification(nextPayload.type, {
+      id: nextPayload.id,
+      title: nextPayload.title,
+      message: nextPayload.message,
+      sound: nextPayload.sound,
+      deepLink: nextPayload.deepLink,
+      source: nextPayload.source,
+      metadata: nextPayload.metadata,
+      silent: nextPayload.silent,
+      durationMs: nextPayload.durationMs,
+    });
+  }, [triggerNotification]);
 
   const setNotificationsEnabled = useCallback(async (enabled: boolean) => {
     setNotificationsEnabledPreference(enabled);
@@ -202,7 +237,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     setStoredNotificationPermission(permission);
 
     if (permission === 'granted') {
-      await refreshPushToken();
+      await initNotifications({ forceRefresh: true });
       enqueueNotification({
         title: 'notifications unlocked',
         message: 'FCM is armed. now the app can ping you before academia does.',
@@ -224,7 +259,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       source: 'settings',
     });
     scheduleNotificationEngine();
-  }, [clearEngineTimer, enqueueNotification, refreshPushToken, scheduleNotificationEngine]);
+  }, [clearEngineTimer, enqueueNotification, scheduleNotificationEngine]);
 
   useEffect(() => {
     primeNotificationAudio();
@@ -234,14 +269,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (!notificationsEnabled || pathname === '/login') return;
+      if (!notificationsActive) return;
 
       if (document.visibilityState === 'hidden') {
         clearEngineTimer();
         return;
       }
 
-      void refreshPushToken();
       runNotificationEngine();
       scheduleNotificationEngine();
     };
@@ -253,24 +287,25 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleVisibilityChange);
     };
-  }, [clearEngineTimer, notificationsEnabled, pathname, refreshPushToken, runNotificationEngine, scheduleNotificationEngine]);
+  }, [clearEngineTimer, notificationsActive, runNotificationEngine, scheduleNotificationEngine]);
 
   useEffect(() => {
-    if (!notificationsEnabled || pathname === '/login') {
+    if (!notificationsActive) {
       clearEngineTimer();
       return;
     }
 
+    void refreshPushToken();
     runNotificationEngine();
     scheduleNotificationEngine();
 
     return () => {
       clearEngineTimer();
     };
-  }, [clearEngineTimer, notificationsEnabled, pathname, runNotificationEngine, scheduleNotificationEngine]);
+  }, [clearEngineTimer, notificationsActive, refreshPushToken, runNotificationEngine, scheduleNotificationEngine]);
 
   useEffect(() => {
-    if (!notificationsEnabled || pathname === '/login') return;
+    if (!notificationsActive) return;
 
     let unsubscribe: (() => void) | undefined;
     let cancelled = false;
@@ -281,24 +316,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         const messaging = await getFirebaseMessagingClient();
         if (!messaging || cancelled) return;
 
-        await refreshPushToken();
-
         const { onMessage } = await import('firebase/messaging');
-        unsubscribe = onMessage(messaging, (payload) => {
-          const nextPayload = fromFcmPayload(payload as unknown as Record<string, unknown>);
-          if (!nextPayload) return;
-
-          triggerNotification(nextPayload.type, {
-            title: nextPayload.title,
-            message: nextPayload.message,
-            sound: nextPayload.sound,
-            deepLink: nextPayload.deepLink,
-            source: nextPayload.source,
-            metadata: nextPayload.metadata,
-            silent: nextPayload.silent,
-            durationMs: nextPayload.durationMs,
-          });
-        });
+        unsubscribe = onMessage(messaging, handleForegroundMessage);
       } catch {
         // FCM is optional at runtime; fallback notifications continue to work.
       }
@@ -310,7 +329,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       cancelled = true;
       unsubscribe?.();
     };
-  }, [notificationsEnabled, pathname, refreshPushToken, triggerNotification]);
+  }, [handleForegroundMessage, notificationsActive]);
 
   const value = useMemo<NotificationContextValue>(() => ({
     notificationsEnabled,

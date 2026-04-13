@@ -3,6 +3,7 @@ import type { NotificationType } from '@/lib/notifications/types';
 export const NOTIFICATIONS_ENABLED_KEY = 'fcuk.notifications.enabled';
 export const NOTIFICATIONS_PERMISSION_KEY = 'fcuk.notifications.permission';
 export const NOTIFICATIONS_FCM_TOKEN_KEY = 'fcuk.notifications.fcmToken';
+export const NOTIFICATIONS_FCM_SESSION_SYNC_KEY = 'fcuk.notifications.fcmToken.sessionSynced';
 export const NOTIFICATIONS_MARKS_SNAPSHOT_KEY = 'fcuk.notifications.marksSnapshot';
 export const NOTIFICATIONS_DEDUP_PREFIX = 'notified';
 export const NOTIFICATIONS_FCM_SW_SCOPE = '/firebase-cloud-messaging-push-scope';

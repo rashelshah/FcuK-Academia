@@ -1,6 +1,7 @@
 import {
   NOTIFICATIONS_DEDUP_PREFIX,
   NOTIFICATIONS_ENABLED_KEY,
+  NOTIFICATIONS_FCM_SESSION_SYNC_KEY,
   NOTIFICATIONS_FCM_TOKEN_KEY,
   NOTIFICATIONS_MARKS_SNAPSHOT_KEY,
   NOTIFICATIONS_PERMISSION_KEY,
@@ -54,6 +55,21 @@ export function setStoredFcmToken(token: string) {
 export function clearStoredFcmToken() {
   if (!canUseStorage()) return;
   window.localStorage.removeItem(NOTIFICATIONS_FCM_TOKEN_KEY);
+}
+
+export function getSessionSyncedFcmToken() {
+  if (!canUseStorage()) return null;
+  return window.sessionStorage.getItem(NOTIFICATIONS_FCM_SESSION_SYNC_KEY);
+}
+
+export function setSessionSyncedFcmToken(token: string) {
+  if (!canUseStorage()) return;
+  window.sessionStorage.setItem(NOTIFICATIONS_FCM_SESSION_SYNC_KEY, token);
+}
+
+export function clearSessionSyncedFcmToken() {
+  if (!canUseStorage()) return;
+  window.sessionStorage.removeItem(NOTIFICATIONS_FCM_SESSION_SYNC_KEY);
 }
 
 export function getStoredMarksSnapshot() {

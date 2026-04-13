@@ -83,10 +83,6 @@ export async function POST(request: Request) {
   for (const batch of chunkArray(tokens, 500)) {
     const response = await messaging.sendEachForMulticast({
       tokens: batch,
-      notification: {
-        title: payload.title,
-        body: payload.message,
-      },
       data: {
         title: payload.title,
         message: payload.message,
@@ -97,18 +93,6 @@ export async function POST(request: Request) {
       webpush: {
         headers: {
           Urgency: 'high',
-        },
-        notification: {
-          title: payload.title,
-          body: payload.message,
-          icon: '/icons/android-icon-192.png',
-          badge: '/icons/android-icon-192.png',
-          tag: `broadcast-${Date.now()}`,
-          data: {
-            deepLink: payload.deepLink ?? '/',
-            type: payload.type,
-            sound: payload.sound ?? 'default',
-          },
         },
         fcmOptions: {
           link: absoluteLink,
@@ -131,10 +115,7 @@ export async function POST(request: Request) {
         const invalidToken = batch[index];
         if (!invalidToken) return;
 
-        const staleDoc = snapshot.docs.find((document) => document.data().token === invalidToken);
-        if (staleDoc) {
-          await staleDoc.ref.delete().catch(() => undefined);
-        }
+        await collection.doc(invalidToken).delete().catch(() => undefined);
       }),
     );
   }

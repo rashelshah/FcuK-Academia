@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { getNotificationTokenCollection, hashNotificationToken, isFirebaseAdminConfigured } from '@/lib/server/firebase-admin';
+import { getNotificationTokenCollection, isFirebaseAdminConfigured } from '@/lib/server/firebase-admin';
 import { handleRouteError, requireSession } from '@/lib/server/route-utils';
 
 export async function POST(request: Request) {
@@ -10,6 +10,7 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
     const token = typeof body?.token === 'string' ? body.token.trim() : '';
+    const previousToken = typeof body?.previousToken === 'string' ? body.previousToken.trim() : '';
     if (!token) {
       return NextResponse.json({ error: 'token required' }, { status: 400 });
     }
@@ -23,12 +24,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ synced: false, reason: 'token_store_unavailable' }, { status: 503 });
     }
 
-    const docId = hashNotificationToken(token);
-    const now = new Date().toISOString();
-    const existing = await collection.doc(docId).get();
+    const now = new Date();
+    if (previousToken && previousToken !== token) {
+      await collection.doc(previousToken).delete().catch(() => undefined);
+    }
 
-    await collection.doc(docId).set({
+    const existing = await collection.doc(token).get();
+
+    await collection.doc(token).set({
       token,
+      device: typeof body?.device === 'string' ? body.device : 'web',
       email: session?.email ?? null,
       sessionId,
       permission: typeof body?.permission === 'string' ? body.permission : null,
@@ -60,7 +65,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ removed: false, reason: 'token_store_unavailable' }, { status: 503 });
     }
 
-    await collection.doc(hashNotificationToken(token)).delete();
+    await collection.doc(token).delete();
     return NextResponse.json({ removed: true });
   } catch (error) {
     return handleRouteError(error);

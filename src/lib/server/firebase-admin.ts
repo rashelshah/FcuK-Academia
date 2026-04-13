@@ -1,13 +1,11 @@
 import 'server-only';
 
-import crypto from 'node:crypto';
-
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
 
 const FIREBASE_ADMIN_APP_NAME = 'fcuk-academia-admin';
-const NOTIFICATION_TOKEN_COLLECTION = 'notificationTokens';
+const NOTIFICATION_TOKEN_COLLECTION = 'fcmTokens';
 
 function normalizePrivateKey(value?: string) {
   return value?.replace(/\\n/g, '\n');
@@ -46,8 +44,4 @@ export function getFirebaseAdminMessaging() {
   const app = getFirebaseAdminApp();
   if (!app) return null;
   return getMessaging(app);
-}
-
-export function hashNotificationToken(token: string) {
-  return crypto.createHash('sha256').update(token).digest('hex');
 }

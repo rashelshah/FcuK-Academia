@@ -43,24 +43,6 @@ if (firebaseConfig.apiKey && firebaseConfig.projectId) {
   });
 }
 
-self.addEventListener('push', (event) => {
-  if (!event.data) return;
-
-  let payload = {};
-  try {
-    payload = event.data.json();
-  } catch {
-    payload = {
-      notification: {
-        title: 'FcuK Academia',
-        body: event.data.text(),
-      },
-    };
-  }
-
-  event.waitUntil(showNotificationFromPayload(payload));
-});
-
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
