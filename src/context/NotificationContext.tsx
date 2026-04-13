@@ -27,6 +27,7 @@ import {
 import { playNotificationSound, primeNotificationAudio } from '@/lib/notifications/sounds';
 import {
   getNotificationsEnabledPreference,
+  hasNotificationsEnabledPreference,
   setNotificationsEnabledPreference,
   setStoredNotificationPermission,
 } from '@/lib/notifications/storage';
@@ -286,6 +287,24 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       return;
     }
 
+    // ─ Handle already-denied: guide user to browser settings, never re-prompt the OS.
+    if (
+      typeof window !== 'undefined'
+      && 'Notification' in window
+      && Notification.permission === 'denied'
+    ) {
+      setNotificationsEnabledPreference(false);
+      setNotificationsEnabledState(false);
+      enqueueNotification({
+        title: 'permission blocked 🔕',
+        message: 'bhai browser settings mein jaake allow karna padega 😤🔔',
+        type: 'system',
+        sound: 'warning',
+        source: 'settings',
+      });
+      return;
+    }
+
     // User explicitly enabled — this is the ONLY place we call requestPermission.
     // No auto-prompting anywhere else in the app.
     const permission = await requestNotificationPermission();
@@ -332,9 +351,44 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     primeNotificationAudio();
-    setNotificationsEnabledState(getNotificationsEnabledPreference());
+
+    if (!hasNotificationsEnabledPreference()) {
+      // First-time user — default the toggle ON optimistically.
+      // The permission prompt effect below will adjust the real state right after.
+      setNotificationsEnabledState(true);
+      setNotificationsEnabledPreference(true);
+    } else {
+      setNotificationsEnabledState(getNotificationsEnabledPreference());
+    }
+
     setPermissionState(resolvePermissionState());
   }, []);
+
+  // ─ First-visit permission prompt ───────────────────────────────────────────
+  // Runs exactly once on mount. Triggers the browser OS permission dialog only
+  // when permission is still 'default' (user has never answered). If they already
+  // allowed or denied, we respect that silently with no prompt at all.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (Notification.permission !== 'default') return;
+
+    void (async () => {
+      const permission = await Notification.requestPermission();
+      setPermissionState(permission);
+      setStoredNotificationPermission(permission);
+
+      if (permission === 'granted') {
+        // Keep the toggle ON and silently fetch the FCM token.
+        setNotificationsEnabledState(true);
+        setNotificationsEnabledPreference(true);
+        void initNotifications({ forceRefresh: true });
+      } else {
+        // Denied or dismissed — turn the toggle OFF and persist.
+        setNotificationsEnabledState(false);
+        setNotificationsEnabledPreference(false);
+      }
+    })();
+  }, []); // ← intentionally empty: run only once on first mount
 
   useEffect(() => {
     const handleVisibilityChange = () => {

@@ -32,6 +32,14 @@ export function setNotificationsEnabledPreference(value: boolean) {
   writeBooleanStorage(NOTIFICATIONS_ENABLED_KEY, value);
 }
 
+/** Returns true when the user has explicitly set a preference (key exists in storage).
+ *  Returns false on first visit (no key written yet). */
+export function hasNotificationsEnabledPreference() {
+  if (!canUseStorage()) return false;
+  return window.localStorage.getItem(NOTIFICATIONS_ENABLED_KEY) !== null;
+}
+
+
 export function getStoredNotificationPermission() {
   if (!canUseStorage()) return 'unknown';
   return window.localStorage.getItem(NOTIFICATIONS_PERMISSION_KEY) ?? 'unknown';
