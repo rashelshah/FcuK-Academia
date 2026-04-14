@@ -44,3 +44,6 @@ next-env.d.ts
 
 .session-store
 .python-packages
+
+.AGENTS.md
+.CLAUDE.md
