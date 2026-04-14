@@ -30,6 +30,8 @@ import { clearNotificationToken } from '@/lib/notifications/getToken';
 import { getInteractiveMotion } from '@/lib/motion';
 import { useUser } from '@/hooks/useUser';
 import { cn } from '@/lib/utils';
+import { WHATSAPP_COMMUNITY_POPUP_CONFIG } from '@/lib/features';
+
 
 export default function SettingsPage() {
   const { themeConfig } = useTheme();
@@ -617,7 +619,7 @@ function CommunityRow() {
         location: 'settings'
       });
     }
-    window.open('https://chat.whatsapp.com/YOUR_LINK', '_blank');
+    window.open(WHATSAPP_COMMUNITY_POPUP_CONFIG.whatsappUrl, '_blank');
   };
 
   return (
