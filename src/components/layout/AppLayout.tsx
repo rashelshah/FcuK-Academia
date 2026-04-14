@@ -14,6 +14,7 @@ import SwipeContainer from '@/components/layout/SwipeContainer';
 import OnboardingOverlay from '@/components/onboarding/OnboardingOverlay';
 import { navigateToTab, syncRouteTabPath, useActiveTabPath } from '@/components/layout/tab-navigation';
 import IntroOverlay from '@/components/ui/IntroOverlay';
+import InstallGate from '@/components/system/InstallGate';
 
 const HIDE_NAV_PATHS = ['/login'];
 const SWIPEABLE_PATHS = ['/', '/marks', '/attendance', '/timetable', '/calendar', '/settings'] as const;
@@ -85,29 +86,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     : navActivePath;
 
   return (
-    <div className="relative mx-auto min-h-screen w-full max-w-[28rem] overflow-x-hidden sm:max-w-[34rem] lg:max-w-[44rem] xl:max-w-[52rem]">
-      <IntroOverlay />
-      <OnboardingOverlay />
+    <InstallGate>
+      <div className="relative mx-auto min-h-screen w-full max-w-[28rem] overflow-x-hidden sm:max-w-[34rem] lg:max-w-[44rem] xl:max-w-[52rem]">
+        <IntroOverlay />
+        <OnboardingOverlay />
 
-      <div className="app-shell transition-opacity duration-300">
-        {isSwipeableRoute ? (
-          <SwipeContainer
-            activePath={swipeActivePath}
-            screens={TAB_SCREENS}
-            onNavigate={handleSwipeNavigate}
-            onPreviewPathChange={setSwipePreviewPath}
+        <div className="app-shell transition-opacity duration-300">
+          {isSwipeableRoute ? (
+            <SwipeContainer
+              activePath={swipeActivePath}
+              screens={TAB_SCREENS}
+              onNavigate={handleSwipeNavigate}
+              onPreviewPathChange={setSwipePreviewPath}
+            />
+          ) : (
+            <main className="px-4 pt-6 sm:px-6 sm:pt-8">
+              {children}
+            </main>
+          )}
+
+          <Navbar
+            activePath={navbarActivePath}
+            onNavigate={isSwipeableRoute ? handleNavbarNavigate : undefined}
           />
-        ) : (
-          <main className="px-4 pt-6 sm:px-6 sm:pt-8">
-            {children}
-          </main>
-        )}
-
-        <Navbar
-          activePath={navbarActivePath}
-          onNavigate={isSwipeableRoute ? handleNavbarNavigate : undefined}
-        />
+        </div>
       </div>
-    </div>
+    </InstallGate>
   );
 }
