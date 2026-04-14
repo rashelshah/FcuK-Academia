@@ -281,9 +281,12 @@ function MarksCardFront({
         })}
       </div>
       <ProgressBar value={marksPct} color={hexColor} className="mt-4" />
-      <div className="mt-auto pb-2 pt-7 text-right">
-        <span className="inline-block font-headline text-[3.2rem] font-bold leading-none tracking-tighter text-on-surface">
+      <div className="mt-auto w-full flex items-baseline justify-end gap-1 pb-2 pt-7 text-right">
+        <span className="font-headline text-[2.6rem] font-bold leading-none tracking-tighter text-on-surface">
           {subject.marks.internal.toFixed(2)}
+        </span>
+        <span className="font-headline text-[1.15rem] font-bold leading-none tracking-tighter text-on-surface-variant/50">
+          / {subject.marks.totalInternal.toFixed(2)}
         </span>
       </div>
     </div>
