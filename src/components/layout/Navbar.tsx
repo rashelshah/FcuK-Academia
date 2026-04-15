@@ -50,7 +50,7 @@ const NavItemButton = memo(function NavItemButton({
   const content = (
     <div
       className={cn(
-        'relative z-10 flex h-[3.8rem] w-full items-center justify-center rounded-full transition-colors duration-300',
+        'relative z-10 flex h-[3.4rem] w-full items-center justify-center rounded-full transition-colors duration-300',
         isActive ? 'text-[var(--text)]' : 'text-on-surface-variant opacity-50',
       )}
       style={{
@@ -73,8 +73,8 @@ const NavItemButton = memo(function NavItemButton({
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
       >
         <Icon
-          size={20}
-          strokeWidth={isActive ? 2.4 : 2.0}
+          size={17}
+          strokeWidth={isActive ? 2.6 : 2.0}
           className="relative z-10 shrink-0 transition-transform duration-300 ease-out"
           style={{
             vectorEffect: 'non-scaling-stroke',
@@ -191,7 +191,7 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
       </AnimatePresence>
 
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex items-end justify-between px-4 sm:px-6 xl:px-8 max-w-7xl mx-auto"
+        className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex items-end justify-between px-4 sm:px-6 xl:px-8 max-w-7xl mx-auto gap-4"
         style={{
           paddingBottom: `calc(16px + max(env(safe-area-inset-bottom), 0px))`,
         }}
@@ -268,9 +268,9 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                 }}
               >
                 <div
-                  className="relative h-full aspect-square overflow-hidden border backdrop-blur-md"
+                  className="relative h-10 w-10 overflow-hidden border backdrop-blur-md"
                   style={{
-                    borderRadius: '999px',
+                    borderRadius: '50%',
                     borderColor: 'color-mix(in srgb, var(--primary) 36%, rgba(255,255,255,0.28))',
                     background: 'linear-gradient(180deg, color-mix(in srgb, rgba(255,255,255,0.26) 48%, var(--surface-highlight)) 0%, color-mix(in srgb, var(--primary) 10%, var(--surface-elevated) 90%) 100%)',
                     boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2), 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent)',
@@ -334,7 +334,7 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
           >
             <motion.div
               layout
-              className="group relative flex aspect-square h-[4.2rem] sm:h-[4.5rem] items-center justify-center rounded-full outline-none"
+              className="group relative flex aspect-square h-[4rem] items-center justify-center rounded-full outline-none"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.92 }}
             >
@@ -358,7 +358,7 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                       className="absolute inset-0 flex flex-col items-center justify-center text-[13px] font-black tracking-widest uppercase text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] leading-tight"
                     >
                       <span>FcuK</span>
-                      <span className="text-[6px] tracking-[0.3em] opacity-80">ESTD</span>
+                      <span className="text-[5.5px] tracking-[0.1em] opacity-80">Academia</span>
                     </motion.div>
                   ) : (
                     <motion.div
