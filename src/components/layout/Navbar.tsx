@@ -307,19 +307,7 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
       </AnimatePresence>
 
       {/* RIGHT: FLOATING CTA BUTTON */}
-      <AnimatePresence>
-        <motion.div
-           initial={{ scale: 0, opacity: 0 }}
-           animate={{ scale: 1, opacity: 1 }}
-           transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.2 }}
-           className="pointer-events-auto relative flex items-center justify-center"
-        >
-          {/* Pulse ring underneath */}
-          <motion.div
-            animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0, 0.3] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-0 rounded-full bg-[var(--primary)] blur-md pointer-events-none"
-          />
+        <div className="pointer-events-auto relative flex items-center justify-center">
 
           <button 
             type="button"
@@ -333,18 +321,18 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
             className="outline-none"
           >
             <motion.div
-              layout
               className="group relative flex aspect-square h-[4rem] items-center justify-center rounded-full outline-none"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.92 }}
             >
               <div 
-                className="absolute inset-0 rounded-full bg-gradient-to-tr from-[var(--primary)] via-[var(--primary-soft)] to-white transition-all duration-300 group-hover:blur-md"
+                className="absolute inset-0 rounded-full backdrop-blur-2xl transition-all duration-500 group-hover:duration-300"
                 style={{
-                  boxShadow: '0 0 30px color-mix(in srgb, var(--primary) 80%, transparent), 0 10px 25px rgba(0,0,0,0.5)',
+                  background: 'linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, rgba(255,255,255,0.05)), color-mix(in srgb, var(--primary) 6%, rgba(255,255,255,0.02)))',
+                  border: '1px solid color-mix(in srgb, var(--primary) 20%, rgba(255,255,255,0.12))',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 16px color-mix(in srgb, var(--primary) 8%, transparent)',
                 }}
               />
-              <div className="absolute inset-[1.5px] rounded-full bg-gradient-to-br from-[color-mix(in_srgb,var(--primary)_80%,white)] to-[color-mix(in_srgb,var(--primary)_70%,black)] flex items-center justify-center shadow-[inset_0_2px_8px_rgba(255,255,255,0.4)]" />
               
               <div className="relative z-10 w-full h-full flex items-center justify-center">
                 <AnimatePresence>
@@ -355,7 +343,11 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                       animate={{ opacity: 1, scale: 1, rotate: 0 }}
                       exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
                       transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                      className="absolute inset-0 flex flex-col items-center justify-center text-[13px] font-black tracking-widest uppercase text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] leading-tight"
+                      className={cn(
+                        "absolute inset-0 flex flex-col items-center justify-center text-[13px] font-black tracking-widest uppercase leading-tight transition-colors duration-300",
+                        "text-[var(--text)]",
+                        themeConfig.mode === 'dark' && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                      )}
                     >
                       <span>FcuK</span>
                       <span className="text-[5.5px] tracking-[0.1em] opacity-80">Academia</span>
@@ -367,7 +359,11 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                       animate={{ opacity: 1, scale: 1, rotate: 0 }}
                       exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
                       transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                      className="absolute inset-0 flex items-center justify-center text-[14px] font-black tracking-widest uppercase text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                      className={cn(
+                        "absolute inset-0 flex items-center justify-center text-[14px] font-black tracking-widest uppercase transition-colors duration-300",
+                        "text-[var(--text)]",
+                        themeConfig.mode === 'dark' && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                      )}
                     >
                       RMF
                     </motion.div>
@@ -380,8 +376,7 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
               </div>
             </motion.div>
           </button>
-        </motion.div>
-      </AnimatePresence>
+        </div>
     </div>
     </>
   );
