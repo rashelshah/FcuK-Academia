@@ -56,7 +56,7 @@ export async function GET(
       orderBy: { createdAt: 'desc' },
     });
 
-    const reviews = rawReviews.filter(r => r.review && r.review.trim().length > 0);
+    const reviews = rawReviews.filter((r: typeof rawReviews[number]) => r.review && r.review.trim().length > 0);
 
     return NextResponse.json({
       faculty: {

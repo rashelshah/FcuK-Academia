@@ -77,11 +77,11 @@ export default function SettingsPage() {
 
   const notificationSubtitle = useMemo(() => {
     if (notificationsEnabled && permissionState === 'granted') {
-      return 'push + in-app alerts are live. expect funny saves before college chaos hits.';
+      return 'push alerts are live. class reminders, attendance warnings, mark drops — all incoming.';
     }
 
-    if (notificationsEnabled && (permissionState === 'denied' || permissionState === 'unsupported')) {
-      return 'fallback mode is active. in-app alerts still work even when push cannot.';
+    if (permissionState === 'denied') {
+      return 'Bhai settings se allow karna padega 😤🔔 Browser ne block kar diya hai.';
     }
 
     return 'turn this on for class alerts, attendance warnings, mark drops, and admin broadcasts.';
@@ -90,7 +90,8 @@ export default function SettingsPage() {
   const notificationStatusLabel = useMemo(() => {
     if (!notificationsEnabled) return 'off';
     if (permissionState === 'granted') return 'live';
-    return 'fallback';
+    if (permissionState === 'denied') return 'blocked';
+    return 'off';
   }, [notificationsEnabled, permissionState]);
 
   return (

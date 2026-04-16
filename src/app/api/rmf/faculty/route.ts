@@ -32,7 +32,7 @@ export async function GET() {
       },
     });
 
-    const facultiesIds = faculties.map(f => f.id);
+    const facultiesIds = faculties.map((f: typeof faculties[number]) => f.id);
 
     // Fetch all aggregated stats in a single hyper-optimized query
     const groupStats = await prisma.rating.groupBy({
@@ -52,12 +52,12 @@ export async function GET() {
     });
 
     // Map stats for O(1) assignment
-    const statsMap = new Map();
+    const statsMap = new Map<string, typeof groupStats[number]>();
     for (const stat of groupStats) {
       statsMap.set(stat.facultyId, stat);
     }
 
-    const facultiesWithStats = faculties.map((faculty) => {
+    const facultiesWithStats = faculties.map((faculty: typeof faculties[number]) => {
       const stats = statsMap.get(faculty.id);
 
       if (!stats) {
@@ -133,7 +133,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(faculty);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to create faculty:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
