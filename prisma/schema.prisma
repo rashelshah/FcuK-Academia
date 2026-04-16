@@ -1,0 +1,239 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String          @id @default(cuid())
+  email              String          @unique
+  name               String?
+  image              String?
+  emailVerified      DateTime?
+  isAdmin            Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+  accounts           Account[]
+  sessions           Session[]
+  collegeSubmissions College[]
+  profile            StudentProfile?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─────────────────────────────────────────────
+// COLLEGE
+// ─────────────────────────────────────────────
+
+model College {
+  id            String           @id @default(cuid())
+  name          String
+  website       String
+  emailDomain   String?
+  city          String?
+  state         String?
+  country       String           @default("India")
+  status        CollegeStatus    @default(PENDING)
+  submittedById String
+  submittedBy   User             @relation(fields: [submittedById], references: [id])
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  faculty       Faculty[]
+  incidents     Incident[]
+  rooms         GossipRoom[]
+  students      StudentProfile[]
+  stories       Story[]
+}
+
+enum CollegeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─────────────────────────────────────────────
+// STUDENT PROFILE
+// ─────────────────────────────────────────────
+
+model StudentProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName    String?
+  course         String?
+  graduationYear Int?
+  collegeId      String?
+  college        College? @relation(fields: [collegeId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// FACULTY
+// ─────────────────────────────────────────────
+
+model Faculty {
+  id               String   @id @default(cuid())
+  name             String
+  designation      String?
+  department       String?
+  experience       String?
+  researchInterest String?
+  profileUrl       String?
+  collegeId        String?
+  college          College? @relation(fields: [collegeId], references: [id])
+  createdAt        DateTime @default(now())
+  ratings          Rating[]
+
+  @@unique([profileUrl])
+}
+
+// ─────────────────────────────────────────────
+// RATING
+// ─────────────────────────────────────────────
+
+model Rating {
+  id              String         @id @default(cuid())
+  facultyId       String
+  faculty         Faculty        @relation(fields: [facultyId], references: [id])
+  teachingClarity Int
+  approachability Int
+  gradingFairness Int
+  punctuality     Int
+  partiality      Int
+  behaviour       Int
+  review          String?
+  ratingHash      String         @unique
+  flagged         Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  reports         RatingReport[]
+}
+
+model RatingReport {
+  id         String   @id @default(cuid())
+  ratingId   String
+  rating     Rating   @relation(fields: [ratingId], references: [id], onDelete: Cascade)
+  reportHash String   @unique
+  createdAt  DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
+// CAMPUS FEED
+// ─────────────────────────────────────────────
+
+model Incident {
+  id        String           @id @default(cuid())
+  content   String
+  category  String
+  upvotes   Int              @default(0)
+  userHash  String
+  hidden    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  expiresAt DateTime
+  collegeId String?
+  college   College?         @relation(fields: [collegeId], references: [id]) // Fixed typo here
+  reports   IncidentReport[]
+}
+
+model IncidentReport {
+  id         String   @id @default(cuid())
+  incidentId String
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  reportHash String   @unique
+  createdAt  DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
+// GOSSIP ROOMS
+// ─────────────────────────────────────────────
+
+model GossipRoom {
+  id          String          @id @default(cuid())
+  name        String
+  roomCode    String          @unique
+  password    String
+  creatorHash String
+  collegeId   String?
+  college     College?        @relation(fields: [collegeId], references: [id])
+  createdAt   DateTime        @default(now())
+  messages    GossipMessage[]
+}
+
+model GossipMessage {
+  id        String     @id @default(cuid())
+  roomId    String
+  room      GossipRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  content   String
+  userHash  String
+  createdAt DateTime   @default(now())
+}
+
+// ─────────────────────────────────────────────
+// STORIES
+// ─────────────────────────────────────────────
+
+model Story {
+  id        String         @id @default(cuid())
+  title     String
+  content   String
+  userHash  String
+  collegeId String
+  college   College        @relation(fields: [collegeId], references: [id])
+  upvotes   Int            @default(0)
+  hidden    Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  comments  StoryComment[]
+  reports   StoryReport[]
+}
+
+model StoryComment {
+  id        String   @id @default(cuid())
+  storyId   String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  content   String
+  userHash  String
+  upvotes   Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model StoryReport {
+  id         String   @id @default(cuid())
+  storyId    String
+  story      Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  reportHash String   @unique
+  createdAt  DateTime @default(now())
+}

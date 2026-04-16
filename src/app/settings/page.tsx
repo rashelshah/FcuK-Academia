@@ -728,21 +728,156 @@ function PrivacyModal({
               </button>
             </div>
 
-            <div className="relative z-10 mt-6 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-2">
+            <div className="relative z-10 mt-6 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-8 px-1 scrollbar-hide">
               <div
-                className="rounded-[32px] border p-5"
+                className="rounded-[32px] border p-6 space-y-8"
                 style={{
                   background: 'color-mix(in srgb, var(--surface-soft) 92%, transparent)',
                   borderColor: 'color-mix(in srgb, var(--secondary) 24%, var(--border))',
                   boxShadow: 'var(--elevation-card)',
                 }}
               >
-                <p className="text-base leading-8 text-on-surface-variant">
-                  we&apos;re not here to spy on you, just to make your academic life less painful. your SRM login is only used to pull your marks, attendance, and timetable in real-time so you don&apos;t have to deal with that clunky portal again. we don&apos;t store your data, we don&apos;t sell it, and we&apos;re definitely not tracking you around the internet like some weird stalker 💀. everything stays between you and the official API, and we simply display it in a way that actually makes sense. if you turn on notifications, expect only useful stuff like “you&apos;re cooked 💀” alerts or attendance warnings, never spam. your data stays yours, always. we&apos;re just the middleman making things look cool.
-                </p>
-                <p className="mt-5 text-sm font-semibold leading-6 text-on-surface">
-                  *FCUK stands for Fully Controlled University Kit.
-                </p>
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-on-surface-variant/40 font-bold">Last Updated: 16th April 2026</p>
+                  <p className="text-[15px] leading-7 font-medium text-on-surface">
+                    We’re not here to spy on you. We’re here to make your academic life less painful 😭
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-sm text-on-surface-variant font-medium">Your SRM login is only used to fetch your:</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {[
+                      { icon: '📊', label: 'Marks' },
+                      { icon: '📈', label: 'Attendance' },
+                      { icon: '📅', label: 'Timetable' },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center gap-3 p-3 rounded-2xl bg-on-surface/[0.03] border border-on-surface/5">
+                        <span className="text-lg">{item.icon}</span>
+                        <span className="text-xs font-bold uppercase tracking-wider text-on-surface">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[13px] leading-6 text-on-surface-variant italic opacity-80">
+                    …in real-time — so you don’t have to deal with that clunky portal again.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-[13px] leading-6 text-on-surface-variant">
+                    We don’t store your data. We don’t sell it. We’re definitely not tracking you around the internet like some weird stalker 💀
+                  </p>
+                  <p className="text-[13px] leading-6 text-on-surface-variant font-bold text-on-surface">
+                    Everything stays between you and the official system — we just make it look better.
+                  </p>
+                </div>
+
+                <div className="space-y-4 rounded-2xl bg-secondary/5 p-5 border border-secondary/10">
+                  <h3 className="font-headline text-sm font-bold flex items-center gap-2 text-secondary uppercase tracking-widest">
+                    🔐 What We Actually Do
+                  </h3>
+                  <ul className="space-y-2.5">
+                    {[
+                      'We do not permanently store your academic data',
+                      'We do not sell or share your personal data',
+                      'We do not track your activity across other websites',
+                      'We do not store your passwords beyond necessary session usage',
+                    ].map((text, i) => (
+                      <li key={i} className="flex items-start gap-3 text-[13px] text-on-surface-variant">
+                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-secondary/40" />
+                        {text}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-4 p-4 rounded-xl bg-on-surface/[0.04] border border-on-surface/5 text-center italic text-[12px] text-on-surface leading-normal">
+                    &laquo;fetched in real-time using user-authorized access and shown with improved UI/UX.&raquo;
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-headline text-sm font-bold flex items-center gap-2 text-on-surface uppercase tracking-widest">
+                    🔔 Notifications
+                  </h3>
+                  <div className="space-y-3">
+                    <p className="text-[13px] text-on-surface-variant">If enabled, you&apos;ll get alerts like:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {['attendance warnings 📉', 'marks updates 📊', 'you’re cooked 💀'].map((tag) => (
+                        <span key={tag} className="px-3 py-1.5 rounded-full bg-on-surface/[0.04] border border-on-surface/5 text-[11px] font-bold text-on-surface-variant">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-[13px] leading-6 text-on-surface-variant">
+                      We do <span className="text-secondary font-bold">NOT</span> send spam or promotional junk. Only useful stuff. Promise.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <h4 className="text-[11px] font-bold uppercase tracking-widest text-on-surface opacity-60">Ownership</h4>
+                    <p className="text-[13px] text-on-surface-variant leading-relaxed">Your data is yours. Controlled by your institution. We don&apos;t own it.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="text-[11px] font-bold uppercase tracking-widest text-on-surface opacity-60">Display</h4>
+                    <p className="text-[13px] text-on-surface-variant leading-relaxed">We don&apos;t claim it. We just display it better for you.</p>
+                  </div>
+                </div>
+
+                <div className="p-5 rounded-2xl border border-primary/20 bg-primary/5 space-y-3">
+                  <h3 className="font-headline text-sm font-bold flex items-center gap-2 text-primary uppercase tracking-widest">
+                    ⚠️ Security Note
+                  </h3>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-3 text-[12px] text-on-surface-variant">
+                      <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary/40" />
+                      Users are responsible for protecting their own login credentials
+                    </li>
+                    <li className="flex items-start gap-3 text-[12px] text-on-surface-variant">
+                      <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary/40" />
+                      Always use official sources for critical verification
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-headline text-sm font-bold text-on-surface uppercase tracking-widest">
+                    Transparency Statement
+                  </h3>
+                  <p className="text-[13px] text-on-surface-variant">FCUK Academia acts only as:</p>
+                  <div className="p-4 rounded-xl bg-on-surface/[0.04] border border-on-surface/5 text-center italic text-[12px] text-on-surface leading-normal">
+                    &laquo;a visual interface layer between you and your academic system&raquo;
+                  </div>
+                  <div className="flex flex-wrap gap-x-6 gap-y-2">
+                    {['No interference', 'No central db', 'No redistribution'].map((feat) => (
+                      <div key={feat} className="flex items-center gap-2">
+                        <div className="h-1 w-1 rounded-full bg-on-surface/20" />
+                        <span className="text-[11px] font-bold text-on-surface-variant opacity-60 uppercase tracking-wider">{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-on-surface/10 space-y-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <h3 className="font-headline text-sm font-bold text-on-surface uppercase tracking-widest flex items-center gap-2">
+                        🎭 Branding
+                      </h3>
+                      <p className="text-[11px] text-on-surface-variant font-medium">FCUK stands for Fully Controlled University Kit.</p>
+                    </div>
+                    <span className="text-[10px] px-3 py-1 rounded-full bg-on-surface/5 text-on-surface-variant italic">No hidden meaning. Relax 😏</span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-on-surface/[0.02] border border-on-surface/5 mt-4">
+                    <h3 className="font-headline text-[13px] font-bold text-on-surface flex items-center gap-2 italic">
+                      💬 Final Word
+                    </h3>
+                    <p className="mt-2 text-[12px] text-on-surface-variant leading-relaxed italic opacity-80">
+                      Your data stays yours. Always. We&apos;re just the middleman making things look cool ✨
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>

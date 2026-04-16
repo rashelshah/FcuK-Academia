@@ -12,6 +12,8 @@ import AppLayout from "@/components/layout/AppLayout";
 import GoogleAnalytics from "@/components/system/GoogleAnalytics";
 import CommunityPopup from "@/components/system/CommunityPopup";
 import ServiceWorkerRegistration from "@/components/system/ServiceWorkerRegistration";
+import dynamic from 'next/dynamic';
+
 import {
   defaultTheme,
   getThemeBootstrapScript,

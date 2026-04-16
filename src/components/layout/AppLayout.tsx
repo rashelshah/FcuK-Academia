@@ -2,6 +2,9 @@
 
 import React, { memo, startTransition, useCallback, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const RmfAnnouncementPopup = dynamic(() => import('@/components/system/RmfAnnouncementPopup'), { ssr: false });
 
 import HomePage from '@/app/page';
 import AttendancePage from '@/app/attendance/page';
@@ -105,6 +108,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </main>
           )}
 
+          <RmfAnnouncementPopup />
           <Navbar
             activePath={navbarActivePath}
             onNavigate={isSwipeableRoute ? handleNavbarNavigate : undefined}

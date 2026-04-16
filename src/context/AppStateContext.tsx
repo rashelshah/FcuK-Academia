@@ -25,6 +25,8 @@ interface AppStateContextType {
   selectedCalendarDay: CalendarSelection | null;
   setSelectedCalendarDay: (selection: CalendarSelection) => void;
   setActiveDayOrder: (dayOrder: number) => void;
+  isAnnouncementActive: boolean;
+  setIsAnnouncementActive: (active: boolean) => void;
 }
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
@@ -47,6 +49,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   } = useDashboardDataContext();
   const [selectedCalendarDayState, setSelectedCalendarDayState] = useState<CalendarSelection | null>(null);
   const [activeDayOrderState, setActiveDayOrderState] = useState<number | null>(null);
+  const [isAnnouncementActive, setIsAnnouncementActive] = useState<boolean>(false);
 
   const availableDayOrders = useMemo(() => getCalendarDayOrders(calendar), [calendar]);
   const fallbackSelection = useMemo(
@@ -106,6 +109,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         selectedCalendarDay,
         setSelectedCalendarDay,
         setActiveDayOrder,
+        isAnnouncementActive,
+        setIsAnnouncementActive,
       }}
     >
       {children}
