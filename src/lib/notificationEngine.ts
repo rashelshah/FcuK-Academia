@@ -176,7 +176,7 @@ function getMarksUpdateNotification(markList: RawMarkItem[], now: Date) {
 
   return {
     title: 'marks just dropped',
-    message: '💀 Yeh dukh kahe khatam nahi hota be…',
+    message: '💀 This too shall pass...',
     type: 'bad',
     sound: 'bad',
     source: 'engine',
