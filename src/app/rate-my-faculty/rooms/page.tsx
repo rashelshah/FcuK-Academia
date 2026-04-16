@@ -106,7 +106,7 @@ export default function RmfRoomsPage() {
         
         <div className="absolute left-1/2 -translate-x-1/2">
           <span className="font-serif font-bold tracking-tight text-xl text-[var(--text)] drop-shadow-sm">
-            Gossip <span className="italic text-[#C19F62]">Rooms</span>
+            Gossip <span className="italic text-[var(--primary)]">Rooms</span>
           </span>
         </div>
         
@@ -152,7 +152,7 @@ export default function RmfRoomsPage() {
                   <button 
                     onClick={handleEnterGeneratedRoom}
                     disabled={isPending}
-                    className="w-[110%] py-4 text-[11px] font-black uppercase tracking-[0.2em] text-[#2c2620] bg-[#C19F62] hover:bg-[#D4AF6E] transition-colors mb-3 rounded-sm disabled:opacity-50"
+                    className="w-[110%] py-4 text-[11px] font-black uppercase tracking-[0.2em] text-[var(--background)] bg-[var(--primary)] hover:opacity-90 transition-colors mb-3 rounded-sm disabled:opacity-50"
                   >
                     {isPending ? 'JOINING...' : 'ENTER ROOM'}
                   </button>
@@ -184,14 +184,14 @@ export default function RmfRoomsPage() {
                     className={`px-4 py-3 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] transition-all relative ${tab === 'JOIN' ? 'text-[var(--text)]' : 'text-on-surface-variant'}`}
                   >
                     JOIN ROOM
-                    {tab === 'JOIN' && <motion.div layoutId="roomTab" className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C19F62]" />}
+                    {tab === 'JOIN' && <motion.div layoutId="roomTab" className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--primary)]" />}
                   </button>
                   <button 
                     onClick={() => { setTab('CREATE'); setError('') }}
                     className={`px-4 py-3 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] transition-all relative ${tab === 'CREATE' ? 'text-[var(--text)]' : 'text-on-surface-variant'}`}
                   >
                     CREATE NEW
-                    {tab === 'CREATE' && <motion.div layoutId="roomTab" className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C19F62]" />}
+                    {tab === 'CREATE' && <motion.div layoutId="roomTab" className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--primary)]" />}
                   </button>
                 </div>
 
@@ -257,7 +257,7 @@ export default function RmfRoomsPage() {
                       <button 
                         type="submit"
                         disabled={loading || isPending || (tab === 'JOIN' && (roomCode.length !== 4 || password.length !== 4)) || (tab === 'CREATE' && !roomName.trim())}
-                        className="w-full py-4 text-[11px] font-black uppercase tracking-[0.2em] text-[#2c2620] bg-[#6C5E40] hover:bg-[#8A7955] transition-colors disabled:opacity-20 disabled:hover:bg-[#6C5E40]"
+                        className="w-full py-4 text-[11px] font-black uppercase tracking-[0.2em] text-[var(--background)] bg-[var(--primary)] hover:opacity-90 transition-colors disabled:opacity-20 flex items-center justify-center gap-2"
                       >
                         {loading || isPending ? 'PROCESSING...' : tab === 'JOIN' ? 'ACCESS ROOM' : 'CREATE ROOM'}
                       </button>

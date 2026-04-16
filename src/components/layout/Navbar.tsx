@@ -191,7 +191,7 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
       </AnimatePresence>
 
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex items-end justify-between px-4 sm:px-6 xl:px-8 max-w-7xl mx-auto gap-4"
+        className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex items-end justify-center px-4 sm:px-6 xl:px-8 mx-auto gap-4 sm:gap-6"
         style={{
           paddingBottom: `calc(16px + max(env(safe-area-inset-bottom), 0px))`,
         }}
@@ -208,19 +208,27 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
           aria-label={isRmfRoute ? 'RMF Navigation' : 'Primary'}
         >
           {isRmfRoute ? (
-            <div className="bg-[var(--surface-elevated)]/80 backdrop-blur-3xl border border-white/10 p-1.5 rounded-full shadow-2xl flex items-center gap-1">
+            <div className="bg-[var(--surface-elevated)]/80 backdrop-blur-3xl border border-white/10 p-1 rounded-full shadow-2xl flex items-center gap-0.5 sm:gap-1">
               {[
                 { name: 'Feed', href: '/rate-my-faculty' },
                 { name: 'Today', href: '/rate-my-faculty/today' },
                 { name: 'Rooms', href: '/rate-my-faculty/rooms' },
+                { name: 'RateMyFaculty', href: 'https://rate-my-facult.me', external: true },
               ].map((tab) => {
                 const active = pathname === tab.href;
                 return (
                   <button
                     key={tab.name}
-                    onClick={() => router.push(tab.href)}
+                    onClick={() => {
+                      window.scrollTo({ top: 0, behavior: 'instant' });
+                      if ('external' in tab && tab.external) {
+                        window.open(tab.href, '_blank', 'noopener,noreferrer');
+                      } else {
+                        router.push(tab.href);
+                      }
+                    }}
                     className={cn(
-                      "relative px-4 sm:px-6 py-2.5 rounded-full text-[10px] sm:text-xs font-bold tracking-widest transition-all outline-none",
+                      "relative px-3 sm:px-6 py-2.5 rounded-full text-[10px] sm:text-xs font-bold tracking-widest transition-all outline-none",
                       active ? "text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]"
                     )}
                   >
@@ -231,7 +239,16 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
                       />
                     )}
-                    <span className="relative z-10">{tab.name}</span>
+                    <span className="relative z-10 flex items-center">
+                      {tab.name === 'RateMyFaculty' ? (
+                        <span className="font-serif italic font-black whitespace-nowrap">
+                          <span className="hidden sm:inline">Rate<span className="text-[#C19F62]">My</span>Faculty</span>
+                          <span className="sm:hidden">RMF</span>
+                        </span>
+                      ) : (
+                        tab.name
+                      )}
+                    </span>
                   </button>
                 );
               })}
@@ -314,7 +331,8 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
             type="button"
             onClick={() => {
               const targetURL = isRmfRoute ? "/" : "/rate-my-faculty";
-              setOptimisticRmfRoute(!isRmfRoute); // Instant UI resolution
+              window.scrollTo({ top: 0, behavior: 'instant' });
+              setOptimisticRmfRoute(!isRmfRoute); 
               startTransition(() => {
                 router.push(targetURL);
               });

@@ -144,10 +144,9 @@ export default function FacultyDetailPage() {
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-            className="h-full rounded-full bg-gradient-to-r from-[var(--primary-soft)] to-[var(--primary)] shadow-[0_0_12px_color-mix(in_srgb,var(--primary)_80%,transparent)] relative"
+            className="h-full rounded-full bg-gradient-to-r from-[var(--primary)]/30 to-[var(--primary)] shadow-sm relative overflow-hidden"
           >
-            {/* Subtle glow at the very end of the bar */}
-            <div className="absolute right-0 top-0 bottom-0 w-4 bg-white/30 blur-[2px] rounded-full" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-50" />
           </motion.div>
         </div>
       </div>
@@ -180,9 +179,9 @@ export default function FacultyDetailPage() {
       
       {/* Global Background Fix */}
       <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)] to-[color-mix(in_srgb,var(--primary)_10%,var(--background))]" />
-        <div className="absolute top-[10%] left-[-20%] w-[70%] h-[70%] rounded-full opacity-20 blur-[130px] bg-[var(--primary)]" />
-        <div className="absolute bottom-[0%] right-[-10%] w-[60%] h-[60%] rounded-full opacity-10 blur-[120px] bg-[var(--primary-soft)]" />
+        <div className="absolute inset-0 bg-[var(--background)]" />
+        <div className="absolute top-[10%] left-[-20%] w-[70%] h-[70%] rounded-full opacity-[0.03] blur-[130px] bg-[var(--primary)]" />
+        <div className="absolute bottom-[0%] right-[-10%] w-[60%] h-[60%] rounded-full opacity-[0.02] blur-[120px] bg-[var(--primary)]" />
         <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{ backgroundImage: noiseSvg }}></div>
       </div>
 
@@ -214,11 +213,8 @@ export default function FacultyDetailPage() {
         {/* Profile Card (Stronger glassmorphism depth, glow edge) */}
         <motion.div 
           initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-          className="relative bg-[var(--surface-elevated)]/40 border border-white/10 rounded-[2rem] p-6 sm:p-8 mb-8 overflow-hidden shadow-2xl backdrop-blur-2xl ring-1 ring-[var(--primary)]/20 shadow-[0_10px_40px_color-mix(in_srgb,var(--primary)_10%,transparent)]"
+          className="relative bg-[var(--surface)]/60 border border-white/10 rounded-[2rem] p-6 sm:p-8 mb-8 overflow-hidden shadow-xl backdrop-blur-2xl ring-1 ring-white/5"
         >
-          {/* Inner gradient glow */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50 pointer-events-none" />
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-bl from-[var(--primary)]/10 to-transparent opacity-50 pointer-events-none" />
 
           <div className="relative z-10 flex flex-col md:flex-row justify-between gap-6 md:items-center">
             <div className="flex-1 min-w-0 pr-4">
@@ -237,12 +233,12 @@ export default function FacultyDetailPage() {
               </div>
             </div>
             
-            {/* Glowing Badge for Rate */}
-            <div className="flex items-center justify-center gap-3 bg-[var(--primary)]/10 border border-[var(--primary)]/30 px-6 py-4 rounded-[2rem] flex-shrink-0 shadow-[0_0_20px_color-mix(in_srgb,var(--primary)_30%,transparent)] backdrop-blur-md">
+            {/* Minimal Badge for Rate */}
+            <div className="flex items-center justify-center gap-3 bg-[var(--surface-highlight)]/40 border border-white/10 px-6 py-4 rounded-[2rem] flex-shrink-0 shadow-lg backdrop-blur-md">
               <div className="flex flex-col items-center">
                 <div className="flex items-center gap-2 text-[var(--primary)] mb-1">
                   <span className="text-3xl sm:text-4xl">{getMoodEmoji(faculty.overallRating)}</span>
-                  <span className="text-5xl font-black tabular-nums leading-none tracking-tighter drop-shadow-[0_0_10px_color-mix(in_srgb,var(--primary)_80%,transparent)]">
+                  <span className="text-5xl font-black tabular-nums leading-none tracking-tighter">
                     {faculty.overallRating > 0 ? <CountUp value={faculty.overallRating} duration={1.5} /> : 'N/A'}
                   </span>
                 </div>

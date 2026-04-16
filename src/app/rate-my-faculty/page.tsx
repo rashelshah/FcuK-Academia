@@ -68,6 +68,7 @@ export default function RateMyFacultyList() {
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [college, setCollege] = useState<College | null>(null);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortType>('RATING');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +83,12 @@ export default function RateMyFacultyList() {
     department: '',
   });
 
-  const deferredSearch = useDeferredValue(search);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const fetchFaculties = () => {
     setLoading(true);
@@ -130,8 +136,8 @@ export default function RateMyFacultyList() {
 
   const processedFaculties = useMemo(() => {
     let filtered = faculties;
-    if (deferredSearch.trim() !== '') {
-      const q = deferredSearch.toLowerCase();
+    if (debouncedSearch.trim() !== '') {
+      const q = debouncedSearch.toLowerCase();
       filtered = filtered.filter((f) => 
         f.name.toLowerCase().includes(q) || 
         (f.department && f.department.toLowerCase().includes(q))
@@ -149,7 +155,7 @@ export default function RateMyFacultyList() {
       if (sortBy === 'NAME') return a.name.localeCompare(b.name);
       return 0;
     });
-  }, [faculties, deferredSearch, sortBy]);
+  }, [faculties, debouncedSearch, sortBy]);
 
   return (
     <div className="min-h-screen relative pb-32 text-[var(--text)] font-[var(--font-body)]">
@@ -157,10 +163,9 @@ export default function RateMyFacultyList() {
       {/* Global Background Fix */}
       <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
         {/* Base dark gradient matching dark mode style */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)] to-[color-mix(in_srgb,var(--primary)_10%,var(--background))]" />
-        {/* Radial highlights */}
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full opacity-20 blur-[100px] bg-[var(--primary)]" />
-        <div className="absolute bottom-[10%] right-[-10%] w-[60%] h-[60%] rounded-full opacity-10 blur-[120px] bg-[var(--primary)]" />
+        <div className="absolute inset-0 bg-[var(--background)]" />
+        <div className="absolute top-[-10%] right-[-10%] w-[70%] h-[70%] rounded-full opacity-[0.03] blur-[130px] bg-[var(--primary)] pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full opacity-[0.02] blur-[120px] bg-[var(--primary)] pointer-events-none" />
         {/* Subtle noise texture */}
         <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{ backgroundImage: noiseSvg }}></div>
       </div>
@@ -377,10 +382,10 @@ export default function RateMyFacultyList() {
                     <motion.div 
                       whileHover={{ scale: 0.98 }}
                       whileTap={{ scale: 0.96 }}
-                      className="group relative p-5 bg-[var(--surface)]/60 backdrop-blur-xl border border-white/5 rounded-2xl shadow-md hover:bg-[var(--surface-elevated)] hover:border-white/10 hover:shadow-lg transition-all duration-300"
+                      className="group relative p-5 bg-[var(--surface)]/60 backdrop-blur-xl border border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300"
                     >
-                      {/* Neon glow effect on hover */}
-                      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none shadow-[0_0_20px_color-mix(in_srgb,var(--primary)_10%,transparent)] ring-1 ring-[var(--primary)]/20" />
+                      {/* Suble ring on hover */}
+                      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ring-1 ring-white/10" />
 
                       <div className="relative z-10 flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
                         <div className="flex-1 min-w-0 pr-2">
@@ -401,9 +406,9 @@ export default function RateMyFacultyList() {
                           </p>
                         </div>
 
-                        <div className="flex flex-row sm:flex-col items-center gap-2 shrink-0 bg-white/5 sm:bg-transparent p-2 sm:p-0 rounded-xl sm:rounded-none">
+                        <div className="flex flex-row sm:flex-col items-center gap-2 shrink-0 bg-[var(--surface-highlight)]/10 sm:bg-transparent p-2 sm:p-0 rounded-xl sm:rounded-none">
                           <div className="flex items-baseline text-[var(--primary)] gap-1">
-                            <Star size={16} className="fill-[var(--primary)] drop-shadow-[0_0_8px_color-mix(in_srgb,var(--primary)_60%,transparent)]" />
+                            <Star size={16} className="fill-[var(--primary)]" />
                             <span className="text-2xl font-black tabular-nums tracking-tighter">
                               {faculty.overallRating > 0 ? faculty.overallRating.toFixed(1) : 'N/A'}
                             </span>

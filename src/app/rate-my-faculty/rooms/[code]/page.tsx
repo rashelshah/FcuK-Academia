@@ -101,7 +101,7 @@ export default function GossipRoomChatPage({ params }: { params: Promise<{ code:
       >
         <button 
           onClick={() => router.back()} 
-          className="group flex items-center gap-2 text-on-surface-variant font-medium text-[9px] hover:text-white transition-all uppercase tracking-widest bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/5 backdrop-blur-md"
+          className="group flex items-center gap-2 text-[var(--text-muted)] font-medium text-[9px] hover:text-[var(--text)] transition-all uppercase tracking-widest bg-[var(--surface-highlight)]/10 hover:bg-[var(--surface-highlight)]/20 px-4 py-2 rounded-full border border-white/5 backdrop-blur-md"
         >
           <ArrowLeft size={12} className="group-hover:-translate-x-0.5 transition-transform" /> <span>LEAVE</span>
         </button>
@@ -122,7 +122,7 @@ export default function GossipRoomChatPage({ params }: { params: Promise<{ code:
           className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-lg border transition-all ${
             copied 
               ? 'bg-green-500/20 border-green-500/50 text-green-400' 
-              : 'bg-white/5 border-white/5 text-on-surface-variant hover:text-white hover:bg-white/10'
+              : 'bg-[var(--surface-highlight)]/10 border-white/5 text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-highlight)]/20'
           }`}
         >
           {copied ? 'COPIED!' : 'INVITE'}
