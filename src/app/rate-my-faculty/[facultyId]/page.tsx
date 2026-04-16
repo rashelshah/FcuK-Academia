@@ -132,7 +132,7 @@ export default function FacultyDetailPage() {
     return (
       <div className="mb-5">
         <div className="flex justify-between items-end mb-2">
-          <span className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#a3a3a3]">
+          <span className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[var(--text-subtle)]">
             {label}
           </span>
           <span className="text-sm font-black text-[var(--primary)] tabular-nums">
@@ -222,7 +222,7 @@ export default function FacultyDetailPage() {
 
           <div className="relative z-10 flex flex-col md:flex-row justify-between gap-6 md:items-center">
             <div className="flex-1 min-w-0 pr-4">
-              <h1 className="text-3xl sm:text-5xl font-black font-[var(--font-headline)] tracking-tighter mb-2 text-white drop-shadow-sm capitalize">
+              <h1 className="text-3xl sm:text-5xl font-black font-[var(--font-headline)] tracking-tighter mb-2 text-[var(--text)] drop-shadow-sm capitalize">
                 {faculty.name}
               </h1>
               <div className="flex items-center gap-2 flex-wrap">
@@ -323,14 +323,14 @@ export default function FacultyDetailPage() {
                   <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent rounded-[1.5rem] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   
                   <div className="flex justify-between items-start mb-4 relative z-10">
-                    <span className="font-bold text-xs bg-white/10 px-3 py-1.5 rounded-full text-white tracking-widest uppercase shadow-sm">
+                    <span className="font-bold text-xs bg-[var(--surface-highlight)]/40 px-3 py-1.5 rounded-full text-[var(--text)] tracking-widest uppercase shadow-sm">
                       Anonymous
                     </span>
                     <span className="text-xs text-on-surface-variant font-bold tracking-widest uppercase">
                       {new Date(rev.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
-                  <p className="text-white/90 leading-relaxed font-medium break-words text-sm sm:text-base relative z-10">
+                  <p className="text-[var(--text-muted)] leading-relaxed font-medium break-words text-sm sm:text-base relative z-10">
                     {rev.review}
                   </p>
                 </motion.div>
@@ -408,7 +408,7 @@ export default function FacultyDetailPage() {
                       value={formParams.review}
                       disabled={submitting}
                       onChange={(e) => setFormParams({ ...formParams, review: e.target.value })}
-                      className="w-full bg-black/40 border border-white/5 rounded-2xl p-4 text-sm focus:border-[var(--primary)] focus:ring-1 ring-[var(--primary)]/50 outline-none resize-none transition-all placeholder:text-white/30 text-white font-medium"
+                      className="w-full bg-[var(--surface-highlight)]/20 border border-white/10 rounded-2xl p-4 text-sm focus:border-[var(--primary)] focus:ring-1 ring-[var(--primary)]/50 outline-none resize-none transition-all placeholder:text-on-surface-variant/40 text-[var(--text)] font-medium"
                     />
                   </div>
                 </div>

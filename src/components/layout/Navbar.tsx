@@ -219,14 +219,15 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                   <button
                     key={tab.name}
                     onClick={() => router.push(tab.href)}
-                    className={`relative px-4 sm:px-6 py-2.5 rounded-full text-[10px] sm:text-xs font-bold tracking-widest transition-all outline-none ${
-                      active ? 'text-white' : 'text-on-surface-variant hover:text-white/80'
-                    }`}
+                    className={cn(
+                      "relative px-4 sm:px-6 py-2.5 rounded-full text-[10px] sm:text-xs font-bold tracking-widest transition-all outline-none",
+                      active ? "text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]"
+                    )}
                   >
                     {active && (
                       <motion.div
                         layoutId="rmfLeftNavActive"
-                        className="absolute inset-0 bg-white/10 rounded-full"
+                        className="absolute inset-0 bg-[var(--surface-highlight)] shadow-sm rounded-full"
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
                       />
                     )}

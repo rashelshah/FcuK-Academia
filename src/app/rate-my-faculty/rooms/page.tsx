@@ -105,7 +105,7 @@ export default function RmfRoomsPage() {
         </button>
         
         <div className="absolute left-1/2 -translate-x-1/2">
-          <span className="font-serif font-bold tracking-tight text-xl text-white drop-shadow-sm">
+          <span className="font-serif font-bold tracking-tight text-xl text-[var(--text)] drop-shadow-sm">
             Gossip <span className="italic text-[#C19F62]">Rooms</span>
           </span>
         </div>
@@ -135,17 +135,17 @@ export default function RmfRoomsPage() {
                   </div>
 
                   <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-on-surface-variant mb-4 opacity-60">ROOM INITIALIZED</h3>
-                  <h1 className="text-3xl font-serif font-bold text-white mb-8 tracking-tighter">{initializedRoom.name}</h1>
+                  <h1 className="text-3xl font-serif font-bold text-[var(--text)] mb-8 tracking-tighter">{initializedRoom.name}</h1>
 
                   {/* Secret Block Container */}
                   <div className="w-[110%] grid grid-cols-2 gap-[1px] bg-black border border-white/10 mb-8 rounded-sm overflow-hidden">
-                    <div className="bg-[#100F0D] p-5 flex flex-col items-center justify-center">
+                    <div className="bg-[var(--surface-highlight)]/10 p-5 flex flex-col items-center justify-center">
                       <span className="text-[8px] tracking-[0.2em] text-on-surface-variant font-bold uppercase mb-4">ROOM CODE</span>
-                      <span className="text-xl font-serif text-white tracking-[0.3em] font-medium">{initializedRoom.code}</span>
+                      <span className="text-xl font-serif text-[var(--text)] tracking-[0.3em] font-medium">{initializedRoom.code}</span>
                     </div>
-                    <div className="bg-[#100F0D] p-5 flex flex-col items-center justify-center">
+                    <div className="bg-[var(--surface-highlight)]/10 p-5 flex flex-col items-center justify-center">
                       <span className="text-[8px] tracking-[0.2em] text-on-surface-variant font-bold uppercase mb-4">PASSWORD</span>
-                      <span className="text-xl font-serif text-white tracking-[0.3em] font-medium">{initializedRoom.pass}</span>
+                      <span className="text-xl font-serif text-[var(--text)] tracking-[0.3em] font-medium">{initializedRoom.pass}</span>
                     </div>
                   </div>
 
@@ -181,14 +181,14 @@ export default function RmfRoomsPage() {
                 <div className="flex justify-center border-b border-white/10 mb-8 w-fit mx-auto">
                   <button 
                     onClick={() => { setTab('JOIN'); setError('') }}
-                    className={`px-4 py-3 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] transition-all relative ${tab === 'JOIN' ? 'text-white' : 'text-on-surface-variant'}`}
+                    className={`px-4 py-3 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] transition-all relative ${tab === 'JOIN' ? 'text-[var(--text)]' : 'text-on-surface-variant'}`}
                   >
                     JOIN ROOM
                     {tab === 'JOIN' && <motion.div layoutId="roomTab" className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C19F62]" />}
                   </button>
                   <button 
                     onClick={() => { setTab('CREATE'); setError('') }}
-                    className={`px-4 py-3 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] transition-all relative ${tab === 'CREATE' ? 'text-white' : 'text-on-surface-variant'}`}
+                    className={`px-4 py-3 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] transition-all relative ${tab === 'CREATE' ? 'text-[var(--text)]' : 'text-on-surface-variant'}`}
                   >
                     CREATE NEW
                     {tab === 'CREATE' && <motion.div layoutId="roomTab" className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C19F62]" />}
@@ -225,7 +225,7 @@ export default function RmfRoomsPage() {
                               value={roomCode}
                               onChange={(e) => setRoomCode(e.target.value.replace(/\D/g, ''))}
                               placeholder="0000"
-                              className="w-full bg-transparent text-center font-serif text-4xl tracking-[1em] text-white outline-none focus:placeholder-transparent"
+                              className="w-full bg-transparent text-center font-serif text-4xl tracking-[1em] text-[var(--text)] outline-none focus:placeholder-transparent"
                               style={{ WebkitTextSecurity: 'none' } as any}
                             />
                           </div>
@@ -249,7 +249,7 @@ export default function RmfRoomsPage() {
                             value={roomName}
                             onChange={(e) => setRoomName(e.target.value)}
                             placeholder="Room name..."
-                            className="w-[120%] -ml-[10%] bg-transparent text-center font-serif text-2xl tracking-[0.05em] text-white outline-none placeholder:text-on-surface-variant/40"
+                            className="w-[120%] -ml-[10%] bg-transparent text-center font-serif text-2xl tracking-[0.05em] text-[var(--text)] outline-none placeholder:text-on-surface-variant/40"
                           />
                         </div>
                       )}

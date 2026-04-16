@@ -65,7 +65,7 @@ export default function RmfTodayPage() {
         </div>
         
         <div className="absolute left-1/2 -translate-x-1/2 pointer-events-auto flex gap-2 items-baseline">
-          <span className="font-serif font-black tracking-tight text-xl text-white drop-shadow-sm">
+          <span className="font-serif font-black tracking-tight text-xl text-[var(--text)] drop-shadow-sm">
             Today's <span className="italic text-[var(--primary)]">Voices</span>
           </span>
         </div>
@@ -117,13 +117,13 @@ export default function RmfTodayPage() {
                     </div>
 
                     <div className="mb-4">
-                      <p className="text-xs text-on-surface-variant font-medium mb-2 capitalize">
+                      <p className="text-xs text-[var(--text-muted)] font-semibold mb-2 capitalize">
                         {rating.faculty?.name} <span className="opacity-50">·</span> {rating.faculty?.department}
                       </p>
                       
                       {rating.review && rating.review.trim() !== '' && (
                         <div className="border-l-2 border-[var(--primary)] pl-4 py-1">
-                          <p className="text-white font-medium text-lg">&quot;{rating.review}&quot;</p>
+                          <p className="text-[var(--text)] font-medium text-lg">&quot;{rating.review}&quot;</p>
                         </div>
                       )}
                     </div>
@@ -138,8 +138,8 @@ export default function RmfTodayPage() {
                         { label: 'BEHAVIOUR', val: rating.behaviour },
                       ].map(stat => (
                         <div key={stat.label}>
-                          <p className="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">{stat.label}</p>
-                          <p className="font-bold text-sm text-white">{stat.val}<span className="text-on-surface-variant/50 text-xs font-normal">/5</span></p>
+                          <p className="text-[9px] uppercase tracking-widest text-[var(--text-subtle)] font-black mb-1">{stat.label}</p>
+                          <p className="font-bold text-sm text-[var(--text)]">{stat.val}<span className="text-on-surface-variant/50 text-xs font-normal">/5</span></p>
                         </div>
                       ))}
                     </div>

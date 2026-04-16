@@ -277,7 +277,7 @@ export default function RateMyFacultyList() {
                       placeholder="Dr. John Smith"
                       value={newFaculty.name}
                       onChange={(e) => setNewFaculty({ ...newFaculty, name: e.target.value })}
-                      className="w-full bg-black/40 border border-white/5 rounded-2xl p-4 text-sm focus:border-[var(--primary)] focus:ring-1 ring-[var(--primary)]/50 outline-none transition-all text-white font-medium"
+                      className="w-full bg-[var(--surface-highlight)]/20 border border-white/10 rounded-2xl p-4 text-sm focus:border-[var(--primary)] focus:ring-1 ring-[var(--primary)]/50 outline-none transition-all text-[var(--text)] font-medium placeholder:text-on-surface-variant/40"
                     />
                   </div>
 
@@ -289,7 +289,7 @@ export default function RateMyFacultyList() {
                         placeholder="Associate Professor"
                         value={newFaculty.designation}
                         onChange={(e) => setNewFaculty({ ...newFaculty, designation: e.target.value })}
-                        className="w-full bg-black/40 border border-white/5 rounded-2xl p-4 text-sm focus:border-[var(--primary)] focus:ring-1 ring-[var(--primary)]/50 outline-none transition-all text-white font-medium"
+                        className="w-full bg-[var(--surface-highlight)]/20 border border-white/10 rounded-2xl p-4 text-sm focus:border-[var(--primary)] focus:ring-1 ring-[var(--primary)]/50 outline-none transition-all text-[var(--text)] font-medium placeholder:text-on-surface-variant/40"
                       />
                     </div>
                     <div>
@@ -299,7 +299,7 @@ export default function RateMyFacultyList() {
                         placeholder="Computer Science"
                         value={newFaculty.department}
                         onChange={(e) => setNewFaculty({ ...newFaculty, department: e.target.value })}
-                        className="w-full bg-black/40 border border-white/5 rounded-2xl p-4 text-sm focus:border-[var(--primary)] focus:ring-1 ring-[var(--primary)]/50 outline-none transition-all text-white font-medium"
+                        className="w-full bg-[var(--surface-highlight)]/20 border border-white/10 rounded-2xl p-4 text-sm focus:border-[var(--primary)] focus:ring-1 ring-[var(--primary)]/50 outline-none transition-all text-[var(--text)] font-medium placeholder:text-on-surface-variant/40"
                       />
                     </div>
                   </div>
@@ -331,8 +331,8 @@ export default function RateMyFacultyList() {
                 onClick={() => setSortBy(type)}
                 className={`relative px-5 py-2 text-xs font-bold tracking-widest uppercase rounded-full transition-all duration-300 overflow-hidden ${
                   isActive 
-                    ? 'text-[#1a1a1a] bg-[var(--primary)] shadow-[0_0_15px_color-mix(in_srgb,var(--primary)_40%,transparent)]' 
-                    : 'bg-white/5 border border-white/5 text-on-surface-variant hover:bg-white/10 hover:text-[var(--text)]'
+                    ? 'text-[var(--background)] bg-[var(--primary)] shadow-[0_0_15px_color-mix(in_srgb,var(--primary)_40%,transparent)]' 
+                    : 'bg-[var(--surface-highlight)]/10 border border-white/5 text-[var(--text-muted)] hover:bg-[var(--surface-highlight)]/20 hover:text-[var(--text)]'
                 }`}
               >
                 {isActive && (
@@ -387,7 +387,7 @@ export default function RateMyFacultyList() {
                           <h2 className="text-lg font-bold font-[var(--font-headline)] text-[var(--text)] group-hover:text-[var(--primary)] transition-colors truncate mb-1 capitalize">
                             {faculty.name}
                           </h2>
-                          <div className="flex items-center gap-1.5 text-xs text-on-surface-variant font-medium truncate mb-2 uppercase tracking-wide">
+                          <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] font-semibold truncate mb-2 uppercase tracking-wide">
                             <span>{faculty.designation || 'Faculty'}</span>
                             {faculty.department && (
                               <>
@@ -396,7 +396,7 @@ export default function RateMyFacultyList() {
                               </>
                             )}
                           </div>
-                          <p className="text-xs font-medium text-[var(--primary-soft)] italic">
+                          <p className="text-xs font-bold text-[var(--primary)] italic opacity-90">
                             "{getWittyTagline(faculty.stats, faculty.overallRating, faculty.reviewCount)}"
                           </p>
                         </div>

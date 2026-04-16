@@ -107,7 +107,7 @@ export default function GossipRoomChatPage({ params }: { params: Promise<{ code:
         </button>
         
         <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center">
-          <span className="font-serif font-bold tracking-tight text-xl text-white drop-shadow-lg leading-tight">
+          <span className="font-serif font-bold tracking-tight text-xl text-[var(--text)] drop-shadow-lg leading-tight">
             {room?.name || 'Loading...'}
           </span>
           <div className="flex items-center gap-2 mt-0.5">
@@ -158,8 +158,8 @@ export default function GossipRoomChatPage({ params }: { params: Promise<{ code:
                 <div 
                   className={`px-4 py-3 rounded-2xl max-w-[85%] text-sm leading-relaxed ${
                     isMe 
-                      ? 'bg-[var(--primary)]/20 border border-[var(--primary)]/30 text-white rounded-br-sm' 
-                      : 'bg-white/5 border border-white/10 text-on-surface-variant rounded-bl-sm'
+                      ? 'bg-[var(--primary)]/20 border border-[var(--primary)]/30 text-[var(--text)] rounded-br-sm' 
+                      : 'bg-[var(--surface-highlight)]/20 border border-white/10 text-[var(--text-muted)] rounded-bl-sm'
                   }`}
                 >
                   {msg.content}
@@ -182,7 +182,7 @@ export default function GossipRoomChatPage({ params }: { params: Promise<{ code:
             value={inputText}
             onChange={e => setInputText(e.target.value)}
             placeholder="Spill the tea..."
-            className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-on-surface-variant/50 outline-none"
+            className="flex-1 bg-transparent px-4 py-3 text-sm text-[var(--text)] placeholder:text-on-surface-variant/50 outline-none"
             autoComplete="off"
           />
           <button 
