@@ -3,7 +3,9 @@
 import React, { useState, useTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
 
 export default function RmfRoomsPage() {
   const router = useRouter();
@@ -67,9 +69,8 @@ export default function RmfRoomsPage() {
         setInitializedRoom({ code: data.roomCode, pass: data.password, name: data.name });
       } else {
         // Just join smoothly
-        startTransition(() => {
-          router.push(`/rate-my-faculty/rooms/${data.roomCode}`);
-        });
+        router.push(`/rate-my-faculty/rooms/${data.roomCode}`);
+
       }
 
     } catch (err: any) {
@@ -81,10 +82,9 @@ export default function RmfRoomsPage() {
 
   const handleEnterGeneratedRoom = () => {
     if (!initializedRoom) return;
-    startTransition(() => {
-      router.push(`/rate-my-faculty/rooms/${initializedRoom.code}`);
-    });
+    router.push(`/rate-my-faculty/rooms/${initializedRoom.code}`);
   };
+
 
   return (
     <div className="min-h-screen relative pb-32 text-[var(--text)] font-[var(--font-body)] flex flex-col">
@@ -100,9 +100,13 @@ export default function RmfRoomsPage() {
         animate={{ y: 0, opacity: 1 }}
         className="sticky top-0 z-40 px-4 sm:px-6 py-4 flex items-center justify-between"
       >
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-on-surface-variant font-medium text-[10px] hover:text-white transition-colors uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md">
+        <Link 
+          href="/rate-my-faculty" 
+          className="flex items-center gap-2 text-on-surface-variant font-medium text-[10px] hover:text-white transition-colors uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md"
+        >
           <ArrowLeft size={14} /> <span>Home</span>
-        </button>
+        </Link>
+
         
         <div className="absolute left-1/2 -translate-x-1/2">
           <span className="font-serif font-bold tracking-tight text-xl text-[var(--text)] drop-shadow-sm">

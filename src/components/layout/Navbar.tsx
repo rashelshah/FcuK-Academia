@@ -167,8 +167,12 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
   const currentIndicatorWidth = `calc((100% - ${NAV_INSET_PX * 2}px) / ${currentNavItems.length})`;
 
   useEffect(() => {
-    setOptimisticRmfRoute(_isRmfRoute);
-  }, [_isRmfRoute]);
+    if (optimisticRmfRoute) {
+      router.prefetch('/rate-my-faculty');
+      router.prefetch('/rate-my-faculty/today');
+      router.prefetch('/rate-my-faculty/rooms');
+    }
+  }, [optimisticRmfRoute, router]);
 
   useEffect(() => {
     const handleToggle = (e: any) => {
@@ -178,39 +182,13 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
     return () => window.removeEventListener('rmf-nav-toggle', handleToggle as EventListener);
   }, []);
 
-  useEffect(() => {
-    // Proactively prefetch the opposite route so transitions resolve immediately
-    router.prefetch(optimisticRmfRoute ? '/' : '/rate-my-faculty');
-  }, [optimisticRmfRoute, router]);
 
-  // Instead of an early return, we will conditionally render the contents inside the main flex row
-  // so the layout (left pill + right circle side-by-side) remains intact across the entire app.
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <>
-      {/* Global Transition Mask */}
-      <AnimatePresence>
-        {isPending && (
-          <motion.div
-            initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            animate={{ opacity: 1, backdropFilter: 'blur(20px)' }}
-            exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[45] pointer-events-none bg-[var(--background)]/80 flex flex-col items-center justify-center gap-6"
-          >
-            {/* Smooth glowing spinner */}
-            <div className="relative flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-[var(--primary)]/20 blur-xl animate-pulse" />
-              <div className="w-12 h-12 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]" />
-            </div>
-            
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--primary)] animate-pulse">
-              {!optimisticRmfRoute ? 'INITIALIZING FCUK...' : 'INITIALIZING RMF...'}
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div
         className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex items-end justify-center px-4 sm:px-6 xl:px-8 mx-auto gap-4 sm:gap-4"
         style={{
@@ -337,15 +315,24 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
           <button 
             type="button"
             onClick={() => {
-              const targetURL = isRmfRoute ? "/" : "/rate-my-faculty";
+              const nextIsRmf = !optimisticRmfRoute;
+              setOptimisticRmfRoute(nextIsRmf);
+              
+              // Aggressive prefetch for instant feel
+              if (nextIsRmf) {
+                router.prefetch('/rate-my-faculty');
+                router.prefetch('/rate-my-faculty/today');
+                router.prefetch('/rate-my-faculty/rooms');
+              } else {
+                router.prefetch('/');
+              }
+
               window.scrollTo({ top: 0, behavior: 'instant' });
-              setOptimisticRmfRoute(!isRmfRoute); 
-              startTransition(() => {
-                router.push(targetURL);
-              });
+              router.push(nextIsRmf ? '/rate-my-faculty' : '/');
             }}
             className="outline-none"
           >
+
             <motion.div
               className="group relative flex aspect-square h-[4rem] items-center justify-center rounded-full outline-none"
               whileHover={{ scale: 1.05 }}
