@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'fcuk-academia-v4';
+const CACHE_VERSION = 'fcuk-academia-v5';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_CACHE = `${CACHE_VERSION}-offline`;
 const OFFLINE_URL = '/offline.html';
@@ -12,25 +12,37 @@ const PRECACHE_URLS = [
   '/icons/ios%20new%20logo.jpeg',
 ];
 
-// Only truly static, versioned assets should be cached
-const STATIC_EXTENSIONS = ['.woff', '.woff2', '.ttf', '.otf'];
-
 self.addEventListener('install', (event) => {
+  // Take control immediately — don't wait for old SW to die
   self.skipWaiting();
   event.waitUntil(
-    caches.open(OFFLINE_CACHE).then((cache) => cache.addAll(PRECACHE_URLS)),
+    (async () => {
+      // Precache offline page
+      const cache = await caches.open(OFFLINE_CACHE);
+      await cache.addAll(PRECACHE_URLS);
+
+      // NUKE all old caches from previous versions immediately on install
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames
+          .filter((name) => name !== OFFLINE_CACHE)
+          .map((name) => caches.delete(name)),
+      );
+    })(),
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
+      // Clean up any remaining old caches
       const cacheNames = await caches.keys();
       await Promise.all(
         cacheNames
-          .filter((cacheName) => cacheName.startsWith('fcuk-academia-') && ![STATIC_CACHE, OFFLINE_CACHE].includes(cacheName))
-          .map((cacheName) => caches.delete(cacheName)),
+          .filter((name) => ![STATIC_CACHE, OFFLINE_CACHE].includes(name))
+          .map((name) => caches.delete(name)),
       );
+      // Take control of all clients immediately
       await self.clients.claim();
     })(),
   );
@@ -39,24 +51,22 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Only handle GET requests from our own origin
+  // Only intercept GET requests from our origin
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // NEVER cache API calls
+  // NEVER cache: API calls, Next.js data/RSC requests
   if (url.pathname.startsWith('/api/')) return;
+  if (url.searchParams.has('_rsc')) return;
 
-  // NEVER cache Next.js internal RSC/data requests (these carry dynamic page data)
-  if (
-    url.searchParams.has('_rsc') ||
-    request.headers.get('RSC') === '1' ||
-    request.headers.get('Next-Router-State-Tree') ||
-    request.headers.get('Next-Router-Prefetch') ||
-    request.headers.get('Next-Url')
-  ) return;
+  // Check for ANY Next.js internal header — these carry page data, never cache them
+  const nextHeaders = ['RSC', 'Next-Router-State-Tree', 'Next-Router-Prefetch', 'Next-Url'];
+  for (const header of nextHeaders) {
+    if (request.headers.get(header)) return;
+  }
 
-  // For page navigations: network-first, fall back to offline page
+  // Page navigations: always go to network, fall back to offline page
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request).catch(async () => {
@@ -67,41 +77,26 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For fonts (truly static): cache-first
-  const isFont = STATIC_EXTENSIONS.some(ext => url.pathname.endsWith(ext));
-  if (isFont) {
-    event.respondWith(
-      (async () => {
-        const cache = await caches.open(STATIC_CACHE);
-        const cachedResponse = await cache.match(request);
-        if (cachedResponse) return cachedResponse;
-        const response = await fetch(request);
-        if (response.ok) cache.put(request, response.clone());
-        return response;
-      })(),
-    );
-    return;
-  }
+  // Only cache truly static assets: fonts and images
+  const isFont = /\.(woff2?|ttf|otf)$/i.test(url.pathname);
+  const isImage = request.destination === 'image';
 
-  // For images and other static assets: stale-while-revalidate
-  const cacheableDestinations = new Set(['image', 'manifest']);
-  if (!cacheableDestinations.has(request.destination)) return;
+  if (!isFont && !isImage) return;
 
+  // Stale-while-revalidate for static assets
   event.respondWith(
     (async () => {
       const cache = await caches.open(STATIC_CACHE);
       const cachedResponse = await cache.match(request);
 
-      const networkResponsePromise = fetch(request)
+      const networkFetch = fetch(request)
         .then((response) => {
-          if (response.ok) {
-            cache.put(request, response.clone());
-          }
+          if (response.ok) cache.put(request, response.clone());
           return response;
         })
         .catch(() => cachedResponse);
 
-      return cachedResponse || networkResponsePromise;
+      return cachedResponse || networkFetch;
     })(),
   );
 });

@@ -3,8 +3,8 @@ import { getRmfFaculties } from '@/lib/server/rmf';
 import FacultyListClient from './FacultyListClient';
 import FacultyListLoading from './loading';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// Cache handled by unstable_cache in rmf.ts (5 min + tag-based instant purge)
+// Do NOT use force-dynamic — it defeats the cache
 
 async function FacultyList() {
   const data = await getRmfFaculties();

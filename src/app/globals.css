@@ -543,3 +543,29 @@
 .animate-glow-pulse {
   animation: glow-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* RMF Section Background */
+.rmf-bg-base {
+  background: var(--background);
+  background: radial-gradient(
+    circle at 50% -20%,
+    color-mix(in srgb, var(--primary) 8%, var(--background)),
+    var(--background) 70%
+  );
+}
+
+.rmf-bg-bloom-top {
+  background-color: var(--primary);
+  opacity: 0.12;
+  filter: blur(120px);
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.rmf-bg-bloom-bottom {
+  background-color: var(--primary);
+  opacity: 0.08;
+  filter: blur(100px);
+  transform: translateZ(0);
+  will-change: transform;
+}

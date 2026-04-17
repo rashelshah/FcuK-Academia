@@ -7,18 +7,10 @@ export default function FacultyDetailLoading() {
   return (
     <div className="min-h-screen relative pb-32 text-[var(--text)] font-[var(--font-body)] overflow-x-hidden">
       {/* Background - exactly matches FacultyDetailClient */}
-      <div 
-        className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden"
-        style={{ willChange: 'transform' }}
-      >
-        <div 
-          className="absolute inset-0" 
-          style={{ 
-            background: `radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--primary) 8%, transparent), var(--background) 70%)` 
-          }} 
-        />
-        <div className="absolute top-[5%] left-[-15%] w-[80%] h-[80%] rounded-full opacity-[0.12] blur-[120px] bg-[var(--primary)]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] rounded-full opacity-[0.08] blur-[100px] bg-[var(--primary)]" />
+      <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+        <div className="absolute inset-0 rmf-bg-base" />
+        <div className="absolute top-[5%] left-[-15%] w-[80%] h-[80%] rounded-full rmf-bg-bloom-top" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] rounded-full rmf-bg-bloom-bottom" />
         <div className="absolute inset-0 opacity-[0.05] mix-blend-overlay" style={{ backgroundImage: noiseSvg }}></div>
       </div>
 

@@ -27,7 +27,7 @@ const getSrmCollegeCached = unstable_cache(
     });
   },
   ['srm-college'],
-  { tags: ['rmf-college'], revalidate: false }
+  { tags: ['rmf-college', 'rmf-all'], revalidate: false }
 );
 
 export async function getRmfFaculties() {
@@ -108,7 +108,7 @@ export async function getRmfFaculties() {
       };
     },
     ['rmf-faculties-list'],
-    { tags: ['rmf-faculties'], revalidate: 300 } // 5 min cache
+    { tags: ['rmf-faculties', 'rmf-all'], revalidate: 300 } // 5 min cache
   )();
 }
 
@@ -164,7 +164,7 @@ export async function getFacultyDetails(id: string) {
       };
     },
     [`faculty-details-${id}`],
-    { tags: [`faculty-${id}`], revalidate: 60 } // 1 min cache
+    { tags: [`faculty-${id}`, 'rmf-all'], revalidate: 60 } // 1 min cache
   )(id);
 }
 
@@ -204,6 +204,6 @@ export async function getTodayRatings() {
       }));
     },
     [`rmf-today-ratings-${today.getTime()}`],
-    { tags: ['rmf-today'], revalidate: 30 } // 30 sec cache
+    { tags: ['rmf-today', 'rmf-all'], revalidate: 30 } // 30 sec cache
   )();
 }
