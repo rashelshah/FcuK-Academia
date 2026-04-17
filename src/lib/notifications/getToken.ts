@@ -43,21 +43,38 @@ export async function getFirebaseMessagingServiceWorkerRegistration() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
 
   if (!messagingServiceWorkerRegistrationPromise) {
-    messagingServiceWorkerRegistrationPromise = navigator.serviceWorker
-      .register(createMessagingServiceWorkerUrl(), {
-        scope: NOTIFICATIONS_FCM_SW_SCOPE,
-        updateViaCache: 'none',
-      })
-      .then(async (reg) => {
-        // Wait until the SW is in the active state before returning.
-        // navigator.serviceWorker.ready resolves with the active registration,
-        // which guarantees pushManager.subscribe() will not throw "no active SW".
+    messagingServiceWorkerRegistrationPromise = (async () => {
+      try {
+        const swUrl = createMessagingServiceWorkerUrl();
+        console.log('[FCM] Registering SW at:', swUrl);
+
+        const reg = await navigator.serviceWorker.register(swUrl, {
+          scope: NOTIFICATIONS_FCM_SW_SCOPE,
+          updateViaCache: 'none',
+        });
+
+        // Force update in case a stale SW (without query params) is cached.
+        // This is critical on Android where old SW versions can persist.
+        try {
+          await reg.update();
+        } catch {
+          // update() may fail in some environments — not fatal.
+        }
+
+        // Wait for the SW to become active before returning.
+        // pushManager.subscribe() (called internally by getToken) throws if
+        // there's no active SW, which causes silent token failures on Android.
         if (!reg.active) {
           await navigator.serviceWorker.ready;
         }
+
+        console.log('[FCM] SW registered and active. State:', reg.active?.state);
         return reg;
-      })
-      .catch(() => null);
+      } catch (err) {
+        console.error('[FCM] SW registration failed:', err);
+        return null;
+      }
+    })();
   }
 
   return messagingServiceWorkerRegistrationPromise;
@@ -177,26 +194,35 @@ export async function getNotificationToken(options?: { forceRefresh?: boolean })
 
   const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
   if (!vapidKey) {
-    return existingToken;
+    console.error('[FCM] NEXT_PUBLIC_FIREBASE_VAPID_KEY is not set — cannot generate push token.');
+    return null;
   }
 
-  const token = await getToken(messaging, {
-    vapidKey,
-    serviceWorkerRegistration: registration,
-  });
+  try {
+    const token = await getToken(messaging, {
+      vapidKey,
+      serviceWorkerRegistration: registration,
+    });
 
-  if (!token) {
-    return existingToken;
-  }
-
-  if (token !== existingToken || options?.forceRefresh || sessionSyncedToken !== token) {
-    const synced = await syncNotificationToken(token, existingToken);
-    if (!synced) {
-      setStoredFcmToken(token);
+    if (!token) {
+      console.warn('[FCM] getToken() returned empty — push subscription may have failed.');
+      return existingToken;
     }
-  }
 
-  return token;
+    console.log('[FCM] Token obtained:', token.slice(0, 20) + '…');
+
+    if (token !== existingToken || options?.forceRefresh || sessionSyncedToken !== token) {
+      const synced = await syncNotificationToken(token, existingToken);
+      if (!synced) {
+        setStoredFcmToken(token);
+      }
+    }
+
+    return token;
+  } catch (err) {
+    console.error('[FCM] getToken() threw an error:', err);
+    return existingToken;
+  }
 }
 
 export async function initNotifications(options?: { forceRefresh?: boolean }) {

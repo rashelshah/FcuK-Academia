@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getRmfFaculties } from '@/lib/server/rmf';
 import prisma from '@/lib/prisma';
+import { syncUserToDb } from '@/lib/server/user-sync';
 
 export async function GET() {
   try {
-<<<<<<< Updated upstream
+    // Sync user data to DB for analytics (async background sync)
+    void syncUserToDb();
+
     let srmCollege = await prisma.college.findFirst({
       where: {
         name: {
@@ -30,7 +33,7 @@ export async function GET() {
       },
     });
 
-    const facultiesIds = faculties.map(f => f.id);
+    const facultiesIds = faculties.map((f: typeof faculties[number]) => f.id);
 
     // Fetch all aggregated stats in a single hyper-optimized query
     const groupStats = await prisma.rating.groupBy({
@@ -50,12 +53,12 @@ export async function GET() {
     });
 
     // Map stats for O(1) assignment
-    const statsMap = new Map();
+    const statsMap = new Map<string, typeof groupStats[number]>();
     for (const stat of groupStats) {
       statsMap.set(stat.facultyId, stat);
     }
 
-    const facultiesWithStats = faculties.map((faculty) => {
+    const facultiesWithStats = faculties.map((faculty: typeof faculties[number]) => {
       const stats = statsMap.get(faculty.id);
 
       if (!stats) {
@@ -91,15 +94,7 @@ export async function GET() {
       college: srmCollege,
       faculties: facultiesWithStats 
     });
-=======
-    const data = await getRmfFaculties();
-    
-    if ('error' in data) {
-      return NextResponse.json({ error: data.error, faculties: [] }, { status: 404 });
-    }
 
-    return NextResponse.json(data);
->>>>>>> Stashed changes
   } catch (error) {
     console.error('Failed to fetch RM faculties:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -108,6 +103,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    // Sync user data to DB before creating faculty
+    await syncUserToDb();
+
     const { name, designation, department } = await request.json();
 
     if (!name) {
@@ -137,7 +135,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(faculty);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to create faculty:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

@@ -159,8 +159,20 @@ export default function HomePage() {
 
   const recentMarks = useMemo(
     () =>
-      marks
+      [...marks]
         .filter((item) => item.total.maxMark > 0)
+        .sort((a, b) => {
+          // Prioritize subjects with more exams (likely more recently updated)
+          if (a.marks.length !== b.marks.length) {
+            return b.marks.length - a.marks.length;
+          }
+          // Secondary sort: higher total max marks (further progress in subject)
+          if (a.total.maxMark !== b.total.maxMark) {
+            return b.total.maxMark - a.total.maxMark;
+          }
+          // Fallback to alphabetical course code for stable UI
+          return a.course.localeCompare(b.course);
+        })
         .slice(0, 3)
         .map((item) => ({
           ...item,

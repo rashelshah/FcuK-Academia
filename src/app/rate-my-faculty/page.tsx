@@ -197,7 +197,7 @@ export default async function RateMyFacultyListPage() {
           </div>
         ) : processedFaculties.length === 0 ? (
           <div className="text-center py-16 opacity-60">
-            <p className="font-[var(--font-headline)] text-xl">no victims found</p>
+            <p className="font-[var(--font-headline)] text-xl">no faculty found</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">

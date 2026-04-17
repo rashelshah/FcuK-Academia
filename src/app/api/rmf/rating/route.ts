@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import prisma from '@/lib/prisma';
 import { getUserSession } from '@/lib/server/session';
+import { syncUserToDb } from '@/lib/server/user-sync';
 
 export async function POST(request: Request) {
   try {
@@ -9,6 +10,10 @@ export async function POST(request: Request) {
     if (!session || !session.email) {
       return NextResponse.json({ error: 'Unauthorized: You must be logged in to rate.' }, { status: 401 });
     }
+
+    // Sync user data to DB (async background sync)
+    // Ratings remain anonymous as they only store a ratingHash, not a userId.
+    void syncUserToDb();
 
     const body = await request.json();
     const {

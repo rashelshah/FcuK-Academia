@@ -119,26 +119,37 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     const isSystemEvent = payload.type === 'system';
 
     if (!isSystemEvent) {
-      // Academic / push-only event → fire OS notification, never toast.
+      // Academic / push-only event → fire OS notification via SW, never toast.
+      // IMPORTANT: We use the service worker's showNotification() instead of
+      // `new Notification()` because the Notification constructor is unreliable
+      // on Android Chrome (both as PWA and in browser). The SW path is the only
+      // guaranteed delivery mechanism on Android.
       if (
         typeof window !== 'undefined'
         && 'Notification' in window
         && Notification.permission === 'granted'
+        && 'serviceWorker' in navigator
       ) {
-        try {
-          // eslint-disable-next-line no-new
-          new Notification(payload.title, {
-            body: payload.message,
-            icon: '/icons/android-icon-192.png',
-            badge: '/icons/android-icon-192.png',
-            tag: `fcuk-${payload.type}-${payload.id ?? Date.now()}`,
-          });
-        } catch {
-          // Silently skip if Notification constructor is unavailable.
-        }
+        void (async () => {
+          try {
+            const reg = await navigator.serviceWorker.ready;
+            await reg.showNotification(payload.title, {
+              body: payload.message,
+              icon: '/icons/android-icon-192.png',
+              badge: '/icons/android-icon-192.png',
+              tag: `fcuk-${payload.type}-${payload.id ?? Date.now()}`,
+              data: { deepLink: payload.deepLink ?? '/' },
+              // renotify and vibrate are Android-specific; cast to avoid TS lib gap.
+              ...({ renotify: true, vibrate: payload.type === 'bad' ? [120, 60, 120] : [80] } as NotificationOptions),
+            });
+          } catch {
+            // SW showNotification failed — silently ignore. Background delivery
+            // via FCM is the primary channel; this is only for in-foreground events.
+          }
+        })();
       }
 
-      // Still play sound + vibrate even for push-type events.
+      // Sound + haptic feedback regardless of push delivery path.
       if (!payload.silent) {
         void playNotificationSound(payload.sound ?? payload.type);
         if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -241,27 +252,34 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     const nextPayload = fromFcmPayload(payload);
     if (!nextPayload) return;
 
-    // All FCM foreground messages → OS system notification (not toast).
-    // Background messages are already handled by the service worker.
+    // All FCM foreground messages → OS notification via SW (not toast, not constructor).
+    // CRITICAL: On Android Chrome, `new Notification()` is blocked/unsupported.
+    // Service worker showNotification() is the only reliable delivery path.
     if (
       typeof window !== 'undefined'
       && 'Notification' in window
       && Notification.permission === 'granted'
+      && 'serviceWorker' in navigator
     ) {
-      try {
-        // eslint-disable-next-line no-new
-        new Notification(nextPayload.title, {
-          body: nextPayload.message,
-          icon: '/icons/android-icon-192.png',
-          badge: '/icons/android-icon-192.png',
-          tag: `fcuk-fcm-${nextPayload.id ?? Date.now()}`,
-        });
-      } catch {
-        // Silently skip — service worker push is the reliable delivery path.
-      }
+      void (async () => {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.showNotification(nextPayload.title, {
+            body: nextPayload.message,
+            icon: '/icons/android-icon-192.png',
+            badge: '/icons/android-icon-192.png',
+            tag: `fcuk-fcm-${nextPayload.id ?? Date.now()}`,
+            data: { deepLink: nextPayload.deepLink ?? '/' },
+            // renotify and vibrate are Android-specific; cast to avoid TS lib gap.
+            ...({ renotify: true, vibrate: nextPayload.type === 'bad' ? [120, 60, 120] : [80] } as NotificationOptions),
+          });
+        } catch {
+          // SW showNotification failed — background FCM delivery is still active.
+        }
+      })();
     }
 
-    // Sound + haptic still fire even for foreground push messages.
+    // Sound + haptic still fire for foreground push messages.
     if (!nextPayload.silent) {
       void playNotificationSound(nextPayload.sound ?? nextPayload.type);
       if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -287,17 +305,18 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       return;
     }
 
-    // ─ Handle already-denied: guide user to browser settings, never re-prompt the OS.
-    if (
-      typeof window !== 'undefined'
-      && 'Notification' in window
-      && Notification.permission === 'denied'
-    ) {
+    // ─ User explicitly enabled notifications.
+    // Always call requestPermission() — even when already 'denied'.
+    // When denied, the browser returns 'denied' instantly (no popup), which is
+    // the spec-correct behavior. We cannot force a re-prompt, but we must still
+    // call it to stay compliant and update our stored permission state.
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      // Push not supported on this device.
       setNotificationsEnabledPreference(false);
       setNotificationsEnabledState(false);
       enqueueNotification({
-        title: 'permission blocked 🔕',
-        message: 'bhai browser settings mein jaake allow karna padega 😤🔔',
+        title: 'push not supported 📵',
+        message: 'yeh device push support nahi karta. sorry bhai.',
         type: 'system',
         sound: 'warning',
         source: 'settings',
@@ -305,8 +324,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       return;
     }
 
-    // User explicitly enabled — this is the ONLY place we call requestPermission.
-    // No auto-prompting anywhere else in the app.
+    // This is the ONLY place we call requestPermission in the app.
+    // 'default' → shows OS prompt
+    // 'granted' → returns immediately, no popup
+    // 'denied'  → returns 'denied' immediately, no popup (cannot re-prompt)
     const permission = await requestNotificationPermission();
     setPermissionState(permission);
     setStoredNotificationPermission(permission);
@@ -325,13 +346,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
 
     if (permission === 'denied') {
-      // User denied the browser prompt → force toggle back OFF.
+      // User denied (or was already denied) → force toggle back OFF.
       // No in-app fallback mode — this app is push-only for academic events.
       setNotificationsEnabledPreference(false);
       setNotificationsEnabledState(false);
       enqueueNotification({
-        title: 'permission denied 😤',
-        message: 'theek hai bhai, fir mat bolna bataya nahi.',
+        title: 'permission blocked 🔕',
+        message: 'Bhai settings se allow karna padega 😤🔔 Hum force nahi kar sakte 😭',
         type: 'system',
         sound: 'warning',
         source: 'settings',
@@ -339,10 +360,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       return;
     }
 
-    // Unsupported device.
+    // Dismissed (default → didn't choose) or unsupported.
+    setNotificationsEnabledPreference(false);
+    setNotificationsEnabledState(false);
     enqueueNotification({
-      title: 'push not supported 📵',
-      message: 'yeh device push support nahi karta. sorry bhai.',
+      title: 'permission denied 😤',
+      message: 'theek hai bhai, fir mat bolna bataya nahi.',
       type: 'system',
       sound: 'warning',
       source: 'settings',

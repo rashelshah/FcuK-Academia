@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import prisma from '@/lib/prisma';
+import { syncUserToDb } from '@/lib/server/user-sync';
 
 export async function POST(request: Request) {
   try {
+    void syncUserToDb();
     const body = await request.json();
     const { action, roomCode, password, roomName } = body;
 

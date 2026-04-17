@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { syncUserToDb } from '@/lib/server/user-sync';
 
 export async function GET() {
   try {
+    void syncUserToDb();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
