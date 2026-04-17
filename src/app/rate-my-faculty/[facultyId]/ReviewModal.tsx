@@ -26,7 +26,7 @@ export default function ReviewModal({ isOpen, onClose, facultyId, onSuccess }: R
 
   const submitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formParams.review.trim()) return;
+    // No longer mandatory
 
     setSubmitting(true);
     setSubmitError('');
@@ -115,7 +115,7 @@ export default function ReviewModal({ isOpen, onClose, facultyId, onSuccess }: R
               })}
 
               <div className="pt-4">
-                <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-on-surface-variant">Spill the tea (Review)</label>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-on-surface-variant">Spill the tea (Optional)</label>
                 <textarea
                   rows={4}
                   placeholder="e.g. strict grading but teaches well..."

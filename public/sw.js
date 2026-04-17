@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'fcuk-academia-v2';
+const CACHE_VERSION = 'fcuk-academia-v3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_CACHE = `${CACHE_VERSION}-offline`;
 const OFFLINE_URL = '/offline.html';
@@ -41,6 +41,9 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
+
+  // Bypass cache for Next.js internal data/RSC requests
+  if (url.searchParams.has('_rsc') || request.headers.get('RSC')) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(

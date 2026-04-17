@@ -108,7 +108,7 @@ export async function getRmfFaculties() {
       };
     },
     ['rmf-faculties-list'],
-    { tags: ['rmf-faculties'], revalidate: 600 } // 10 min cache
+    { tags: ['rmf-faculties'], revalidate: 300 } // 5 min cache
   )();
 }
 
@@ -164,7 +164,7 @@ export async function getFacultyDetails(id: string) {
       };
     },
     [`faculty-details-${id}`],
-    { tags: [`faculty-${id}`], revalidate: 120 } // 2 min cache
+    { tags: [`faculty-${id}`], revalidate: 60 } // 1 min cache
   )(id);
 }
 

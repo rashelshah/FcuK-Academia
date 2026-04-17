@@ -137,15 +137,24 @@ export default function FacultyDetailClient({
   return (
     <div className="min-h-screen relative pb-32 text-[var(--text)] font-[var(--font-body)] overflow-x-hidden">
 
-      <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-        <div className="absolute inset-0 bg-[var(--background)]" />
-        <div className="absolute top-[10%] left-[-20%] w-[70%] h-[70%] rounded-full opacity-[0.03] blur-[130px] bg-[var(--primary)]" />
-        <div className="absolute bottom-[0%] right-[-10%] w-[60%] h-[60%] rounded-full opacity-[0.02] blur-[120px] bg-[var(--primary)]" />
-        <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{ backgroundImage: noiseSvg }}></div>
+      <div 
+        className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden"
+        style={{ willChange: 'transform' }}
+      >
+        <div 
+          className="absolute inset-0" 
+          style={{ 
+            background: `radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--primary) 8%, transparent), var(--background) 70%)` 
+          }} 
+        />
+        <div className="absolute top-[5%] left-[-15%] w-[80%] h-[80%] rounded-full opacity-[0.12] blur-[120px] bg-[var(--primary)] text-[var(--primary)]" style={{ transform: 'translateZ(0)' }} />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] rounded-full opacity-[0.08] blur-[100px] bg-[var(--primary)] text-[var(--primary)]" style={{ transform: 'translateZ(0)' }} />
+        <div className="absolute inset-0 opacity-[0.05] mix-blend-overlay" style={{ backgroundImage: noiseSvg }}></div>
       </div>
 
       <motion.div
-        initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+        initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
         className="sticky top-0 z-40 px-4 sm:px-6 py-4 flex items-center justify-between pointer-events-none"
       >
         <div className="pointer-events-auto flex items-center gap-4">
@@ -169,7 +178,8 @@ export default function FacultyDetailClient({
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8">
 
         <motion.div
-          initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+          initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.4 }}
           className="relative bg-[var(--surface)]/60 border border-white/10 rounded-[2rem] p-6 sm:p-8 mb-8 overflow-hidden shadow-xl backdrop-blur-2xl ring-1 ring-white/5"
         >
 
@@ -207,7 +217,7 @@ export default function FacultyDetailClient({
         </motion.div>
 
         <motion.div
-          initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}
+          initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.05, duration: 0.4 }}
           className="grid gap-x-10 sm:grid-cols-2 bg-[var(--surface)]/30 backdrop-blur-xl rounded-[2rem] p-6 sm:p-8 border border-white/5 mb-10 shadow-lg relative overflow-hidden"
         >
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-[var(--primary)]/30 to-transparent" />
