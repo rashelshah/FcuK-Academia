@@ -179,9 +179,16 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
   }, []);
 
   useEffect(() => {
-    // Proactively prefetch the opposite route so transitions resolve immediately
-    router.prefetch(optimisticRmfRoute ? '/' : '/rate-my-faculty');
+    // Proactively prefetch all RMF routes when this toggle is hovered/initially shown
+    if (!optimisticRmfRoute) {
+      router.prefetch('/rate-my-faculty');
+      router.prefetch('/rate-my-faculty/today');
+      router.prefetch('/rate-my-faculty/rooms');
+    } else {
+      router.prefetch('/');
+    }
   }, [optimisticRmfRoute, router]);
+
 
   // Instead of an early return, we will conditionally render the contents inside the main flex row
   // so the layout (left pill + right circle side-by-side) remains intact across the entire app.
@@ -340,9 +347,8 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
               const targetURL = isRmfRoute ? "/" : "/rate-my-faculty";
               window.scrollTo({ top: 0, behavior: 'instant' });
               setOptimisticRmfRoute(!isRmfRoute); 
-              startTransition(() => {
-                router.push(targetURL);
-              });
+              router.push(targetURL);
+
             }}
             className="outline-none"
           >

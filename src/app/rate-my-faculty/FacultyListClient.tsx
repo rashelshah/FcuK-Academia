@@ -1,20 +1,202 @@
-import React from 'react';
-import { getRmfFaculties } from '@/lib/server/rmf';
-import FacultyListClient from './FacultyListClient';
+'use client';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 60; // Cache for 60 seconds
+import React, { useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Loader2, ArrowLeft, Star } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-export default async function RateMyFacultyListPage() {
-  const data = await getRmfFaculties();
+interface FacultyStats {
+  teachingClarity: number;
+  approachability: number;
+  gradingFairness: number;
+  punctuality: number;
+  partiality: number;
+  behaviour: number;
+}
 
-  if ('error' in data) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="text-center p-8 bg-[var(--surface-elevated)] border border-red-500/20 rounded-2xl">
-          <p className="text-red-400 font-medium">{data.error}</p>
+interface Faculty {
+  id: string;
+  name: string;
+  department: string | null;
+  designation: string | null;
+  overallRating: number;
+  reviewCount: number;
+  stats: FacultyStats | null;
+}
+
+interface College {
+  id: string;
+  name: string;
+  website: string | null;
+  city: string | null;
+  state: string | null;
+  country: string;
+}
+
+type SortType = 'RATING' | 'REVIEWS' | 'NAME';
+
+const getWittyTagline = (stats: FacultyStats | null, overall: number, count: number): string => {
+  if (count === 0) return 'no one has spoken yet... suspicious 👀';
+  if (!stats) return 'a total mystery 🕵️';
+
+  const s = stats as any;
+  let highest = 'teachingClarity';
+  let lowest = 'teachingClarity';
+
+  Object.keys(s).forEach((key) => {
+    if (s[key] > s[highest]) highest = key;
+    if (s[key] < s[lowest]) lowest = key;
+  });
+
+  if (overall >= 4.5) return 'certified legend status 👑';
+  if (overall < 2.5) return 'attendance destroyer 💔';
+
+  if (highest === 'strictness' || lowest === 'gradingFairness') return 'surprise test final boss 💀';
+  if (highest === 'gradingFairness') return 'marks dealer energy 💸';
+  if (highest === 'approachability') return 'students vibing 🌊';
+  if (highest === 'punctuality') return 'never late. ever. ⏱️';
+  if (lowest === 'approachability') return 'built different (scary) 🦖';
+
+  return 'this prof hits different ✨';
+};
+
+const noiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`;
+
+export default function FacultyListClient({ 
+  initialFaculties, 
+  college: initialCollege 
+}: { 
+  initialFaculties: Faculty[], 
+  college: College | null 
+}) {
+  const router = useRouter();
+  const [isPending, startTransition] = React.useTransition();
+  const [faculties, setFaculties] = useState<Faculty[]>(initialFaculties);
+  const [college, setCollege] = useState<College | null>(initialCollege);
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [sortBy, setSortBy] = useState<SortType>('RATING');
+  const [loading, setLoading] = useState(false); // No initial loading
+  const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    router.prefetch('/');
+  }, [router]);
+
+
+  // Add Faculty Form State
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [addError, setAddError] = useState('');
+  const [newFaculty, setNewFaculty] = useState({
+    name: '',
+    designation: '',
+    department: '',
+  });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const fetchFaculties = () => {
+    // Only used for refreshing after addition
+    fetch('/api/rmf/faculty')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) throw new Error(data.error);
+        setFaculties(data.faculties || []);
+        if (data.college) setCollege(data.college);
+      })
+      .catch((err) => setError(err.message));
+  };
+
+  const handleAddFaculty = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFaculty.name.trim()) return;
+
+    setIsCreating(true);
+    setAddError('');
+
+    try {
+      const res = await fetch('/api/rmf/faculty', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFaculty),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      // Reset form and close
+      setNewFaculty({ name: '', designation: '', department: '' });
+      setShowAddForm(false);
+      fetchFaculties(); // Refresh list client-side
+    } catch (err: any) {
+      setAddError(err.message);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const processedFaculties = useMemo(() => {
+    let filtered = faculties;
+    if (debouncedSearch.trim() !== '') {
+      const q = debouncedSearch.toLowerCase();
+      filtered = filtered.filter((f) =>
+        f.name.toLowerCase().includes(q) ||
+        (f.department && f.department.toLowerCase().includes(q))
+      );
+    }
+    return filtered.sort((a, b) => {
+      if (sortBy === 'RATING') {
+        if (b.overallRating !== a.overallRating) return b.overallRating - a.overallRating;
+        return b.reviewCount - a.reviewCount;
+      }
+      if (sortBy === 'REVIEWS') {
+        if (b.reviewCount !== a.reviewCount) return b.reviewCount - a.reviewCount;
+        return b.overallRating - a.overallRating;
+      }
+      if (sortBy === 'NAME') return a.name.localeCompare(b.name);
+      return 0;
+    });
+  }, [faculties, debouncedSearch, sortBy]);
+
+  return (
+    <div className="min-h-screen relative pb-32 text-[var(--text)] font-[var(--font-body)]">
+
+      {/* Global Background Fix */}
+      <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+        {/* Base dark gradient matching dark mode style */}
+        <div className="absolute inset-0 bg-[var(--background)]" />
+        <div className="absolute top-[-10%] right-[-10%] w-[70%] h-[70%] rounded-full opacity-[0.03] blur-[130px] bg-[var(--primary)] pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full opacity-[0.02] blur-[120px] bg-[var(--primary)] pointer-events-none" />
+        {/* Subtle noise texture */}
+        <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{ backgroundImage: noiseSvg }}></div>
+      </div>
+
+      {/* Minimal Top bar - Seamless Integration */}
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="sticky top-0 z-40 px-4 sm:px-6 py-4 flex items-center justify-between pointer-events-none"
+      >
+        <div className="pointer-events-auto flex items-center gap-4">
+          <Link 
+            href="/"
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: 'instant' });
+              // Trigger optimistic transition in navbar
+              window.dispatchEvent(new CustomEvent('rmf-nav-toggle', { detail: { isRmf: false } }));
+            }} 
+            className="flex justify-center items-center p-2 rounded-full hover:bg-white/10 transition-colors bg-white/5 backdrop-blur-md border border-white/5 shadow-lg"
+          >
+            <ArrowLeft size={18} className="text-[var(--text)]" />
+          </Link>
         </div>
-<<<<<<< Updated upstream
+
 
         <div className="absolute left-1/2 -translate-x-1/2 pointer-events-auto">
           <span className="font-[var(--font-headline)] font-bold tracking-tight text-base text-[var(--text)] drop-shadow-sm opacity-80 uppercase tracking-widest">
@@ -197,7 +379,7 @@ export default async function RateMyFacultyListPage() {
           </div>
         ) : processedFaculties.length === 0 ? (
           <div className="text-center py-16 opacity-60">
-            <p className="font-[var(--font-headline)] text-xl">no victims found</p>
+            <p className="font-[var(--font-headline)] text-xl">no faculty found</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
@@ -259,12 +441,7 @@ export default async function RateMyFacultyListPage() {
             </AnimatePresence>
           </div>
         )}
-=======
->>>>>>> Stashed changes
       </div>
-    );
-  }
-
-  // Next.js will prefetch this data as soon as the user hovers the RMF nav button
-  return <FacultyListClient initialFaculties={data.faculties} college={data.college} />;
+    </div>
+  );
 }

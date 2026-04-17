@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
+import { getRmfFaculties } from '@/lib/server/rmf';
 import prisma from '@/lib/prisma';
 
 export async function GET() {
   try {
+<<<<<<< Updated upstream
     let srmCollege = await prisma.college.findFirst({
       where: {
         name: {
@@ -89,6 +91,15 @@ export async function GET() {
       college: srmCollege,
       faculties: facultiesWithStats 
     });
+=======
+    const data = await getRmfFaculties();
+    
+    if ('error' in data) {
+      return NextResponse.json({ error: data.error, faculties: [] }, { status: 404 });
+    }
+
+    return NextResponse.json(data);
+>>>>>>> Stashed changes
   } catch (error) {
     console.error('Failed to fetch RM faculties:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

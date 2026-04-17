@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getFacultyDetails } from '@/lib/server/rmf';
 
 export async function GET(
   request: Request,
@@ -12,14 +12,13 @@ export async function GET(
       return NextResponse.json({ error: 'Faculty ID required' }, { status: 400 });
     }
 
-    const faculty = await prisma.faculty.findUnique({
-      where: { id },
-    });
+    const data = await getFacultyDetails(id);
 
-    if (!faculty) {
+    if (!data) {
       return NextResponse.json({ error: 'Faculty not found' }, { status: 404 });
     }
 
+<<<<<<< Updated upstream
     // Aggregated stats
     const stats = await prisma.rating.aggregate({
       where: { facultyId: id },
@@ -67,6 +66,9 @@ export async function GET(
       },
       reviews,
     });
+=======
+    return NextResponse.json(data);
+>>>>>>> Stashed changes
   } catch (error) {
     console.error('Failed to fetch faculty detailing:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
