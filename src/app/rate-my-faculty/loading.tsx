@@ -18,27 +18,27 @@ export default function FacultyListLoading() {
         <div className="flex justify-between items-end gap-4 mb-8">
           <div className="flex-1 space-y-4">
             <div className="h-5 w-24 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/10 animate-pulse" />
-            <div className="h-12 w-3/4 rounded-2xl bg-white/5 animate-pulse" />
+            <div className="h-12 w-3/4 rounded-2xl bg-[var(--surface-highlight)] animate-pulse" />
           </div>
-          <div className="h-20 w-24 rounded-2xl bg-white/5 animate-pulse border border-white/5" />
+          <div className="h-20 w-24 rounded-2xl bg-[var(--surface-highlight)] animate-pulse border border-[var(--border)]" />
         </div>
 
         {/* Search & Actions Skeleton */}
-        <div className="h-16 w-full rounded-[2rem] bg-white/5 border border-white/5 animate-pulse mb-12" />
+        <div className="h-16 w-full rounded-[2rem] bg-[var(--surface-highlight)] border border-[var(--border)] animate-pulse mb-12" />
 
         {/* LIST View Skeleton */}
         <div className="flex flex-col gap-4">
           {[...Array(6)].map((_, i) => (
             <div 
               key={i} 
-              className="p-5 bg-white/5 border border-white/5 rounded-2xl h-32 animate-pulse flex flex-col justify-between"
+              className="p-5 bg-[var(--surface-highlight)] border border-[var(--border)] rounded-2xl h-32 animate-pulse flex flex-col justify-between"
               style={{ opacity: 1 - (i * 0.1) }}
             >
               <div className="space-y-3">
-                <div className="h-6 w-1/2 rounded-lg bg-white/5" />
-                <div className="h-4 w-1/3 rounded-lg bg-white/5" />
+                <div className="h-6 w-1/2 rounded-lg bg-[var(--surface-highlight)] opacity-50" />
+                <div className="h-4 w-1/3 rounded-lg bg-[var(--surface-highlight)] opacity-50" />
               </div>
-              <div className="h-4 w-1/4 rounded-lg bg-white/5" />
+              <div className="h-4 w-1/4 rounded-lg bg-[var(--surface-highlight)] opacity-50" />
             </div>
           ))}
         </div>

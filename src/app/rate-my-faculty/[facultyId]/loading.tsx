@@ -15,16 +15,16 @@ export default function FacultyDetailLoading() {
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-24 mt-4">
         {/* Profile Card Skeleton */}
-        <div className="relative bg-white/5 border border-white/5 rounded-[2rem] p-6 sm:p-8 mb-8 h-48 animate-pulse" />
+        <div className="relative bg-[var(--surface-highlight)] border border-[var(--border)] rounded-[2rem] p-6 sm:p-8 mb-8 h-48 animate-pulse" />
 
         {/* Breakdown Stats Skeleton */}
-        <div className="grid gap-x-10 sm:grid-cols-2 bg-white/5 border border-white/5 rounded-[2rem] p-6 sm:p-8 mb-10 h-80 animate-pulse" />
+        <div className="grid gap-x-10 sm:grid-cols-2 bg-[var(--surface-highlight)] border border-[var(--border)] rounded-[2rem] p-6 sm:p-8 mb-10 h-80 animate-pulse" />
 
         {/* Reviews Skeleton */}
         <div className="space-y-4">
-          <div className="h-8 w-40 rounded-lg bg-white/5 animate-pulse mb-6" />
+          <div className="h-8 w-40 rounded-lg bg-[var(--surface-highlight)] animate-pulse mb-6" />
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="p-6 bg-white/5 border border-white/5 rounded-[1.5rem] h-32 animate-pulse" />
+            <div key={i} className="p-6 bg-[var(--surface-highlight)] border border-[var(--border)] rounded-[1.5rem] h-32 animate-pulse" />
           ))}
         </div>
       </div>

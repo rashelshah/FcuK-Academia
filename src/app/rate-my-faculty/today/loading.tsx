@@ -11,12 +11,12 @@ export default function RmfTodayLoading() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-24 mt-4">
-        <div className="h-16 w-full rounded-xl bg-white/5 animate-pulse mb-8" />
-        <div className="h-4 w-32 rounded-full bg-white/5 animate-pulse mb-8" />
+        <div className="h-16 w-full rounded-xl bg-[var(--surface-highlight)] border border-[var(--border)] animate-pulse mb-8" />
+        <div className="h-4 w-32 rounded-full bg-[var(--surface-highlight)] animate-pulse mb-8" />
         
         <div className="flex flex-col gap-6">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="p-6 bg-white/5 border border-white/5 rounded-[2rem] h-64 animate-pulse" />
+            <div key={i} className="p-6 bg-[var(--surface-highlight)] border border-[var(--border)] rounded-[2rem] h-64 animate-pulse" />
           ))}
         </div>
       </div>

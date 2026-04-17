@@ -12,9 +12,9 @@ export default function RmfRoomsLoading() {
 
       <div className="flex-1 flex items-center justify-center -mt-20">
         <div className="w-full max-w-sm px-6 space-y-8 animate-pulse">
-          <div className="h-10 w-48 mx-auto rounded-full bg-white/5" />
-          <div className="h-64 w-full rounded-2xl bg-white/5 border border-white/5" />
-          <div className="h-14 w-full rounded-full bg-white/5" />
+          <div className="h-10 w-48 mx-auto rounded-full bg-[var(--surface-highlight)]" />
+          <div className="h-64 w-full rounded-2xl bg-[var(--surface-highlight)] border border-[var(--border)]" />
+          <div className="h-14 w-full rounded-full bg-[var(--surface-highlight)] border border-[var(--border)]" />
         </div>
       </div>
     </div>

@@ -13,19 +13,19 @@ export default function RoomLoading() {
       <div className="max-w-2xl mx-auto h-screen flex flex-col pt-24 mt-4 px-4 sm:px-6">
         {/* Header Skeleton */}
         <div className="flex justify-between items-center mb-10 animate-pulse">
-          <div className="h-10 w-32 rounded-full bg-white/5" />
-          <div className="h-8 w-24 rounded-full bg-white/5" />
+          <div className="h-10 w-32 rounded-full bg-[var(--surface-highlight)] border border-[var(--border)]" />
+          <div className="h-8 w-24 rounded-full bg-[var(--surface-highlight)] border border-[var(--border)]" />
         </div>
 
         {/* Chat Feed Skeleton */}
         <div className="flex-1 flex flex-col gap-6 overflow-hidden">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className={`h-20 w-2/3 rounded-2xl bg-white/5 animate-pulse ${i % 2 === 0 ? 'self-start' : 'self-end bg-[var(--primary)]/5 opacity-50'}`} />
+            <div key={i} className={`h-20 w-2/3 rounded-2xl bg-[var(--surface-highlight)] border border-[var(--border)] animate-pulse ${i % 2 === 0 ? 'self-start' : 'self-end bg-[var(--primary)]/5 border-[var(--primary)]/10 opacity-80'}`} />
           ))}
         </div>
 
         {/* Input Skeleton */}
-        <div className="mt-8 h-12 w-full rounded-full bg-white/5 animate-pulse" />
+        <div className="mt-8 h-12 w-full rounded-full bg-[var(--surface-highlight)] border border-[var(--border)] animate-pulse" />
       </div>
     </div>
   );
