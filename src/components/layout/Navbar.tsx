@@ -196,13 +196,13 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
         }}
       >
         {/* LEFT: FLOATING NAVBAR */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           <motion.nav
             key={isRmfRoute ? 'rmf-nav' : 'main-nav'}
             initial={{ y: 60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 60, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 260, damping: 25, delay: 0.1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 25 }}
             className="liquid-nav pointer-events-auto relative w-[85%] max-w-[28rem] sm:max-w-[32rem]"
             aria-label={isRmfRoute ? 'RMF Navigation' : 'Primary'}
           >
@@ -316,9 +316,11 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
             type="button"
             onClick={() => {
               const nextIsRmf = !optimisticRmfRoute;
+              
+              // 1. Immediate state update for snappy UI feedback
               setOptimisticRmfRoute(nextIsRmf);
               
-              // Aggressive prefetch for instant feel
+              // 2. Aggressive prefetch for instant feel
               if (nextIsRmf) {
                 router.prefetch('/rate-my-faculty');
                 router.prefetch('/rate-my-faculty/today');
@@ -327,8 +329,11 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                 router.prefetch('/');
               }
 
-              window.scrollTo({ top: 0, behavior: 'instant' });
-              router.push(nextIsRmf ? '/rate-my-faculty' : '/');
+              // 3. Use React transition for the heavy navigation to keep animations smooth
+              startTransition(() => {
+                window.scrollTo({ top: 0, behavior: 'instant' });
+                router.push(nextIsRmf ? '/rate-my-faculty' : '/');
+              });
             }}
             className="outline-none"
           >
@@ -363,6 +368,11 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                       exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
                       transition={{ type: 'spring', stiffness: 500, damping: 25 }}
                       className="absolute inset-0 flex items-center justify-center p-1.5"
+                      style={{
+                        transform: 'translateZ(0)',
+                        willChange: 'transform, opacity',
+                        backfaceVisibility: 'hidden',
+                      }}
                     >
                       <img 
                         src="/images/rmf/fcuk-logo.png" 
@@ -383,6 +393,11 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                       exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
                       transition={{ type: 'spring', stiffness: 500, damping: 25 }}
                       className="absolute inset-0 flex items-center justify-center p-1.5"
+                      style={{
+                        transform: 'translateZ(0)',
+                        willChange: 'transform, opacity',
+                        backfaceVisibility: 'hidden',
+                      }}
                     >
                       <img 
                         src={themeConfig.mode === 'light' ? "/images/rmf/rmf-logo-light.png" : "/images/rmf/rmf-logo.png"} 
