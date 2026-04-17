@@ -4,8 +4,8 @@ import FacultyDetailClient from './FacultyDetailClient';
 import FacultyDetailLoading from './loading';
 import { notFound } from 'next/navigation';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// Use the cache from rmf.ts (60s revalidate + tag-based instant purge)
+// Do NOT use force-dynamic — it defeats the cache and causes cold fetches on every click
 
 async function FacultyDetails({ facultyId }: { facultyId: string }) {
   const data = await getFacultyDetails(facultyId);

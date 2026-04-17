@@ -303,10 +303,10 @@ export default function FacultyListClient({
                       delay: shouldAnimate ? i * 0.04 : 0,
                       ease: "easeOut"
                     }}
-                  >
-                  <Link 
-                    href={`/rate-my-faculty/${faculty.id}`}
                     onMouseEnter={() => router.prefetch(`/rate-my-faculty/${faculty.id}`)}
+                    onTouchStart={() => router.prefetch(`/rate-my-faculty/${faculty.id}`)}
+                    onClick={() => startTransition(() => router.push(`/rate-my-faculty/${faculty.id}`))}
+                    style={{ cursor: 'pointer' }}
                   >
                     <motion.div
                       whileHover={{ scale: 0.98 }}
@@ -348,8 +348,7 @@ export default function FacultyListClient({
                       </div>
 
                     </motion.div>
-                  </Link>
-                </motion.div>
+                  </motion.div>
                   );
                 })}
               </AnimatePresence>
