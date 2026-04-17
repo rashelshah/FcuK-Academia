@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, FileStack } from 'lucide-react';
 
 import AppHeader from '@/components/layout/AppHeader';
 import HomeFooter from '@/components/layout/HomeFooter';
@@ -305,11 +305,60 @@ export default function HomePage() {
       </section>
 
       <RevealItem>
+        <Link href="/pyqs" prefetch={true}>
+          <div
+            className="theme-card group relative flex items-center justify-between gap-4 overflow-hidden p-6"
+            style={{
+              background:
+                'linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 100%)',
+              borderColor: 'color-mix(in srgb, var(--primary) 22%, var(--border))',
+            }}
+          >
+            {/* Glow shimmer */}
+            <div
+              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              style={{
+                background:
+                  'radial-gradient(circle at 20% 50%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 65%)',
+              }}
+            />
+            <div className="flex min-w-0 flex-col gap-1">
+              <span
+                className="font-label text-[9px] font-bold uppercase tracking-[0.24em]"
+                style={{ color: 'var(--text-subtle)' }}
+              >
+                srmist resources
+              </span>
+              <h3 className="font-headline text-xl font-bold lowercase leading-tight text-on-surface">
+                previous year questions
+              </h3>
+              <p className="font-body text-xs" style={{ color: 'var(--text-muted)' }}>
+                browse & open PDFs instantly 📄
+              </p>
+            </div>
+            <div
+              className="flex flex-shrink-0 flex-col items-center gap-1.5 rounded-2xl px-3.5 py-3 transition-all duration-200 group-hover:scale-105"
+              style={{
+                background: 'color-mix(in srgb, var(--primary) 14%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--primary) 28%, transparent)',
+                color: 'var(--primary)',
+                boxShadow: 'var(--glow-primary)',
+              }}
+            >
+              <FileStack className="h-5 w-5" />
+              <span className="font-label text-[8px] font-bold uppercase tracking-widest">PYQs</span>
+            </div>
+          </div>
+        </Link>
+      </RevealItem>
+
+      <RevealItem>
         <HomeFooter title={footerTitle} />
       </RevealItem>
     </PageReveal>
   );
 }
+
 
 function MarkItem({ dotColor, title, score }: { dotColor: string; title: string; score: string }) {
   return (

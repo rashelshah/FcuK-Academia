@@ -4,5 +4,13 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "cleanUrls": true,
-  "regions": ["sin1"]
+  "regions": [
+    "sin1"
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "*": false
+    }
+  }
 }
