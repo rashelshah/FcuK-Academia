@@ -4,20 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/context/ThemeContext';
+import { useUser } from '@/hooks/useUser';
 import { cn } from '@/lib/utils';
-
-function SparkleIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className} width="1.2em" height="1.2em">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 22.5l-.813-6.596L2.25 15l6.596-.813L9 7.5l.813 6.596L15.75 15l-5.937.904zm9.333-8.875L18.75 10.5l-.396-3.471L15 6.75l3.354-.279L18.75 3l.396 3.471L22.5 6.75l-3.354.279z" />
-    </svg>
-  );
-}
 
 export default function AppSwitcher() {
   const pathname = usePathname();
   const { themeConfig } = useTheme();
+  const { user } = useUser();
   const isPyqs = pathname.startsWith('/pyqs');
+
+  // Try to determine user's current semester for smart redirect
+  const userSemester = user?.semester ? parseInt(user.semester.replace(/[^0-9]/g, ''), 10) : null;
+  const pyqLink = userSemester ? `/pyqs/${userSemester}` : '/pyqs';
 
   // Grab theme colors for gradients
   const primary = themeConfig.colors.primary;
@@ -34,12 +32,15 @@ export default function AppSwitcher() {
         background: `linear-gradient(to right, ${primary}, ${secondary}, ${accent})`
       }}
     >
-      <div className="flex h-[52px] w-full items-center justify-center gap-2 rounded-[17px] bg-[#0A0A0A] px-2 transition-colors hover:bg-black/90 text-white">
-        <SparkleIcon className="text-white opacity-80" />
+      <div className="flex h-[52px] w-full items-center justify-center rounded-[17px] bg-[#0A0A0A] px-2 transition-colors hover:bg-black/90 text-white">
         <span className={cn(
-          "font-headline text-[11px] sm:text-base tracking-wide whitespace-nowrap",
-          isPyq ? "font-black uppercase tracking-tighter italic" : "font-bold"
-        )}>
+          "text-[12px] sm:text-base tracking-wide whitespace-nowrap leading-none",
+          isPyq ? "uppercase tracking-[0.1em]" : "font-headline font-bold"
+        )} style={{ 
+          fontFamily: isPyq ? 'Evaco' : 'Qelandsaightrial', 
+          fontSize: isPyq ? '14px' : '18px', 
+          paddingTop: isPyq ? '4px' : '2px' 
+        }}>
           {title}
         </span>
       </div>
@@ -51,16 +52,19 @@ export default function AppSwitcher() {
     <motion.div
       whileHover={{ scale: 1.02, y: -1 }}
       whileTap={{ scale: 0.98 }}
-      className="flex h-[52px] w-full items-center justify-center gap-2 rounded-[18px] px-2 text-white shadow-xl shadow-primary/20"
+      className="flex h-[52px] w-full items-center justify-center rounded-[18px] px-2 text-white shadow-xl shadow-primary/20"
       style={{
         background: `linear-gradient(135deg, ${secondary}, ${primary}, ${accent})`,
       }}
     >
-      <SparkleIcon className="text-white" />
       <span className={cn(
-        "font-headline text-[11px] sm:text-base tracking-wide drop-shadow-lg whitespace-nowrap",
-        isPyq ? "font-black uppercase tracking-tighter italic" : "font-bold"
-      )}>
+        "text-[12px] sm:text-base tracking-wide drop-shadow-lg whitespace-nowrap leading-none",
+        isPyq ? "uppercase tracking-[0.1em]" : "font-headline font-bold"
+      )} style={{ 
+        fontFamily: isPyq ? 'Evaco' : 'Qelandsaightrial', 
+        fontSize: isPyq ? '14px' : '18px', 
+        paddingTop: isPyq ? '4px' : '2px' 
+      }}>
         {title}
       </span>
     </motion.div>
@@ -76,7 +80,7 @@ export default function AppSwitcher() {
         )}
       </Link>
 
-      <Link href="/pyqs" className="flex-1 min-w-0 flex">
+      <Link href={pyqLink} className="flex-1 min-w-0 flex">
         {isPyqs ? (
           <ActiveButton title="PYQs" isPyq />
         ) : (
