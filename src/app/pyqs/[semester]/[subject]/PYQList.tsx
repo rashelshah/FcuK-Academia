@@ -143,29 +143,20 @@ export default function PYQList({ pyqs, subject, semester }: PYQListProps) {
               }}
             >
               <div
-                className="theme-card group relative overflow-hidden p-5"
+                className="theme-card relative overflow-hidden px-5 py-4"
                 style={{
-                  background:
-                    'linear-gradient(145deg, color-mix(in srgb, var(--surface-elevated) 95%, var(--accent) 5%) 0%, var(--surface) 100%)',
+                  background: 'linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 96%, var(--primary) 4%) 0%, var(--surface) 100%)',
+                  borderColor: 'color-mix(in srgb, var(--border) 80%, transparent)',
                 }}
               >
-                {/* Hover glow */}
-                <div
-                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  style={{
-                    background:
-                      'radial-gradient(circle at 50% 100%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%)',
-                  }}
-                />
-
                 {/* Card content */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 flex-col gap-2">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                     {/* Badges row */}
                     <div className="flex flex-wrap items-center gap-2">
                       {/* Exam type badge */}
                       <span
-                        className="inline-flex items-center rounded-full px-2.5 py-0.5 font-label text-[9px] font-bold uppercase tracking-widest"
+                        className="inline-flex items-center rounded-full px-2.5 py-0.5 font-label text-[8px] font-bold uppercase tracking-widest"
                         style={{
                           background: badge.bg,
                           border: `1px solid ${badge.border}`,
@@ -178,30 +169,30 @@ export default function PYQList({ pyqs, subject, semester }: PYQListProps) {
                       {/* Year badge */}
                       {pyq.year && (
                         <span
-                          className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-label text-[9px] font-bold uppercase tracking-widest"
+                          className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-label text-[8px] font-bold uppercase tracking-widest"
                           style={{
-                            background: 'color-mix(in srgb, var(--surface-elevated) 90%, transparent)',
-                            border: '1px solid var(--border)',
+                            background: 'color-mix(in srgb, var(--surface-soft) 85%, transparent)',
+                            border: '1px solid color-mix(in srgb, var(--border) 60%, transparent)',
                             color: 'var(--text-muted)',
                           }}
                         >
-                          <Calendar className="h-2.5 w-2.5" />
+                          <Calendar className="h-2.5 w-2.5 opacity-70" />
                           {pyq.year}
                         </span>
                       )}
                     </div>
 
                     {/* Label */}
-                    <p
-                      className="font-body text-sm font-semibold leading-snug"
+                    <h3
+                      className="font-headline text-lg font-bold lowercase leading-tight tracking-tight"
                       style={{ color: 'var(--text)' }}
                     >
                       {pyq.source_label || `${pyq.exam_type || 'PYQ'} ${pyq.year || ''}`}
-                    </p>
+                    </h3>
 
                     {/* Subject sub-text */}
                     <p
-                      className="truncate font-label text-[10px] capitalize"
+                      className="truncate font-label text-[9px] font-medium uppercase tracking-[0.08em]"
                       style={{ color: 'var(--text-subtle)' }}
                     >
                       {subject} · sem {semester}
@@ -218,22 +209,27 @@ export default function PYQList({ pyqs, subject, semester }: PYQListProps) {
                     aria-label={`View ${pyq.source_label || 'PYQ'} PDF`}
                   >
                     <motion.div
-                      whileHover={{ scale: 1.06, y: -1 }}
-                      whileTap={{ scale: 0.96 }}
-                      transition={{ duration: 0.17, ease: [0.22, 1, 0.36, 1] }}
-                      className="flex flex-col items-center gap-1.5 rounded-2xl px-4 py-3"
+                      whileHover={{ scale: 1.04, y: -0.5 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="flex items-center gap-2.5 rounded-full px-5 py-3 transition-colors"
                       style={{
-                        background: 'color-mix(in srgb, var(--primary) 14%, transparent)',
-                        border: '1px solid color-mix(in srgb, var(--primary) 32%, transparent)',
+                        background: 'color-mix(in srgb, var(--primary) 10%, var(--surface-elevated))',
+                        border: '1.5px solid color-mix(in srgb, var(--primary) 22%, transparent)',
                         color: 'var(--primary)',
-                        boxShadow: '0 0 16px color-mix(in srgb, var(--primary) 10%, transparent)',
                       }}
                     >
-                      <FileText className="h-4 w-4" />
-                      <span className="font-label text-[9px] font-bold uppercase tracking-widest">
-                        View
-                      </span>
-                      <ExternalLink className="h-2.5 w-2.5 opacity-60" />
+                      <div className="flex flex-col items-center">
+                        <FileText className="h-4 w-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-label text-[10px] font-black uppercase tracking-[0.14em] leading-none">
+                          View
+                        </span>
+                        <div className="mt-1 flex items-center gap-1 opacity-60">
+                           <span className="font-label text-[7px] uppercase tracking-widest font-bold">PDF</span>
+                           <ExternalLink className="h-2 w-2" />
+                        </div>
+                      </div>
                     </motion.div>
                   </a>
                 </div>

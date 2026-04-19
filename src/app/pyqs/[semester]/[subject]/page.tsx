@@ -71,9 +71,9 @@ export default async function PYQSubjectPage({ params }: Props) {
   return (
     <PageReveal className="flex flex-col gap-6 pb-40 pt-1">
       <div className="flex flex-col gap-4">
-        <AppHeader 
-          title={<span className="font-headline text-xl font-bold tracking-tight text-primary italic">{decodedSubject}</span>} 
-          backHref={`/pyqs/${semNum}`} 
+        <AppHeader
+          title={<span className="font-headline text-xl font-bold tracking-tight text-primary italic">{decodedSubject}</span>}
+          backHref={`/pyqs/${semNum}`}
         />
         <AppSwitcher />
       </div>
@@ -121,6 +121,21 @@ export default async function PYQSubjectPage({ params }: Props) {
       <Suspense fallback={<PYQListLoading />}>
         <PYQContent semester={semNum} subject={decodedSubject} />
       </Suspense>
+
+      {/* Footer */}
+      <footer className="mt-8 px-2 pb-6">
+        <div className="flex flex-col gap-3 text-left">
+          <p
+            className="font-headline text-[clamp(3.2rem,14vw,4.4rem)] font-bold leading-[0.88] tracking-tight lowercase"
+            style={{ color: 'color-mix(in srgb, var(--text) 90%, transparent)' }}
+          >
+            Want more?
+          </p>
+          <p className="max-w-sm text-sm font-medium leading-6 text-on-surface-variant lowercase">
+            coming soon! on it&apos;s way...
+          </p>
+        </div>
+      </footer>
     </PageReveal>
   );
 }
