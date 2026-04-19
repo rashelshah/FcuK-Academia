@@ -2,6 +2,10 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
+// Global cache ensures values only animate from zero ONCE per app session.
+// Soft navigations will immediately display the final state seamlessly.
+const countedValuesCache = new Set<string>();
+
 interface CountUpProps {
   value: number;
   duration?: number;
@@ -32,6 +36,18 @@ export default function CountUp({
   const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
+    // A robust cache key strictly blocks redundant runs on intra-app routing
+    const cacheKey = `${value}-${duration}`;
+
+    if (countedValuesCache.has(cacheKey)) {
+      // Safely clamp it to its final value instead of re-animating
+      setDisplayValue(value);
+      return; 
+    }
+    
+    // Register the count-up occurrence perfectly inside the closure cleanly
+    countedValuesCache.add(cacheKey);
+
     const startValue = 0;
     const startTime = performance.now();
 
@@ -57,7 +73,7 @@ export default function CountUp({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [duration, value]);
+  }, [duration, value]); // Strict dependency list prevents mid-animation aborts!
 
   const formatted = `${prefix}${formatValue(displayValue, decimals)}${suffix}`;
 

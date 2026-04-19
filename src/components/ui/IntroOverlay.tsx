@@ -10,6 +10,10 @@ import { useTheme } from '@/context/ThemeContext';
 const SPLASH_DURATION_MS = 2000;
 const EXIT_EASING = [0.22, 1, 0.36, 1] as const;
 
+/**
+ * Handles the Lottie logo splash only.
+ * Cinematic is now triggered by CommunityPopup close → queueCinematic().
+ */
 export default function IntroOverlay() {
   const { showIntro, dismissIntro } = useTheme();
   const hasDismissedRef = useRef(false);

@@ -55,7 +55,7 @@ function isDevPreviewMode() {
 }
 
 export default function CommunityPopup() {
-  const { showIntro, themeConfig } = useTheme();
+  const { showIntro, markCommunityDone, themeConfig } = useTheme();
   const motionProps = getInteractiveMotion(themeConfig.motion);
   const [open, setOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement | null>(null);
@@ -72,16 +72,21 @@ export default function CommunityPopup() {
     const devPreviewMode = isDevPreviewMode();
 
     const hasSeenInSession = window.sessionStorage.getItem(WHATSAPP_COMMUNITY_POPUP_CONFIG.sessionKey) === 'true';
-    if (hasSeenInSession && !devPreviewMode) return;
+    if (hasSeenInSession && !devPreviewMode) {
+      markCommunityDone();
+      return;
+    }
 
     const onboardingPending = window.sessionStorage.getItem('onboardingPending') === 'true';
     if (onboardingPending && !devPreviewMode) {
       window.sessionStorage.setItem(WHATSAPP_COMMUNITY_POPUP_CONFIG.sessionKey, 'true');
+      markCommunityDone();
       return;
     }
 
     if (isCooldownActive() && !devPreviewMode) {
       window.sessionStorage.setItem(WHATSAPP_COMMUNITY_POPUP_CONFIG.sessionKey, 'true');
+      markCommunityDone();
       return;
     }
 
@@ -99,6 +104,7 @@ export default function CommunityPopup() {
     }, 850);
 
     return () => window.clearTimeout(openTimer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showIntro]);
 
   useEffect(() => {
@@ -266,6 +272,7 @@ export default function CommunityPopup() {
                   onClick={() => {
                     window.open(WHATSAPP_COMMUNITY_POPUP_CONFIG.whatsappUrl, '_blank', 'noopener,noreferrer');
                     setOpen(false);
+                    markCommunityDone();
                   }}
                 >
                   join on whatsapp →
@@ -287,7 +294,7 @@ export default function CommunityPopup() {
                     appearance: 'none',
                     WebkitTapHighlightColor: 'transparent',
                   }}
-                  onClick={() => setOpen(false)}
+                  onClick={() => { setOpen(false); markCommunityDone(); }}
                 >
                   maybe later
                 </motion.button>

@@ -187,12 +187,27 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
     setMounted(true);
   }, []);
   
+  const isLockIn = pathname.startsWith('/pyqs');
+
   return (
     <>
-      <div
-        className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex items-end justify-center px-4 sm:px-6 xl:px-8 mx-auto gap-4 sm:gap-4"
+      <motion.div
+        initial={false}
+        animate={{ 
+          y: isLockIn ? 160 : 0,
+          opacity: isLockIn ? 0 : 1,
+        }}
+        transition={{ 
+          type: 'spring', 
+          stiffness: 260, 
+          damping: 32, 
+          mass: 1,
+          restDelta: 0.001 
+        }}
+        className="fixed bottom-0 left-0 right-0 z-50 flex items-end justify-center px-4 sm:px-6 xl:px-8 mx-auto gap-4 sm:gap-4 pointer-events-none"
         style={{
           paddingBottom: `calc(16px + max(env(safe-area-inset-bottom), 0px))`,
+          willChange: 'transform, opacity',
         }}
       >
         {/* LEFT: FLOATING NAVBAR */}
@@ -426,7 +441,7 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
             </motion.div>
           </button>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }

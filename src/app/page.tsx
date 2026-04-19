@@ -2,9 +2,10 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, FileStack } from 'lucide-react';
 
 import AppHeader from '@/components/layout/AppHeader';
+import AppSwitcher from '@/components/ui/AppSwitcher';
 import HomeFooter from '@/components/layout/HomeFooter';
 import DayOrderPills from '@/components/ui/DayOrderPills';
 import CountUp from '@/components/ui/CountUp';
@@ -186,19 +187,23 @@ export default function HomePage() {
   };
 
   return (
-    <PageReveal className="flex flex-col gap-8 pb-40 pt-4">
-      <AppHeader />
+    <div className="flex flex-col gap-8 pb-40 pt-1">
+      <div className="flex flex-col gap-4">
+        <AppHeader />
+        <AppSwitcher />
+      </div>
 
-      <section className="mt-1 space-y-2">
-        <RevealText>
-          <p className="theme-kicker">{user?.department || 'ready for the grind?'}</p>
-        </RevealText>
-        <RevealHeading>
-          <h1 className="font-headline text-[3.6rem] font-bold leading-[0.84] tracking-tight text-on-surface">
-            <TextType text={loading ? 'loading' : greeting} typingSpeed={34} startDelay={40} />
-          </h1>
-        </RevealHeading>
-      </section>
+      <PageReveal className="flex flex-col gap-8">
+        <section className="-mt-3 space-y-2">
+          <RevealText>
+            <p className="theme-kicker">{user?.department || 'ready for the grind?'}</p>
+          </RevealText>
+          <RevealHeading>
+            <h1 className="font-headline text-[3.6rem] font-bold leading-[0.84] tracking-tight text-on-surface">
+              <TextType text={loading ? 'loading' : greeting} typingSpeed={34} startDelay={40} />
+            </h1>
+          </RevealHeading>
+        </section>
 
       <section className="-mx-4 overflow-x-auto px-4 pb-2">
         <DayOrderPills
@@ -305,11 +310,61 @@ export default function HomePage() {
       </section>
 
       <RevealItem>
+        <Link href="/pyqs" prefetch={true}>
+          <div
+            className="theme-card group relative flex items-center justify-between gap-4 overflow-hidden p-6"
+            style={{
+              background:
+                'linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 100%)',
+              borderColor: 'color-mix(in srgb, var(--primary) 22%, var(--border))',
+            }}
+          >
+            {/* Glow shimmer */}
+            <div
+              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              style={{
+                background:
+                  'radial-gradient(circle at 20% 50%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 65%)',
+              }}
+            />
+            <div className="flex min-w-0 flex-col gap-1">
+              <span
+                className="font-label text-[9px] font-bold uppercase tracking-[0.24em]"
+                style={{ color: 'var(--text-subtle)' }}
+              >
+                srmist resources
+              </span>
+              <h3 className="font-headline text-xl font-bold lowercase leading-tight text-on-surface">
+                previous year questions
+              </h3>
+              <p className="font-body text-xs" style={{ color: 'var(--text-muted)' }}>
+                browse & open PDFs instantly 📄
+              </p>
+            </div>
+            <div
+              className="flex flex-shrink-0 flex-col items-center gap-1.5 rounded-2xl px-3.5 py-3 transition-all duration-200 group-hover:scale-105"
+              style={{
+                background: 'color-mix(in srgb, var(--primary) 14%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--primary) 28%, transparent)',
+                color: 'var(--primary)',
+                boxShadow: 'var(--glow-primary)',
+              }}
+            >
+              <FileStack className="h-5 w-5" />
+              <span className="font-label text-[8px] font-bold uppercase tracking-widest">PYQs</span>
+            </div>
+          </div>
+        </Link>
+      </RevealItem>
+
+      <RevealItem>
         <HomeFooter title={footerTitle} />
       </RevealItem>
-    </PageReveal>
+      </PageReveal>
+    </div>
   );
 }
+
 
 function MarkItem({ dotColor, title, score }: { dotColor: string; title: string; score: string }) {
   return (

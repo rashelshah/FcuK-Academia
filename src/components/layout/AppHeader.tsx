@@ -22,7 +22,7 @@ interface AppHeaderProps {
 }
 
 export default function AppHeader({
-  title = <span className="font-headline text-xl font-bold normal-case tracking-tight text-primary">FcuK Academia</span>,
+  title = <span className="font-headline text-[1.65rem] font-bold normal-case tracking-tight text-primary" style={{ fontFamily: 'Qelandsaightrial', paddingTop: '4px' }}>FcuK Academia</span>,
   backHref,
   showBell = true,
   className,
@@ -87,7 +87,7 @@ export default function AppHeader({
         </div>
         <div className="min-w-0 flex-1 text-center">
           {typeof title === 'string' ? (
-            <span className="font-headline text-xl font-bold normal-case tracking-tight text-primary">{title}</span>
+            <span className="font-headline text-[1.65rem] font-bold normal-case tracking-tight text-primary" style={{ fontFamily: 'Qelandsaightrial' }}>{title}</span>
           ) : (
             title
           )}
