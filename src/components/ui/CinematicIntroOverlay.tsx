@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import {
   ENABLE_INTRO_SEQUENCE,
@@ -11,49 +11,35 @@ import {
 } from '@/lib/introConfig';
 import CinematicIntro from '@/components/ui/CinematicIntro';
 
-import { useTheme } from '@/context/ThemeContext';
-
 /**
- * Orchestrator layer.
+ * Self-activating cinematic intro overlay.
  *
- * Responsibilities:
- *  - Checks NEXT_PUBLIC_ENABLE_INTRO_SEQUENCE feature flag
- *  - Checks the 24-hour localStorage gate
- *  - Selects the daily variant via UTC-day rotation
- *  - Mounts <CinematicIntro> with the correct theme
- *  - Calls dismissCinematic immediately when the intro should be skipped
- *  - Calls dismissCinematic after the cinematic finishes
+ * Does NOT depend on the popup chain (communityPopupDone / queueCinematic).
+ * It activates itself after hydration if the feature flag is on and
+ * shouldShowCinematic() is true. This makes it work reliably in production
+ * regardless of popup cooldowns.
  */
 export default function CinematicIntroOverlay() {
-  const { cinematicQueued, dismissCinematic } = useTheme();
   const variantIndex = useMemo(() => getVariantIndex(), []);
-
-  const [active, setActive] = React.useState(false);
-  const [hydrated, setHydrated] = React.useState(false);
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
-    setHydrated(true);
+    // Only runs on the client, after hydration. In-memory flag ensures
+    // it plays exactly once per app session regardless of localStorage/cooldowns.
     if (ENABLE_INTRO_SEQUENCE && shouldShowCinematic()) {
-      setActive(true);
+      setShow(true);
     }
   }, []);
 
-  // When the flag/gate says skip, fire dismissCinematic after first paint.
-  useEffect(() => {
-    // Only attempt to dismiss if we've finished hydrating and checking the 24h gate.
-    if (hydrated && cinematicQueued && !active) {
-      dismissCinematic();
-    }
-  }, [active, cinematicQueued, dismissCinematic, hydrated]);
-
-  if (!cinematicQueued || !active) return null;
+  if (!show) return null;
 
   const theme = introThemes[variantIndex];
 
   const handleComplete = () => {
     markCinematicSeen(variantIndex);
-    dismissCinematic();
+    setShow(false);
   };
 
   return <CinematicIntro theme={theme} onComplete={handleComplete} />;
 }
+
