@@ -28,7 +28,7 @@ export function getVariantIndex(): 0 | 1 | 2 | 3 | 4 {
   return (Math.floor(Date.now() / 86_400_000) % 5) as 0 | 1 | 2 | 3 | 4;
 }
 
-/** True when no localStorage record exists OR it is older than 24 hours. */
+/** True when no sessionStorage record exists for the current session. */
 export function shouldShowCinematic(): boolean {
   if (typeof window === 'undefined') return false;
   
@@ -36,20 +36,19 @@ export function shouldShowCinematic(): boolean {
   if (process.env.NODE_ENV === 'development') return true;
 
   try {
-    const raw = localStorage.getItem(CINEMATIC_SEEN_KEY);
-    if (!raw) return true;
-    return Date.now() - Number(raw) > INTRO_24H_MS;
+    const raw = sessionStorage.getItem(CINEMATIC_SEEN_KEY);
+    return !raw;
   } catch {
     return true; // storage unavailable → show intro
   }
 }
 
-/** Write the current timestamp so the next visit within 24 h skips the intro. */
+/** Write a session record so the next refresh within the same tab skips the intro. */
 export function markCinematicSeen(variantIndex: number): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(CINEMATIC_SEEN_KEY,    String(Date.now()));
-    localStorage.setItem(CINEMATIC_VARIANT_KEY, String(variantIndex));
+    sessionStorage.setItem(CINEMATIC_SEEN_KEY,    'true');
+    sessionStorage.setItem(CINEMATIC_VARIANT_KEY, String(variantIndex));
   } catch { /* quota / private-mode — silently skip */ }
 }
 
