@@ -47,5 +47,7 @@ next-env.d.ts
 
 .AGENTS.md
 .CLAUDE.md
-/MyNotes
-/scripts/pyq-scraper/.tmp_pdfs
+
+# Scraper / Resources
+MyNotes/
+scripts/pyq-scraper/
