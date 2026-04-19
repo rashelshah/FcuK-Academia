@@ -18,16 +18,22 @@ const INITIAL_DELAY_MS = 2500; // Wait 2.5s before showing popup to not block in
 
 export default function RmfAnnouncementPopup() {
   const { isAnnouncementActive, setIsAnnouncementActive } = useAppState();
-  const { themeConfig } = useTheme();
+  const { themeConfig, communityPopupDone, queueCinematic } = useTheme();
   const router = useRouter();
   const [shouldRender, setShouldRender] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
-    // 1. Feature Flag Check
-    if (!featureFlags.rmfAnnouncement.enabled) return;
+    // 1. Wait for preceding intro/community popups
+    if (!communityPopupDone) return;
 
-    // 2. Cooldown Check (Bypassed in development)
+    // 2. Feature Flag Check
+    if (!featureFlags.rmfAnnouncement.enabled) {
+      queueCinematic();
+      return;
+    }
+
+    // 3. Cooldown Check (Bypassed in development)
     const checkCooldown = () => {
       if (process.env.NODE_ENV === 'development') return true;
       try {
@@ -41,20 +47,26 @@ export default function RmfAnnouncementPopup() {
       }
     };
 
-    if (!checkCooldown()) return;
+    if (!checkCooldown()) {
+      queueCinematic();
+      return;
+    }
 
-    // 3. Trigger Timing
+    // 4. Trigger Timing
+    // Shorten initial delay significantly since we're already waiting for 
+    // the previous popups to finish.
     const timer = setTimeout(() => {
       setShouldRender(true);
       setIsAnnouncementActive(true);
-    }, INITIAL_DELAY_MS);
+    }, 400);
 
     return () => clearTimeout(timer);
-  }, [setIsAnnouncementActive]);
+  }, [communityPopupDone, setIsAnnouncementActive, queueCinematic]);
 
   const handleDismiss = () => {
     setIsAnnouncementActive(false); // Clear world state immediately
     setIsClosing(true);
+    queueCinematic();
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY, Date.now().toString());
     } catch (e) {
@@ -70,6 +82,7 @@ export default function RmfAnnouncementPopup() {
   const handleExplore = () => {
     setIsAnnouncementActive(false); // Update global state immediately
     setIsClosing(true); // Trigger exit animation
+    queueCinematic();
     
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY, Date.now().toString());

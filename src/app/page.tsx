@@ -187,22 +187,23 @@ export default function HomePage() {
   };
 
   return (
-    <PageReveal className="flex flex-col gap-8 pb-40 pt-1">
+    <div className="flex flex-col gap-8 pb-40 pt-1">
       <div className="flex flex-col gap-4">
         <AppHeader />
         <AppSwitcher />
       </div>
 
-      <section className="-mt-3 space-y-2">
-        <RevealText>
-          <p className="theme-kicker">{user?.department || 'ready for the grind?'}</p>
-        </RevealText>
-        <RevealHeading>
-          <h1 className="font-headline text-[3.6rem] font-bold leading-[0.84] tracking-tight text-on-surface">
-            <TextType text={loading ? 'loading' : greeting} typingSpeed={34} startDelay={40} />
-          </h1>
-        </RevealHeading>
-      </section>
+      <PageReveal className="flex flex-col gap-8">
+        <section className="-mt-3 space-y-2">
+          <RevealText>
+            <p className="theme-kicker">{user?.department || 'ready for the grind?'}</p>
+          </RevealText>
+          <RevealHeading>
+            <h1 className="font-headline text-[3.6rem] font-bold leading-[0.84] tracking-tight text-on-surface">
+              <TextType text={loading ? 'loading' : greeting} typingSpeed={34} startDelay={40} />
+            </h1>
+          </RevealHeading>
+        </section>
 
       <section className="-mx-4 overflow-x-auto px-4 pb-2">
         <DayOrderPills
@@ -359,7 +360,8 @@ export default function HomePage() {
       <RevealItem>
         <HomeFooter title={footerTitle} />
       </RevealItem>
-    </PageReveal>
+      </PageReveal>
+    </div>
   );
 }
 

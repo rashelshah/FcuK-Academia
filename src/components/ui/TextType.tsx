@@ -4,6 +4,10 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
+// Global cache ensures strings are only typewritten ONCE per app session.
+// Soft navigations within the SPA will bypass the animation and render instantly.
+const typedStringsCache = new Set<string>();
+
 interface TextTypeProps {
   text: string;
   className?: string;
@@ -19,21 +23,24 @@ export default function TextType({
   startDelay = 60,
   cursorCharacter = '_',
 }: TextTypeProps) {
-  const [displayText, setDisplayText] = useState('');
-  const [showCursor, setShowCursor] = useState(true);
+  // Check memory synchronously to prevent 1-frame blank flashes during soft routing
+  const isAlreadyTyped = typeof window !== 'undefined' && typedStringsCache.has(text);
+  
+  const [displayText, setDisplayText] = useState(isAlreadyTyped ? text : '');
+  const [showCursor, setShowCursor] = useState(!isAlreadyTyped);
   const timeoutRef = useRef<number | null>(null);
   const cursorRef = useRef<number | null>(null);
   const resetRef = useRef<number | null>(null);
-  const finishedRef = useRef(false);
+  const finishedRef = useRef(isAlreadyTyped);
 
   useEffect(() => {
-    if (timeoutRef.current) {
-      window.clearTimeout(timeoutRef.current);
-    }
-    if (resetRef.current) {
-      window.clearTimeout(resetRef.current);
-    }
+    if (isAlreadyTyped) return; // Skip effects completely if cached
+
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    if (resetRef.current) window.clearTimeout(resetRef.current);
+    
     finishedRef.current = false;
+    typedStringsCache.add(text); // Register to memory instantly
 
     let index = 0;
 

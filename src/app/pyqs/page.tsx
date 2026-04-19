@@ -40,7 +40,7 @@ async function SemesterContent() {
 
 export default function PYQPage() {
   return (
-    <PageReveal className="flex flex-col gap-8 pb-32 pt-1">
+    <div className="flex flex-col gap-8 pb-32 pt-1">
       <div className="flex flex-col gap-4">
         <AppHeader 
           title={<span className="font-headline text-xl font-bold tracking-tight text-primary italic">SRM PYQs</span>} 
@@ -48,10 +48,12 @@ export default function PYQPage() {
         />
         <AppSwitcher />
       </div>
-      {/* Header */}
-      <section className="-mt-3 space-y-2">
-        <p className="theme-kicker">last night saviour papers</p>
-        <h1
+      
+      <PageReveal className="flex flex-col gap-8">
+        {/* Header */}
+        <section className="-mt-3 space-y-2">
+          <p className="theme-kicker">last night saviour papers</p>
+          <h1
           className="font-headline text-[3.15rem] font-bold leading-[0.88] tracking-tight"
           style={{ color: 'var(--primary)' }}
         >
@@ -76,6 +78,7 @@ export default function PYQPage() {
       <Suspense fallback={<PYQLoading />}>
         <SemesterContent />
       </Suspense>
-    </PageReveal>
+      </PageReveal>
+    </div>
   );
 }

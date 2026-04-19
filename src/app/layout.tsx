@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import AppLayout from "@/components/layout/AppLayout";
 import GoogleAnalytics from "@/components/system/GoogleAnalytics";
 import CommunityPopup from "@/components/system/CommunityPopup";
+import CinematicIntroOverlay from "@/components/ui/CinematicIntroOverlay";
 import ServiceWorkerRegistration from "@/components/system/ServiceWorkerRegistration";
 import dynamic from 'next/dynamic';
 
@@ -108,6 +109,7 @@ export default async function RootLayout({
             <AppStateProvider>
               <NotificationProvider>
                 <CommunityPopup />
+                <CinematicIntroOverlay />
                 <AppLayout>
                   {children}
                 </AppLayout>

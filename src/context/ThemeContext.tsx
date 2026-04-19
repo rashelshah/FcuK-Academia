@@ -22,9 +22,22 @@ interface ThemeContextType {
   availableThemes: ThemeDefinition[];
   isDark: boolean;
   showIntro: boolean;
+  /** True when CommunityPopup has either shown and been closed, or been skipped */
+  communityPopupDone: boolean;
+  /**
+   * True after CommunityPopup (or any pre-cinematic step) is done
+   * and the cinematic has been requested but not yet finished.
+   */
+  cinematicQueued: boolean;
   setTheme: (theme: ThemeType) => void;
   dismissIntro: () => void;
   startIntro: () => void;
+  /** Call when Community popup stage is done */
+  markCommunityDone: () => void;
+  /** Call when you want the cinematic to start (e.g. after RMF popup) */
+  queueCinematic: () => void;
+  /** Call when CinematicIntro finishes playing */
+  dismissCinematic: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -71,6 +84,8 @@ export function ThemeProvider({
 }) {
   const [theme, setThemeState] = useState<ThemeType>(() => resolveStoredTheme(initialTheme));
   const [showIntro, setShowIntro] = useState(resolveIntroState);
+  const [communityPopupDone, setCommunityPopupDone] = useState(false);
+  const [cinematicQueued, setCinematicQueued] = useState(false);
   const themeConfig = themes[theme];
 
   const setTheme = (newTheme: ThemeType) => {
@@ -145,6 +160,18 @@ export function ThemeProvider({
     }
   }
 
+  function markCommunityDone() {
+    setCommunityPopupDone(true);
+  }
+
+  function queueCinematic() {
+    setCinematicQueued(true);
+  }
+
+  function dismissCinematic() {
+    setCinematicQueued(false);
+  }
+
   return (
     <ThemeContext.Provider
       value={{
@@ -153,9 +180,14 @@ export function ThemeProvider({
         availableThemes: themeOptions,
         isDark: isDarkTheme(theme),
         showIntro,
+        communityPopupDone,
+        cinematicQueued,
         setTheme,
         dismissIntro,
         startIntro,
+        markCommunityDone,
+        queueCinematic,
+        dismissCinematic,
       }}
     >
       {children}
