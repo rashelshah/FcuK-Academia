@@ -301,38 +301,47 @@ function SwipeContainer({ activePath, screens, onNavigate, onPreviewPathChange }
         WebkitOverflowScrolling: 'touch',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
-        // touch-action: pan-y allows vertical scroll delegation to child screens
-        // while keeping horizontal swipe on the compositor thread (no JS delay)
-        touchAction: 'pan-y pinch-zoom',
-        // Prevent pull-to-refresh from interfering with horizontal swipe
+        // pan-x: this container IS the horizontal scroller — the browser must
+        // handle horizontal touch on the compositor thread (no JS blocking).
+        // pan-y is passed to child screens so they can scroll vertically inside.
+        touchAction: 'pan-x',
+        // Prevent pull-to-refresh competing with horizontal swipe
         overscrollBehaviorX: 'none',
-      }}
+        overscrollBehaviorY: 'none',
+      } as React.CSSProperties}
     >
-      {screens.map(({ href, Component }) => (
-        <section
-          key={href}
-          aria-hidden={href !== activePath}
-          className={cn(
-            'swipe-screen h-full min-w-full flex-[0_0_100%] snap-start overflow-y-auto overscroll-y-contain px-4 pt-6 sm:px-6 sm:pt-8',
-            href !== activePath && 'pointer-events-none',
-          )}
-          style={{
-            width: viewportWidth ? `${viewportWidth}px` : '100%',
-            // content-visibility:auto lets the browser skip rendering off-screen screens
-            contentVisibility: href !== activePath ? 'auto' : 'visible',
-            containIntrinsicSize: '0 100dvh',
-            contain: 'layout paint style',
-            // Promote each screen to its own GPU layer for smooth swipe tracking
-            transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            // Vertical scroll within each screen doesn't block horizontal swipe
-            touchAction: 'pan-y',
-          }}
-        >
-          <Component />
-        </section>
-      ))}
+      {screens.map(({ href, Component }) => {
+        const isActive = href === activePath;
+        return (
+          <section
+            key={href}
+            aria-hidden={!isActive}
+            className={cn(
+              'swipe-screen h-full min-w-full flex-[0_0_100%] snap-start overflow-y-auto overscroll-y-contain px-4 pt-6 sm:px-6 sm:pt-8',
+              !isActive && 'pointer-events-none',
+            )}
+            style={{
+              width: viewportWidth ? `${viewportWidth}px` : '100%',
+              // IMPORTANT: do NOT use content-visibility:auto here.
+              // It collapses the section's height/width when off-screen,
+              // breaking snap points and making scroll positions incorrect.
+              // Instead use contain:layout paint for paint isolation only.
+              contain: 'layout paint',
+              // Promote each screen to GPU layer for smooth swipe tracking.
+              // backface-visibility:hidden forces the browser to create
+              // a separate compositing layer per screen without will-change.
+              transform: 'translateZ(0)',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              // Allow vertical scroll inside each screen without
+              // interfering with the parent's horizontal pan-x
+              touchAction: 'pan-y',
+            }}
+          >
+            <Component />
+          </section>
+        );
+      })}
     </main>
   );
 }

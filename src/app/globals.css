@@ -374,7 +374,7 @@
     text-shadow: none !important;
   }
 
-  body.is-swiping .swipe-track,
+  /* Keep swipe-screen composited during active swipe */
   body.is-swiping .swipe-screen {
     transform: translateZ(0);
   }
@@ -432,11 +432,9 @@
       animation: mobile-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
   }
-
-  /* Prevent iOS overscroll rubber-band effect from fighting swipe navigation */
-  html {
-    overscroll-behavior-y: none;
-  }
+  /* NOTE: no overscroll-behavior-y:none on html — that would prevent vertical
+   * scroll inside each screen section from working on iPhone Safari.
+   * Overscroll is handled per-element via overscroll-y-contain on .swipe-screen. */
 }
 
 @layer components {
