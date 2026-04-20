@@ -375,6 +375,7 @@
   }
 
   /* Keep swipe-screen composited during active swipe */
+  body.is-swiping .swipe-track,
   body.is-swiping .swipe-screen {
     transform: translateZ(0);
   }
