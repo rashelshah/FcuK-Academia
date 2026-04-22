@@ -51,3 +51,5 @@ next-env.d.ts
 # Scraper / Resources
 MyNotes/
 scripts/pyq-scraper/
+
+credentials.json

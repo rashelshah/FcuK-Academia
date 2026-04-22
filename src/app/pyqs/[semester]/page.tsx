@@ -1,13 +1,14 @@
 import React, { Suspense } from 'react';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import type { Metadata } from 'next';
-import { supabase } from '@/lib/supabase';
+import Link from 'next/link';
+import { getSubjects } from '@/lib/drive';
 import SubjectList from './SubjectList';
 import SubjectLoading from './loading';
 import AppHeader from '@/components/layout/AppHeader';
 import AppSwitcher from '@/components/ui/AppSwitcher';
 import { PageReveal } from '@/components/ui/PageReveal';
+
+import DriveRefresher from '@/components/pyqs/DriveRefresher';
 
 interface Props {
   params: Promise<{ semester: string }>;
@@ -21,30 +22,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export const revalidate = 60;
-
-async function getSubjects(semester: number): Promise<string[]> {
-  const { data } = await supabase
-    .from('pyqs')
-    .select('subject_name')
-    .eq('semester', semester);
-
-  // Use a case-insensitive Map to group subjects
-  const subjectMap = new Map<string, string>();
-  (data ?? []).forEach((r: { subject_name: string }) => {
-    const key = r.subject_name.trim().toLowerCase();
-    // Keep the "best" casing (prefer capitalized)
-    if (!subjectMap.has(key) || (r.subject_name[0] === r.subject_name[0].toUpperCase())) {
-      subjectMap.set(key, r.subject_name.trim());
-    }
-  });
-
-  return Array.from(subjectMap.values()).sort((a, b) => a.localeCompare(b));
-}
+export const dynamic = 'force-dynamic';
 
 async function SubjectContent({ semester }: { semester: number }) {
-  const subjects = await getSubjects(semester);
-  return <SubjectList subjects={subjects} semester={semester} />;
+  try {
+    const subjects = await getSubjects(semester.toString());
+    return <SubjectList subjects={subjects} semester={semester} />;
+  } catch (err) {
+    console.error('Error fetching subjects:', err);
+    return <SubjectList subjects={[]} semester={semester} />;
+  }
 }
 
 export default async function SemesterPage({ params }: Props) {
@@ -71,6 +58,7 @@ export default async function SemesterPage({ params }: Props) {
 
   return (
     <PageReveal className="flex flex-col gap-6 pb-40 pt-1">
+      <DriveRefresher />
       <div className="flex flex-col gap-4">
         <AppHeader 
           title={<span className="font-headline text-xl font-bold tracking-tight text-primary italic">Semester {semNum}</span>} 

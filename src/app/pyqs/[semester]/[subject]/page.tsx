@@ -2,7 +2,6 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import type { Metadata } from 'next';
-import { supabase } from '@/lib/supabase';
 import PYQList from './PYQList';
 import PYQListLoading from './loading';
 import AppHeader from '@/components/layout/AppHeader';
@@ -16,9 +15,9 @@ export interface PYQItem {
   id: string;
   semester: number;
   subject_name: string;
-  exam_type: string | null;
+  type: string | null;
   year: number | null;
-  source_label: string | null;
+  file_name: string | null;
   file_url: string;
 }
 
@@ -31,18 +30,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export const revalidate = 60;
+import { getFiles } from '@/lib/drive';
 
 async function getPYQs(semester: number, subject: string): Promise<PYQItem[]> {
-  const { data } = await supabase
-    .from('pyqs')
-    .select('id, semester, subject_name, exam_type, year, source_label, file_url')
-    .eq('semester', semester)
-    .ilike('subject_name', subject)
-    .order('year', { ascending: false, nullsFirst: false })
-    .order('source_label', { ascending: true });
-
-  return (data ?? []) as PYQItem[];
+  try {
+    const files = await getFiles(semester.toString(), subject);
+    
+    return files.map(file => ({
+      id: file.url,
+      semester: semester,
+      subject_name: subject,
+      type: file.type,
+      year: file.year,
+      file_name: file.name,
+      file_url: file.url
+    }));
+  } catch (err) {
+    console.error('Error fetching files from drive:', err);
+    return [];
+  }
 }
 
 async function PYQContent({ semester, subject }: { semester: number; subject: string }) {
@@ -51,6 +57,9 @@ async function PYQContent({ semester, subject }: { semester: number; subject: st
 }
 
 import AppSwitcher from '@/components/ui/AppSwitcher';
+import DriveRefresher from '@/components/pyqs/DriveRefresher';
+
+export const dynamic = 'force-dynamic';
 
 export default async function PYQSubjectPage({ params }: Props) {
   const { semester, subject } = await params;
@@ -70,6 +79,7 @@ export default async function PYQSubjectPage({ params }: Props) {
 
   return (
     <PageReveal className="flex flex-col gap-6 pb-40 pt-1">
+      <DriveRefresher />
       <div className="flex flex-col gap-4">
         <AppHeader
           title={<span className="font-headline text-xl font-bold tracking-tight text-primary italic">{decodedSubject}</span>}

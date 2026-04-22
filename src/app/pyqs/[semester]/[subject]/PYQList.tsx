@@ -11,28 +11,34 @@ interface PYQListProps {
   semester: number;
 }
 
-type FilterType = 'All' | 'PYQ' | 'CT' | 'Note' | 'Other';
+type FilterType = 'all' | 'pyqs' | 'ct' | 'notes';
 
-const examTypeBadge: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  PYQ: {
+const typeBadge: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  pyq: {
     label: 'PYQ',
     color: 'var(--primary)',
     bg: 'color-mix(in srgb, var(--primary) 12%, transparent)',
     border: 'color-mix(in srgb, var(--primary) 28%, transparent)',
   },
-  CT: {
+  ct: {
     label: 'CT',
     color: 'var(--secondary)',
     bg: 'color-mix(in srgb, var(--secondary) 12%, transparent)',
     border: 'color-mix(in srgb, var(--secondary) 28%, transparent)',
   },
-  Note: {
+  note: {
     label: 'Note',
-    color: '#10b981', // Emerald-500
+    color: '#10b981',
     bg: 'rgba(16, 185, 129, 0.12)',
     border: 'rgba(16, 185, 129, 0.28)',
   },
-  Other: {
+  notes: {
+    label: 'Note',
+    color: '#10b981',
+    bg: 'rgba(16, 185, 129, 0.12)',
+    border: 'rgba(16, 185, 129, 0.28)',
+  },
+  other: {
     label: 'Other',
     color: 'var(--accent)',
     bg: 'color-mix(in srgb, var(--accent) 12%, transparent)',
@@ -41,21 +47,54 @@ const examTypeBadge: Record<string, { label: string; color: string; bg: string; 
 };
 
 export default function PYQList({ pyqs, subject, semester }: PYQListProps) {
-  const [activeFilter, setActiveFilter] = useState<FilterType>('All');
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   const availableFilters = useMemo(() => {
-    const types = new Set(pyqs.map((p) => (p.exam_type as FilterType) || 'Other'));
-    const order: FilterType[] = ['All', 'PYQ', 'CT', 'Note', 'Other'];
-    return order.filter((f) => f === 'All' || types.has(f));
+    const types = new Set(pyqs.map((p) => p.type?.toLowerCase() || 'other'));
+    const filters: FilterType[] = ['all'];
+    
+    // Check if we have any pyqs
+    if (Array.from(types).some(t => t === 'pyq' || t === 'pyqs')) {
+      filters.push('pyqs');
+    }
+    // Check if we have any cts
+    if (Array.from(types).some(t => t === 'ct')) {
+      filters.push('ct');
+    }
+    // Check if we have any notes
+    if (Array.from(types).some(t => t === 'note' || t === 'notes')) {
+      filters.push('notes');
+    }
+    
+    return filters;
   }, [pyqs]);
 
-  const filtered = useMemo(
-    () =>
-      activeFilter === 'All'
-        ? pyqs
-        : pyqs.filter((p) => (p.exam_type || 'Other') === activeFilter),
-    [pyqs, activeFilter]
-  );
+  const filtered = useMemo(() => {
+    let result = pyqs;
+    if (activeFilter === 'pyqs') {
+      result = pyqs.filter(p => {
+        const t = p.type?.toLowerCase();
+        return t === 'pyq' || t === 'pyqs';
+      });
+    } else if (activeFilter === 'ct') {
+      result = pyqs.filter(p => {
+        const t = p.type?.toLowerCase();
+        return t === 'ct';
+      });
+    } else if (activeFilter === 'notes') {
+      result = pyqs.filter(p => {
+        const t = p.type?.toLowerCase();
+        return t === 'note' || t === 'notes';
+      });
+    }
+
+    // Always sort the result in ascending order by name
+    return [...result].sort((a, b) => {
+      const nameA = (a.file_name || '').toLowerCase().replace(/_/g, '-');
+      const nameB = (b.file_name || '').toLowerCase().replace(/_/g, '-');
+      return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' });
+    });
+  }, [pyqs, activeFilter]);
 
   if (pyqs.length === 0) {
     return (
@@ -83,14 +122,14 @@ export default function PYQList({ pyqs, subject, semester }: PYQListProps) {
   return (
     <div className="flex flex-col gap-5">
       {/* Filter pills */}
-      {availableFilters.length > 2 && (
+      {availableFilters.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1">
           {availableFilters.map((f) => {
             const isActive = activeFilter === f;
             return (
               <button
                 key={f}
-                id={`pyq-filter-${f.toLowerCase()}`}
+                id={`pyq-filter-${f}`}
                 onClick={() => setActiveFilter(f)}
                 className="flex-shrink-0 rounded-full px-4 py-1.5 font-label text-[10px] font-bold uppercase tracking-widest transition-all duration-200"
                 style={{
@@ -114,7 +153,7 @@ export default function PYQList({ pyqs, subject, semester }: PYQListProps) {
         className="font-label text-[10px] font-bold uppercase tracking-widest"
         style={{ color: 'var(--text-subtle)' }}
       >
-        {filtered.length} paper{filtered.length !== 1 ? 's' : ''} available
+        {filtered.length} item{filtered.length !== 1 ? 's' : ''} available
       </p>
 
       {/* PYQ Cards */}
@@ -128,7 +167,12 @@ export default function PYQList({ pyqs, subject, semester }: PYQListProps) {
         className="flex flex-col gap-3"
       >
         {filtered.map((pyq, i) => {
-          const badge = examTypeBadge[pyq.exam_type || 'Other'] ?? examTypeBadge.Other;
+          let typeKey = pyq.type?.toLowerCase() || 'other';
+          // Normalize plural types
+          if (typeKey === 'pyqs') typeKey = 'pyq';
+          if (typeKey === 'notes') typeKey = 'note';
+          
+          const badge = typeBadge[typeKey] || typeBadge.other;
           return (
             <motion.div
               key={pyq.id}
@@ -187,7 +231,7 @@ export default function PYQList({ pyqs, subject, semester }: PYQListProps) {
                       className="font-headline text-lg font-bold lowercase leading-tight tracking-tight"
                       style={{ color: 'var(--text)' }}
                     >
-                      {pyq.source_label || `${pyq.exam_type || 'PYQ'} ${pyq.year || ''}`}
+                      {pyq.file_name || `${pyq.type || 'PYQ'} ${pyq.year || ''}`}
                     </h3>
 
                     {/* Subject sub-text */}
@@ -206,7 +250,7 @@ export default function PYQList({ pyqs, subject, semester }: PYQListProps) {
                     rel="noopener noreferrer"
                     id={`pyq-view-${pyq.id}`}
                     className="flex-shrink-0"
-                    aria-label={`View ${pyq.source_label || 'PYQ'} PDF`}
+                    aria-label={`View ${pyq.file_name || 'PYQ'} PDF`}
                   >
                     <motion.div
                       whileHover={{ scale: 1.04, y: -0.5 }}

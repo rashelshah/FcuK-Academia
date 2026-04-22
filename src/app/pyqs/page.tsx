@@ -1,46 +1,39 @@
 import React, { Suspense } from 'react';
-import Link from 'next/link';
 import type { Metadata } from 'next';
-import { supabase } from '@/lib/supabase';
+import { getSemesters } from '@/lib/drive';
 import SemesterGrid from './SemesterGrid';
 import PYQLoading from './loading';
 import AppSwitcher from '@/components/ui/AppSwitcher';
 import AppHeader from '@/components/layout/AppHeader';
 import { PageReveal } from '@/components/ui/PageReveal';
+import DriveRefresher from '@/components/pyqs/DriveRefresher';
 
 export const metadata: Metadata = {
   title: 'PYQs — FcuK Academia',
   description: 'Previous Year Questions for all SRM semesters. Browse, search, and open PDFs instantly.',
 };
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
-async function getSemesters(): Promise<number[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/pyqs/semesters`, {
-    next: { revalidate: 3600 },
-  }).catch(() => null);
-
-  if (res?.ok) {
-    const json = await res.json();
-    return json.semesters ?? [];
+async function getSemestersData(): Promise<number[]> {
+  try {
+    const semesters = await getSemesters();
+    return semesters.map(s => parseInt(s, 10)).filter(s => !isNaN(s));
+  } catch (err) {
+    console.error('Error fetching semesters from drive:', err);
+    return [1, 2, 3, 4, 5, 6, 7, 8]; // Fallback
   }
-
-  // Fallback: direct Supabase query
-  const { data } = await supabase.from('pyqs').select('semester').order('semester');
-  const semesters = [...new Set((data ?? []).map((r: { semester: number }) => r.semester))].sort(
-    (a, b) => a - b
-  );
-  return semesters.length ? semesters : [1, 2, 3, 4, 5, 6, 7, 8];
 }
 
 async function SemesterContent() {
-  const semesters = await getSemesters();
+  const semesters = await getSemestersData();
   return <SemesterGrid semesters={semesters} />;
 }
 
 export default function PYQPage() {
   return (
     <div className="flex flex-col gap-8 pb-32 pt-1">
+      <DriveRefresher />
       <div className="flex flex-col gap-4">
         <AppHeader 
           title={<span className="font-headline text-xl font-bold tracking-tight text-primary italic">SRM PYQs</span>} 
@@ -78,7 +71,7 @@ export default function PYQPage() {
       <Suspense fallback={<PYQLoading />}>
         <SemesterContent />
       </Suspense>
-      </PageReveal>
+    </PageReveal>
     </div>
   );
 }

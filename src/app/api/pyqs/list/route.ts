@@ -1,31 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getFiles } from '@/lib/drive';
 
-export const revalidate = 3600; // 1 hour ISR cache
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   const semester = req.nextUrl.searchParams.get('semester');
   const subject = req.nextUrl.searchParams.get('subject');
 
-  if (!semester || isNaN(Number(semester))) {
-    return NextResponse.json({ error: 'Invalid or missing semester param' }, { status: 400 });
+  if (!semester) {
+    return NextResponse.json({ error: 'Missing semester param' }, { status: 400 });
   }
   if (!subject) {
     return NextResponse.json({ error: 'Missing subject param' }, { status: 400 });
   }
 
   try {
-    const { data, error } = await supabase
-      .from('pyqs')
-      .select('id, semester, subject_name, exam_type, year, source_label, file_url')
-      .eq('semester', Number(semester))
-      .eq('subject_name', subject.trim())
-      .order('year', { ascending: false, nullsFirst: false })
-      .order('source_label', { ascending: true });
+    const files = await getFiles(semester, subject);
+    
+    // Map to the structure the frontend expects
+    const pyqs = files.map(file => ({
+      id: file.url, // Using URL as a unique ID
+      semester: Number(semester),
+      subject_name: subject,
+      type: file.type,
+      year: file.year,
+      file_name: file.name,
+      file_url: file.url
+    }));
 
-    if (error) throw error;
-
-    return NextResponse.json({ pyqs: data ?? [] }, { status: 200 });
+    return NextResponse.json({ pyqs }, { status: 200 });
   } catch (err) {
     console.error('[/api/pyqs/list]', err);
     return NextResponse.json({ error: 'Failed to fetch PYQs' }, { status: 500 });
