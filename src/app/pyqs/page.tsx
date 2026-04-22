@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
 async function getSemestersData(): Promise<number[]> {
   try {
     const semesters = await getSemesters();
-    return semesters.map(s => parseInt(s, 10)).filter(s => !isNaN(s));
+    return semesters;
   } catch (err) {
     console.error('Error fetching semesters from drive:', err);
     return [1, 2, 3, 4, 5, 6, 7, 8]; // Fallback
