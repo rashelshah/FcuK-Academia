@@ -44,7 +44,10 @@ export async function getCachedDashboardData(sessionId: string, session: UserSes
     await clearSessionSnapshot(sessionId);
   }
 
-  const result = await getDashboardData(session.cookies);
+  const result = await getDashboardData({
+    ...session.cookies,
+    plannerUrl: session.plannerUrl,
+  } as any);
   if (result.status !== 200) {
     return {
       snapshot: cached || null,
@@ -73,6 +76,7 @@ export async function getCachedDashboardData(sessionId: string, session: UserSes
     session: {
       ...updatedSession,
       cookies: result.cookies,
+      plannerUrl: result.plannerUrl || updatedSession.plannerUrl,
     },
   };
 }

@@ -6,8 +6,10 @@ import { useEffect, useRef } from 'react';
 
 import animationData from '@/assets/Scene-2.json';
 import { useTheme } from '@/context/ThemeContext';
+import { useDashboard } from '@/hooks/useDashboard';
 
 const SPLASH_DURATION_MS = 2000;
+const MAX_EXTRA_WAIT_MS = 1500; // Max extra time to wait for data after animation
 const EXIT_EASING = [0.22, 1, 0.36, 1] as const;
 
 /**
@@ -16,27 +18,39 @@ const EXIT_EASING = [0.22, 1, 0.36, 1] as const;
  */
 export default function IntroOverlay() {
   const { showIntro, dismissIntro, queueCinematic, communityPopupDone } = useTheme();
+  const { loading } = useDashboard();
   const hasDismissedRef = useRef(false);
+  const startTimeRef = useRef(Date.now());
+  const animationCompleteRef = useRef(false);
 
+  // Synchronize dismissal with data loading
   useEffect(() => {
-    if (!showIntro) {
-      hasDismissedRef.current = false;
-      return;
-    }
+    if (!showIntro || hasDismissedRef.current) return;
 
-    const dismissTimer = window.setTimeout(() => {
+    const checkAndDismiss = () => {
       if (hasDismissedRef.current) return;
-      hasDismissedRef.current = true;
-      dismissIntro();
-    }, SPLASH_DURATION_MS);
 
-    return () => window.clearTimeout(dismissTimer);
-  }, [dismissIntro, showIntro]);
+      const elapsed = Date.now() - startTimeRef.current;
+      const animationDone = elapsed >= SPLASH_DURATION_MS || animationCompleteRef.current;
+      const dataReady = !loading;
+      const timedOut = elapsed >= SPLASH_DURATION_MS + MAX_EXTRA_WAIT_MS;
+
+      if (animationDone && (dataReady || timedOut)) {
+        hasDismissedRef.current = true;
+        dismissIntro();
+      }
+    };
+
+    // Check periodically or whenever loading changes
+    const interval = setInterval(checkAndDismiss, 100);
+    checkAndDismiss(); // Initial check
+
+    return () => clearInterval(interval);
+  }, [dismissIntro, showIntro, loading]);
 
   const handleFinish = () => {
-    if (hasDismissedRef.current) return;
-    hasDismissedRef.current = true;
-    dismissIntro();
+    animationCompleteRef.current = true;
+    // The useEffect will handle actual dismissal
   };
 
   return (

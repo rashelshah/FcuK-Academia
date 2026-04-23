@@ -265,10 +265,22 @@ function getPlannerCandidates(referenceDate = new Date()) {
   return [...candidates];
 }
 
-async function fetchPlannerCalendar(sessionSource: SessionCookies | SessionContainer) {
+async function fetchPlannerCalendar(sessionSource: SessionCookies | SessionContainer, cachedUrl?: string) {
   let latestPage: Awaited<ReturnType<typeof fetchAcademiaPage>> | null = null;
 
+  // Try the cached URL first if available
+  if (cachedUrl) {
+    const page = await fetchAcademiaPage(cachedUrl, sessionSource);
+    if (page.html) {
+      const calendar = parseCalendar(page.html);
+      if (calendar.length) {
+        return { page, calendar, plannerUrl: cachedUrl };
+      }
+    }
+  }
+
   for (const candidate of getPlannerCandidates()) {
+    if (candidate === cachedUrl) continue;
     const page = await fetchAcademiaPage(candidate, sessionSource);
     latestPage = page;
 
@@ -279,6 +291,7 @@ async function fetchPlannerCalendar(sessionSource: SessionCookies | SessionConta
       return {
         page,
         calendar,
+        plannerUrl: candidate,
       };
     }
   }
@@ -286,6 +299,7 @@ async function fetchPlannerCalendar(sessionSource: SessionCookies | SessionConta
   return {
     page: latestPage ?? await fetchAcademiaPage('/srm_university/academia-academic-services/page/Academic_Planner', sessionSource),
     calendar: [] as RawCalendarMonth[],
+    plannerUrl: undefined,
   };
 }
 
@@ -959,7 +973,7 @@ export async function getDashboardData(cookies: SessionCookies) {
   const [attendancePage, gridPage, plannerResult] = await Promise.all([
     fetchAcademiaPage(URLS.attendance, session),
     fetchAcademiaPage(`${URLS.gridBase}_${batch}`, session),
-    fetchPlannerCalendar(session),
+    fetchPlannerCalendar(session, (cookies as any).plannerUrl),
   ]);
 
   return {
@@ -968,6 +982,7 @@ export async function getDashboardData(cookies: SessionCookies) {
     markList: parseMarks(attendancePage.html),
     timetable: parseTimetable(gridPage.html, courseMap),
     calendar: plannerResult.calendar,
+    plannerUrl: plannerResult.plannerUrl,
     cookies: plannerResult.page.cookies,
     status: attendancePage.html ? 200 : 401,
     error: attendancePage.html ? undefined : 'session expired',

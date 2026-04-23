@@ -26,12 +26,26 @@ const DashboardDataContext = createContext<DashboardDataContextValue | undefined
 export function DashboardDataProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const cachedDashboard = peekCachedJson<DashboardData>('/api/dashboard');
-  const [userInfo, setUserInfo] = useState<RawUserInfo | null>(cachedDashboard?.userInfo ?? null);
-  const [attendance, setAttendance] = useState<RawAttendanceItem[]>(cachedDashboard?.attendance ?? []);
-  const [markList, setMarkList] = useState<RawMarkItem[]>(cachedDashboard?.markList ?? []);
-  const [timetable, setTimetable] = useState<RawTimetableItem[]>(cachedDashboard?.timetable ?? []);
-  const [calendar, setCalendar] = useState<RawCalendarMonth[]>(cachedDashboard?.calendar ?? []);
-  const [loading, setLoading] = useState(!cachedDashboard);
+  const PERSISTENCE_KEY = 'fcuk_dashboard_data_v1';
+  
+  // Try to get persisted data for initial state to avoid flicker
+  const getInitialPersisted = () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const persisted = localStorage.getItem(PERSISTENCE_KEY);
+      return persisted ? JSON.parse(persisted) as DashboardData : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const initialPersisted = getInitialPersisted();
+  const [userInfo, setUserInfo] = useState<RawUserInfo | null>(cachedDashboard?.userInfo ?? initialPersisted?.userInfo ?? null);
+  const [attendance, setAttendance] = useState<RawAttendanceItem[]>(cachedDashboard?.attendance ?? initialPersisted?.attendance ?? []);
+  const [markList, setMarkList] = useState<RawMarkItem[]>(cachedDashboard?.markList ?? initialPersisted?.markList ?? []);
+  const [timetable, setTimetable] = useState<RawTimetableItem[]>(cachedDashboard?.timetable ?? initialPersisted?.timetable ?? []);
+  const [calendar, setCalendar] = useState<RawCalendarMonth[]>(cachedDashboard?.calendar ?? initialPersisted?.calendar ?? []);
+  const [loading, setLoading] = useState(!cachedDashboard && !initialPersisted);
   const [refreshing, setRefreshing] = useState(false);
   const [isStale, setIsStale] = useState(cachedDashboard?.isStale ?? false);
   const [error, setError] = useState<string | null>(null);
@@ -42,10 +56,14 @@ export function DashboardDataProvider({ children }: { children: React.ReactNode 
     const preserveLoading = options?.preserveLoading ?? false;
 
     try {
-      if (forceRefresh) {
+      const isBackgroundRefresh = forceRefresh || (!!userInfo || attendance.length > 0);
+      
+      if (isBackgroundRefresh) {
         setRefreshing(true);
-        clearCachedJson('/api/dashboard');
-        clearCachedJson('/api/calendar');
+        if (forceRefresh) {
+          clearCachedJson('/api/dashboard');
+          clearCachedJson('/api/calendar');
+        }
       }
 
       if (!preserveLoading) {
@@ -65,6 +83,11 @@ export function DashboardDataProvider({ children }: { children: React.ReactNode 
       setTimetable(data.timetable);
       setCalendar(data.calendar);
       setIsStale(data.isStale ?? false);
+
+      // Persist successful fetch to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(PERSISTENCE_KEY, JSON.stringify(data));
+      }
     } catch (loadError) {
       if (cachedDashboard) {
         setUserInfo(cachedDashboard.userInfo);
@@ -81,11 +104,9 @@ export function DashboardDataProvider({ children }: { children: React.ReactNode 
       if (!preserveLoading) {
         setLoading(false);
       }
-      if (forceRefresh) {
-        setRefreshing(false);
-      }
+      setRefreshing(false);
     }
-  }, [cachedDashboard]);
+  }, [cachedDashboard, userInfo, attendance.length]);
 
   useEffect(() => {
     if (pathname === '/login') {

@@ -25,6 +25,7 @@ export interface UserSession {
   cookies: SessionCookies;
   createdAt: number;
   lastRefreshedAt: number;
+  plannerUrl?: string;
 }
 
 export interface SessionSnapshot {
