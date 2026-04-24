@@ -22,7 +22,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export const dynamic = 'force-dynamic';
+// ISR: Vercel caches the rendered HTML for 5 minutes — eliminates per-visit
+// Lambda invocations. Subject lists change rarely; stale-for-5-min is fine.
+export const revalidate = 300;
 
 async function SubjectContent({ semester }: { semester: number }) {
   try {

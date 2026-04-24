@@ -13,7 +13,10 @@ export const metadata: Metadata = {
   description: 'Previous Year Questions for all SRM semesters. Browse, search, and open PDFs instantly.',
 };
 
-export const dynamic = 'force-dynamic';
+// Revalidate every 5 minutes via ISR — Drive data is non-user-specific and
+// changes rarely. This replaces force-dynamic, eliminating per-visit Lambda
+// invocations for the semester list.
+export const revalidate = 300;
 
 async function getSemestersData(): Promise<number[]> {
   try {

@@ -28,7 +28,14 @@ export async function GET(req: NextRequest) {
       file_url: file.url
     }));
 
-    return NextResponse.json({ pyqs }, { status: 200 });
+    return NextResponse.json({ pyqs }, {
+      status: 200,
+      headers: {
+        // PYQ data is not user-specific — safe to cache at Vercel Edge.
+        // 1-hour freshness; serve stale for up to 24 hours while revalidating.
+        'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
+      },
+    });
   } catch (err) {
     console.error('[/api/pyqs/list]', err);
     return NextResponse.json({ error: 'Failed to fetch PYQs' }, { status: 500 });

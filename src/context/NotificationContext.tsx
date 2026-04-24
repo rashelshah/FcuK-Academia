@@ -112,6 +112,22 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const notificationsActive = notificationsEnabled && pathname !== '/login';
 
+  // ── Stable refs for dashboard data ────────────────────────────────────────
+  // runNotificationEngine previously listed all 4 data arrays as deps, meaning
+  // it recreated on every data load → cascade of useEffect re-runs → repeated
+  // refreshPushToken() calls. Using refs breaks that chain.
+  const attendanceRef = useRef(attendance);
+  const calendarRef = useRef(calendar);
+  const markListRef = useRef(markList);
+  const timetableRef = useRef(timetable);
+  const loadingRef = useRef(loading);
+
+  attendanceRef.current = attendance;
+  calendarRef.current = calendar;
+  markListRef.current = markList;
+  timetableRef.current = timetable;
+  loadingRef.current = loading;
+
   const dismissNotification = useCallback((id: string) => {
     setNotificationQueue((current) => current.filter((item) => item.id !== id));
   }, []);
@@ -189,18 +205,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     return initNotifications();
   }, [notificationsActive]);
 
+  // ── Stable notification engine ────────────────────────────────────────────
+  // Data is accessed via refs so this callback is only recreated when
+  // notificationsActive or enqueueNotification changes — NOT on every data load.
   const runNotificationEngine = useCallback(() => {
-    if (!notificationsActive || loading) return;
+    if (!notificationsActive || loadingRef.current) return;
 
     const nextNotifications = evaluateNotificationEngine({
-      attendance,
-      markList,
-      timetable,
-      calendar,
+      attendance: attendanceRef.current,
+      markList: markListRef.current,
+      timetable: timetableRef.current,
+      calendar: calendarRef.current,
     });
 
     nextNotifications.forEach((payload) => enqueueNotification(payload));
-  }, [attendance, calendar, enqueueNotification, loading, markList, notificationsActive, timetable]);
+  }, [enqueueNotification, notificationsActive]); // ← No data-state deps!
 
   const clearEngineTimer = useCallback(() => {
     if (engineTimerRef.current !== null) {
@@ -215,8 +234,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (!notificationsActive) return;
 
     const delay = getNextNotificationEngineDelay({
-      timetable,
-      calendar,
+      timetable: timetableRef.current,
+      calendar: calendarRef.current,
       now: new Date(),
     });
 
@@ -227,7 +246,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       runNotificationEngine();
       scheduleNotificationEngine();
     }, Math.max(delay, 1000));
-  }, [calendar, clearEngineTimer, notificationsActive, runNotificationEngine, timetable]);
+  }, [clearEngineTimer, notificationsActive, runNotificationEngine]);
 
   const handleForegroundMessage = useCallback((payload: MessagePayload) => {
     const messageId = payload.messageId ?? null;

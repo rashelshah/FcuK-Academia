@@ -17,6 +17,8 @@ export async function GET() {
     }
 
     const jsonResponse = NextResponse.json({ calendar: result.calendar });
+    // Calendar is semi-static (changes at most daily) — cache privately for 5 min.
+    jsonResponse.headers.set('Cache-Control', 'private, max-age=300, stale-while-revalidate=600');
     return applySessionCookie(jsonResponse, { ...session, cookies: result.cookies });
   } catch (error) {
     return handleRouteError(error);

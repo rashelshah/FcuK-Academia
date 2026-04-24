@@ -26,6 +26,10 @@ export async function GET(request: Request) {
       calendar: result.snapshot.calendar,
       isStale: !result.refreshed && result.error === 'session expired',
     });
+    // User-specific data — private cache only (no CDN/shared cache).
+    // 10s max-age prevents the browser re-fetching within the same tab focus.
+    // The client-side in-memory cache (5 min) is the primary dedup layer.
+    jsonResponse.headers.set('Cache-Control', 'private, max-age=5, stale-while-revalidate=15');
     return result.session ? applySessionCookie(jsonResponse, result.session) : jsonResponse;
   } catch (error) {
     return handleRouteError(error);

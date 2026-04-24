@@ -2,7 +2,7 @@ import { google } from 'googleapis';
 
 // Configuration
 const ROOT_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || '1BFPlIHu7XVwk5aYhoFLsObPfsJO0Wwxz';
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
 // Authentication
 const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;

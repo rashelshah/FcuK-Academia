@@ -17,6 +17,8 @@ export async function GET() {
     }
 
     const jsonResponse = NextResponse.json({ attendance: result.snapshot.attendance });
+    // Real-time data — private browser cache for 10s only.
+    jsonResponse.headers.set('Cache-Control', 'private, max-age=5, stale-while-revalidate=15');
     return result.session ? applySessionCookie(jsonResponse, result.session) : jsonResponse;
   } catch (error) {
     return handleRouteError(error);
