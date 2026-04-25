@@ -61,6 +61,20 @@
         <sub><b>Personalization</b></sub>
       </td>
     </tr>
+    <tr>
+     <td align="center" width="33%">
+        <img src="public/branding/rmf.png" width="300" alt="Rate My Faculty Preview"/><br/>
+        <sub><b>Rate My Faculty</b></sub>
+      </td>
+       <td align="center" width="33%">
+        <img src="public/branding/ratings.png" width="300" alt="Ratings Preview"/><br/>
+        <sub><b>Ratings</b></sub>
+      </td>
+       <td align="center" width="33%">
+        <img src="public/branding/lockin.png" width="300" alt="Lock In Preview"/><br/>
+        <sub><b>Lock In</b></sub>
+      </td>
+    </tr>
   </table>
 
   <br/>
