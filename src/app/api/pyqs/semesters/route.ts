@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSemesters } from '@/lib/drive';
+import { getSemesters } from '@/lib/server/scraper-client';
 
 export const dynamic = 'force-dynamic';
 

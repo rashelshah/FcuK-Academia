@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { getSemesters } from '@/lib/drive';
+import { getSemesters } from '@/lib/server/scraper-client';
 import SemesterGrid from './SemesterGrid';
 import PYQLoading from './loading';
 import AppSwitcher from '@/components/ui/AppSwitcher';

@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-import { getFiles } from '@/lib/drive';
+import { getFiles } from '@/lib/server/scraper-client';
 
 async function getPYQs(semester: number, subject: string): Promise<PYQItem[]> {
   try {

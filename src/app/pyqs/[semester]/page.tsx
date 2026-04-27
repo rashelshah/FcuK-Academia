@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getSubjects } from '@/lib/drive';
+import { getSubjects } from '@/lib/server/scraper-client';
 import SubjectList from './SubjectList';
 import SubjectLoading from './loading';
 import AppHeader from '@/components/layout/AppHeader';

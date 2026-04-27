@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSubjects } from '@/lib/drive';
+import { getSubjects } from '@/lib/server/scraper-client';
 
 export const dynamic = 'force-dynamic';
 

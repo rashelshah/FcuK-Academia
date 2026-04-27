@@ -42,7 +42,7 @@ export async function getRmfFaculties() {
 
   return unstable_cache(
     async () => {
-      // Parallelize fetching faculties and their aggregation stats
+      // Two parallel queries: faculties list + pre-aggregated rating stats.
       const [faculties, groupStats] = await Promise.all([
         prisma.faculty.findMany({
           where: { collegeId: srmCollege.id },
@@ -64,51 +64,43 @@ export async function getRmfFaculties() {
             partiality: true,
             behaviour: true,
           },
-          _count: { _all: true }
+          _count: { _all: true },
         }),
       ]);
 
-      const statsMap = new Map<string, any>(groupStats.map(s => [s.facultyId, s]));
+      const statsMap = new Map<string, any>(groupStats.map((s) => [s.facultyId, s]));
 
       const facultiesWithStats = faculties.map((faculty: any) => {
         const stats = statsMap.get(faculty.id);
 
         if (!stats) {
-          return {
-            ...faculty,
-            reviewCount: 0,
-            overallRating: 0,
-            stats: null,
-          };
+          return { ...faculty, reviewCount: 0, overallRating: 0, stats: null };
         }
 
         const a = stats._avg;
-        const totalAvg =
+        const overallRating =
           a.teachingClarity == null
             ? 0
             : (a.teachingClarity +
-                a.approachability! +
-                a.gradingFairness! +
-                a.punctuality! +
-                a.partiality! +
-                a.behaviour!) /
+                a.approachability +
+                a.gradingFairness +
+                a.punctuality +
+                a.partiality +
+                a.behaviour) /
               6;
 
         return {
           ...faculty,
           reviewCount: stats._count._all,
-          overallRating: totalAvg,
-          stats: stats._avg,
+          overallRating,
+          stats: a,
         };
       });
 
-      return { 
-        college: srmCollege,
-        faculties: facultiesWithStats 
-      };
+      return { college: srmCollege, faculties: facultiesWithStats };
     },
     ['rmf-faculties-list'],
-    { tags: ['rmf-faculties', 'rmf-all'], revalidate: 300 } // 5 min cache
+    { tags: ['rmf-faculties', 'rmf-all'], revalidate: 300 },
   )();
 }
 

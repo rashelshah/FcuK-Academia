@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDriveData } from '@/lib/drive';
+import { revalidateDriveCache } from '@/lib/server/scraper-client';
 
 /**
  * Manually refreshes the Google Drive cache
@@ -8,7 +8,7 @@ import { getDriveData } from '@/lib/drive';
 export async function POST() {
   try {
     console.log('🔄 Revalidation triggered: Clearing cache and fetching fresh data...');
-    await getDriveData(true); // Force refresh
+    await revalidateDriveCache();
     return NextResponse.json({ 
       success: true, 
       message: 'Drive cache refreshed successfully' 

@@ -207,3 +207,85 @@ export async function verifyPassword(params: {
   }
   return callScraperEndpoint<VerifyPasswordResponse>({ action: 'verifyPassword', ...params });
 }
+
+// ---------------------------------------------------------------------------
+// Google Drive — proxied to /api/drive on the scraper service.
+// ---------------------------------------------------------------------------
+
+export interface DriveFileResult {
+  name: string;
+  type: 'pyq' | 'notes' | 'ct' | 'unknown';
+  year: number | null;
+  url: string;
+}
+
+async function callDriveEndpoint<T>(body: Record<string, unknown>): Promise<T> {
+  if (!SCRAPER_URL) {
+    throw new Error('[scraper-client] SCRAPER_SERVICE_URL is not set');
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    const response = await fetch(`${SCRAPER_URL}/api/drive`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': SCRAPER_API_KEY,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      throw new Error(`Drive scraper responded ${response.status}: ${text}`);
+    }
+
+    return response.json() as Promise<T>;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function getLocalDrive() {
+  return import('@/lib/drive');
+}
+
+export async function getSemesters(): Promise<number[]> {
+  if (!SCRAPER_URL) {
+    const drive = await getLocalDrive();
+    return drive.getSemesters();
+  }
+  const result = await callDriveEndpoint<{ semesters: number[] }>({ action: 'getSemesters' });
+  return result.semesters;
+}
+
+export async function getSubjects(semester: string | number): Promise<string[]> {
+  if (!SCRAPER_URL) {
+    const drive = await getLocalDrive();
+    return drive.getSubjects(semester);
+  }
+  const result = await callDriveEndpoint<{ subjects: string[] }>({ action: 'getSubjects', semester });
+  return result.subjects;
+}
+
+export async function getFiles(semester: string | number, subject: string): Promise<DriveFileResult[]> {
+  if (!SCRAPER_URL) {
+    const drive = await getLocalDrive();
+    return drive.getFiles(semester, subject) as Promise<DriveFileResult[]>;
+  }
+  const result = await callDriveEndpoint<{ files: DriveFileResult[] }>({ action: 'getFiles', semester, subject });
+  return result.files;
+}
+
+export async function revalidateDriveCache(): Promise<void> {
+  if (!SCRAPER_URL) {
+    const drive = await getLocalDrive();
+    await drive.getDriveData(true);
+    return;
+  }
+  await callDriveEndpoint<{ success: boolean }>({ action: 'revalidate', forceRefresh: true });
+}
+

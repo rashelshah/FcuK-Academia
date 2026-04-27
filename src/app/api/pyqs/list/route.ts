@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFiles } from '@/lib/drive';
+import { getFiles } from '@/lib/server/scraper-client';
 
 export const dynamic = 'force-dynamic';
 
