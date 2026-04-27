@@ -4,8 +4,12 @@ import crypto from 'node:crypto';
 import prisma from '@/lib/prisma';
 import { getUserSession } from '@/lib/server/session';
 import { syncUserToDb } from '@/lib/server/user-sync';
+import { RMF_MAINTENANCE_MODE } from '@/lib/server/rmf';
 
 export async function POST(request: Request) {
+  if (RMF_MAINTENANCE_MODE) {
+    return NextResponse.json({ error: 'Maintenance mode' }, { status: 503 });
+  }
   try {
     const session = await getUserSession();
     if (!session || !session.email) {

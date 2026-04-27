@@ -1,7 +1,8 @@
 import React, { Suspense } from 'react';
-import { getFacultyDetails } from '@/lib/server/rmf';
+import { getFacultyDetails, RMF_MAINTENANCE_MODE } from '@/lib/server/rmf';
 import dynamic from 'next/dynamic';
 import FacultyDetailLoading from './loading';
+import { RmfMaintenance } from '@/components/rmf/RmfMaintenance';
 const FacultyDetailClient = dynamic(() => import('./FacultyDetailClient'), {
   loading: () => <FacultyDetailLoading />
 });
@@ -11,6 +12,8 @@ import { notFound } from 'next/navigation';
 // Do NOT use force-dynamic — it defeats the cache and causes cold fetches on every click
 
 async function FacultyDetails({ facultyId }: { facultyId: string }) {
+  if (RMF_MAINTENANCE_MODE) return <RmfMaintenance />;
+  
   const data = await getFacultyDetails(facultyId);
 
   if (!data) {

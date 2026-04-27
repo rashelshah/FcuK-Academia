@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import prisma from '@/lib/prisma';
-import { getRmfFaculties } from '@/lib/server/rmf';
+import { getRmfFaculties, RMF_MAINTENANCE_MODE } from '@/lib/server/rmf';
 import { syncUserToDb } from '@/lib/server/user-sync';
 
 export async function GET() {
+  if (RMF_MAINTENANCE_MODE) {
+    return NextResponse.json({ error: 'Maintenance mode' }, { status: 503 });
+  }
   try {
     const data = await getRmfFaculties();
     return NextResponse.json(data);
@@ -16,6 +19,9 @@ export async function GET() {
 
 
 export async function POST(request: Request) {
+  if (RMF_MAINTENANCE_MODE) {
+    return NextResponse.json({ error: 'Maintenance mode' }, { status: 503 });
+  }
   try {
     // Sync user data to DB before creating faculty
     await syncUserToDb();

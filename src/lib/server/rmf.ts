@@ -2,6 +2,9 @@ import prisma from '@/lib/prisma';
 import { syncUserToDb } from './user-sync';
 import { unstable_cache } from 'next/cache';
 
+export const RMF_MAINTENANCE_MODE = true; // Set to true since Neon DB usage is full
+
+
 // Optimized interfaces for consistency between API and Server Components
 export interface FacultyStats {
   teachingClarity: number;
