@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { getDashboardData } from '@/lib/server/academia';
+import { getDashboardData } from '@/lib/server/scraper-client';
 import {
   clearSessionSnapshot,
   getSessionSnapshot,

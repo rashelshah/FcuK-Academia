@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getCachedDashboardData } from '@/lib/server/dashboard-cache';
-import { verifyPassword } from '@/lib/server/academia';
+import { verifyPassword } from '@/lib/server/scraper-client';
 import { createSessionCookieValue, getSessionCookieOptions, getSessionIdFromCookieValue } from '@/lib/server/session';
 import { SESSION_COOKIE } from '@/lib/auth-constants';
 

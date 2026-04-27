@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { getCalendar } from '@/lib/server/academia';
+import { getCalendar } from '@/lib/server/scraper-client';
 import { handleRouteError, requireSession } from '@/lib/server/route-utils';
 import { applySessionCookie } from '@/lib/server/session';
 
