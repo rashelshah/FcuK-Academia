@@ -53,7 +53,7 @@ export async function getCachedDashboardData(sessionId: string, session: UserSes
       snapshot: cached || null,
       refreshed: false,
       session: updatedSession,
-      error: result.error ?? 'session expired. log in again.',
+      error: result.error ?? 'session expired. Log In again.',
     };
   }
 

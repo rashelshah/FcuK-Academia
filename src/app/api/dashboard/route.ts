@@ -9,13 +9,13 @@ export async function GET(request: Request) {
     const { sessionId, session, response: authResponse } = await requireSession();
     if (authResponse) return authResponse;
     if (!sessionId || !session) {
-      return NextResponse.json({ error: 'session expired. log in again.' }, { status: 401 });
+      return NextResponse.json({ error: 'session expired. Log In again.' }, { status: 401 });
     }
 
     const forceRefresh = new URL(request.url).searchParams.get('refresh') === '1';
     const result = await getCachedDashboardData(sessionId, session, { forceRefresh });
     if (!result.snapshot) {
-      return NextResponse.json({ error: result.error || 'session expired. log in again.' }, { status: 401 });
+      return NextResponse.json({ error: result.error || 'session expired. Log In again.' }, { status: 401 });
     }
 
     const jsonResponse = NextResponse.json({
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       markList: result.snapshot.markList,
       timetable: result.snapshot.timetable,
       calendar: result.snapshot.calendar,
-      isStale: !result.refreshed && result.error === 'session expired. log in again.',
+      isStale: !result.refreshed && result.error === 'session expired. Log In again.',
     });
     // User-specific data — private cache only (no CDN/shared cache).
     // 10s max-age prevents the browser re-fetching within the same tab focus.

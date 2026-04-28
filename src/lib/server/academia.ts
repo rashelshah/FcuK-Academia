@@ -948,7 +948,7 @@ export async function stabilizeSession(cookies: SessionCookies) {
     markList,
     cookies: attendancePage.cookies,
     status: isAuthenticated && attendancePage.html ? 200 : 401,
-    error: isAuthenticated && attendancePage.html ? undefined : 'session expired. log in again.',
+    error: isAuthenticated && attendancePage.html ? undefined : 'session expired. Log In again.',
     profileCookies,
     profileHtml,
   };
@@ -965,7 +965,7 @@ export async function getDashboardData(cookies: SessionCookies) {
       calendar: [] as RawCalendarMonth[],
       cookies,
       status: 401,
-      error: 'session expired. log in again.',
+      error: 'session expired. Log In again.',
     };
   }
 
@@ -985,7 +985,7 @@ export async function getDashboardData(cookies: SessionCookies) {
     plannerUrl: plannerResult.plannerUrl,
     cookies: plannerResult.page.cookies,
     status: attendancePage.html ? 200 : 401,
-    error: attendancePage.html ? undefined : 'session expired. log in again.',
+    error: attendancePage.html ? undefined : 'session expired. Log In again.',
   };
 }
 
@@ -995,7 +995,7 @@ export async function getUserInfo(cookies: SessionCookies) {
     userInfo,
     cookies: profileCookies,
     status: isAuthenticated ? 200 : 401,
-    error: isAuthenticated ? undefined : 'session expired. log in again.',
+    error: isAuthenticated ? undefined : 'session expired. Log In again.',
   };
 }
 
@@ -1010,7 +1010,7 @@ export async function getCourse(cookies: SessionCookies) {
     batch: userInfo.batch,
     cookies: profileCookies,
     status: isAuthenticated ? 200 : 401,
-    error: isAuthenticated ? undefined : 'session expired. log in again.',
+    error: isAuthenticated ? undefined : 'session expired. Log In again.',
   };
 }
 
@@ -1022,7 +1022,7 @@ export async function getAttendance(cookies: SessionCookies) {
     attendance,
     cookies: attendancePage.cookies,
     status: isAuthenticated && attendancePage.html ? 200 : 401,
-    error: isAuthenticated && attendancePage.html ? undefined : 'session expired. log in again.',
+    error: isAuthenticated && attendancePage.html ? undefined : 'session expired. Log In again.',
   };
 }
 
@@ -1033,7 +1033,7 @@ export async function getMarks(cookies: SessionCookies) {
     markList,
     cookies: attendancePage.cookies,
     status: attendancePage.html ? 200 : 401,
-    error: attendancePage.html ? undefined : 'session expired. log in again.',
+    error: attendancePage.html ? undefined : 'session expired. Log In again.',
   };
 }
 
@@ -1046,7 +1046,7 @@ export async function getTimetable(cookies: SessionCookies) {
     timetable,
     cookies: gridPage.cookies,
     status: isAuthenticated && gridPage.html ? 200 : 401,
-    error: isAuthenticated && gridPage.html ? undefined : 'session expired. log in again.',
+    error: isAuthenticated && gridPage.html ? undefined : 'session expired. Log In again.',
   };
 }
 
@@ -1056,7 +1056,7 @@ export async function getCalendar(cookies: SessionCookies) {
     calendar: plannerResult.calendar,
     cookies: plannerResult.page.cookies,
     status: plannerResult.page.html ? 200 : 401,
-    error: plannerResult.page.html ? undefined : 'session expired. log in again.',
+    error: plannerResult.page.html ? undefined : 'session expired. Log In again.',
   };
 }
 

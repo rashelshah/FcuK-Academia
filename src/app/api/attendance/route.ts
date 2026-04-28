@@ -8,12 +8,12 @@ export async function GET() {
   try {
     const { sessionId, session, response: authResponse } = await requireSession();
     if (authResponse || !sessionId || !session) {
-      return authResponse ?? NextResponse.json({ error: 'session expired. log in again.' }, { status: 401 });
+      return authResponse ?? NextResponse.json({ error: 'session expired. Log In again.' }, { status: 401 });
     }
 
     const result = await getCachedDashboardData(sessionId, session);
     if (!result.snapshot) {
-      return NextResponse.json({ error: 'session expired. log in again.' }, { status: 401 });
+      return NextResponse.json({ error: 'session expired. Log In again.' }, { status: 401 });
     }
 
     const jsonResponse = NextResponse.json({ attendance: result.snapshot.attendance });

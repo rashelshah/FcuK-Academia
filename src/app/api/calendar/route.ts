@@ -8,12 +8,12 @@ export async function GET() {
   try {
     const { sessionId, session, response: authResponse } = await requireSession();
     if (authResponse || !sessionId || !session) {
-      return authResponse ?? NextResponse.json({ error: 'session expired. log in again.' }, { status: 401 });
+      return authResponse ?? NextResponse.json({ error: 'session expired. Log In again.' }, { status: 401 });
     }
 
     const result = await getCalendar(session.cookies);
     if (result.status !== 200) {
-      return NextResponse.json({ error: result.error ?? 'session expired. log in again.' }, { status: result.status });
+      return NextResponse.json({ error: result.error ?? 'session expired. Log In again.' }, { status: result.status });
     }
 
     const jsonResponse = NextResponse.json({ calendar: result.calendar });

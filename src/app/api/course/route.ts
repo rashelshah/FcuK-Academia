@@ -11,7 +11,7 @@ export async function GET() {
 
     const result = await getCourse(session.cookies);
     if (result.status !== 200) {
-      return NextResponse.json({ error: 'session expired. log in again.' }, { status: 401 });
+      return NextResponse.json({ error: 'session expired. Log In again.' }, { status: 401 });
     }
 
     const jsonResponse = NextResponse.json({ courseList: result.courseList, batch: result.batch });
