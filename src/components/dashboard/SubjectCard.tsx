@@ -37,8 +37,7 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
         if (a.obtained === null && b.obtained !== null) return 1;
         if (a.obtained !== null && b.obtained === null) return -1;
         return 0;
-      })
-      .slice(0, 3);
+      });
 
     while (items.length < 3) {
       items.push({
@@ -113,6 +112,16 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
     );
   }
 
+  const gridCols = examBoxes.length >= 4 ? 4 : 3;
+  const numRows = Math.ceil(examBoxes.length / gridCols);
+  
+  // Account for long titles wrapping (approx 18-20 chars per line at 62% width)
+  const estimatedTitleLines = Math.ceil(subject.name.length / 18);
+  const titleBuffer = Math.max(0, estimatedTitleLines - 2) * 1.6;
+
+  const cardHeight = 22.5 + Math.max(0, numRows - 1) * 4.75 + titleBuffer;
+  const mobileCardHeight = 21.75 + Math.max(0, numRows - 1) * 4.75 + titleBuffer;
+
   return (
     <div
       className="relative [perspective:1000px]"
@@ -132,11 +141,28 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
         whileTap={{ scale: 0.985 }}
         transition={{ duration: 0.4, ease: EASE_OUT }}
         animate={{ rotateY: flipped ? 180 : 0 }}
-        className="relative min-h-[22.5rem] cursor-pointer [transform-style:preserve-3d] max-[380px]:min-h-[21.75rem]"
-        style={{ transformStyle: 'preserve-3d' }}
+        className="relative cursor-pointer [transform-style:preserve-3d]"
+        style={{
+          transformStyle: 'preserve-3d',
+          minHeight: `${cardHeight}rem`,
+        }}
       >
-        <div className="absolute inset-0 [backface-visibility:hidden]" style={{ backfaceVisibility: 'hidden' }}>
-          <div className="theme-card relative h-full min-h-[22.5rem] px-5 pb-8 pt-5 md:px-6 md:pb-9 md:pt-6 max-[380px]:min-h-[21.75rem]">
+        <div
+          className="absolute inset-0 [backface-visibility:hidden]"
+          style={{
+            backfaceVisibility: 'hidden',
+            minHeight: `${cardHeight}rem`,
+          }}
+        >
+          <div
+            className="theme-card relative h-full px-5 pb-8 pt-5 md:px-6 md:pb-9 md:pt-6"
+            style={{ minHeight: `${cardHeight}rem` }}
+          >
+            <style jsx>{`
+              @media (max-width: 380px) {
+                .theme-card { min-height: ${mobileCardHeight}rem !important; }
+              }
+            `}</style>
             <GlowEdge glowColor={glowColor} />
             <MarksCardFront subject={subject} examBoxes={examBoxes} hexColor={hexColor} marksPct={marksPct} />
           </div>
@@ -144,9 +170,16 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
 
         <div
           className="absolute inset-0 [backface-visibility:hidden]"
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+          style={{
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            minHeight: `${cardHeight}rem`,
+          }}
         >
-          <div className="theme-card relative flex h-full min-h-[22.5rem] flex-col px-4 pb-6 pt-4 md:px-5 md:pb-7 md:pt-5 max-[380px]:min-h-[21.75rem] max-[380px]:px-3.5 max-[380px]:pb-5 max-[380px]:pt-3.5">
+          <div
+            className="theme-card relative flex h-full flex-col px-4 pb-6 pt-4 md:px-5 md:pb-7 md:pt-5"
+            style={{ minHeight: `${cardHeight}rem` }}
+          >
             <GlowEdge glowColor={glowColor} />
             <MarksCardBack subject={subject} chartData={chartData} lineColor={hexColor} />
           </div>
@@ -250,14 +283,20 @@ function MarksCardFront({
           {subject.credits} CREDITS
         </div>
       </div>
-      <div className="mt-4 grid grid-cols-3 gap-3">
+      <div className={cn(
+        'mt-4 grid gap-3',
+        examBoxes.length >= 4 ? 'grid-cols-4 gap-2' : 'grid-cols-3 gap-3',
+      )}>
         {examBoxes.map((exam, index) => {
           const isPending = exam.obtained === null || exam.maxMark === null;
+          const isSmall = examBoxes.length >= 4;
+
           return (
             <div
               key={`${exam.exam}-${index}`}
               className={cn(
-                'min-w-0 rounded-[16px] border px-2 py-2.5 text-center',
+                'min-w-0 rounded-[16px] border text-center',
+                isSmall ? 'px-1 py-2' : 'px-2 py-2.5',
                 isPending
                   ? 'border-dashed bg-transparent'
                   : 'shadow-[var(--glow-primary)]',
@@ -267,13 +306,26 @@ function MarksCardFront({
                 background: 'color-mix(in srgb, var(--primary) 10%, transparent)',
               }}
             >
-              <p className={cn('font-label text-[9px] font-bold tracking-[0.16em] uppercase', isPending ? 'text-on-surface-variant' : 'text-primary/70')}>{exam.exam}</p>
+              <p className={cn(
+                'font-label font-bold tracking-[0.16em] uppercase',
+                isSmall ? 'text-[8px]' : 'text-[9px]',
+                isPending ? 'text-on-surface-variant' : 'text-primary/70',
+              )}
+              >
+                {exam.exam}
+              </p>
               {isPending ? (
-                <p className="mt-2 font-headline text-[1.2rem] font-bold leading-none tracking-tighter text-on-surface-variant">TBA</p>
+                <p className="mt-2 font-headline text-[1.2rem] font-bold leading-none tracking-tighter text-on-surface-variant">
+                  TBA
+                </p>
               ) : (
                 <div className="mt-1.5 flex flex-col items-center">
-                  <p className="font-headline text-[1.15rem] font-bold leading-none tracking-tighter text-primary">{exam.obtained?.toFixed(2)}</p>
-                  <p className="mt-1 font-label text-[9px] font-bold tracking-[0.14em] text-primary/70">/ {exam.maxMark?.toFixed(2)}</p>
+                  <p className="font-headline text-[1.15rem] font-bold leading-none tracking-tighter text-primary">
+                    {exam.obtained?.toFixed(2)}
+                  </p>
+                  <p className="mt-1 font-label text-[9px] font-bold tracking-[0.14em] text-primary/70">
+                    / {exam.maxMark?.toFixed(2)}
+                  </p>
                 </div>
               )}
             </div>
