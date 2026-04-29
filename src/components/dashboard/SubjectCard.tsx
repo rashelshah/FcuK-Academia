@@ -51,15 +51,11 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
   }, [subject.marks.exams]);
 
   const attendanceMargin = Math.floor((subject.attendance.attended / 0.75) - subject.attendance.total);
-  const attendanceRequired = Math.ceil((0.75 * subject.attendance.total - subject.attendance.attended) / 0.25);
   const attendancePillClass = attPct < 75
     ? 'text-error'
     : attendanceMargin === 0
       ? 'text-secondary'
       : 'text-success';
-  const attendancePillLabel = attPct < 75
-    ? `required: ${Math.max(0, attendanceRequired)}`
-    : `margin: ${Math.max(0, attendanceMargin)}`;
 
   // Keep the original marks card color logic unchanged on the front face.
   let colorClass = 'text-primary';
@@ -98,13 +94,12 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
 
   if (isAttendance) {
     return (
-      <div className="theme-card relative flex flex-col gap-4 p-5 md:p-6">
+      <div className="theme-card relative flex flex-col gap-2 p-4 md:p-5">
         <GlowEdge glowColor={glowColor} />
         <AttendanceCardBody
           subject={subject}
           attPct={attPct}
           attendancePillClass={attendancePillClass}
-          attendancePillLabel={attendancePillLabel}
           colorClass={colorClass}
           hexColor={hexColor}
         />
@@ -208,52 +203,51 @@ function AttendanceCardBody({
   subject,
   attPct,
   attendancePillClass,
-  attendancePillLabel,
   colorClass,
   hexColor,
 }: {
   subject: Subject;
   attPct: number;
   attendancePillClass: string;
-  attendancePillLabel: string;
   colorClass: string;
   hexColor: string;
 }) {
   const attendanceMargin = Math.floor((subject.attendance.attended / 0.75) - subject.attendance.total);
+  const attendanceRequired = Math.ceil((0.75 * subject.attendance.total - subject.attendance.attended) / 0.25);
+  
+  const marginValue = attPct < 75 ? Math.max(0, attendanceRequired) : Math.max(0, attendanceMargin);
+  const marginLabel = attPct < 75 ? 'required' : 'margin';
 
   return (
     <>
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="font-headline text-xl font-bold lowercase leading-tight text-on-surface">{subject.name}</h3>
-          <p className="mt-1 font-label text-[11px] tracking-[0.16em] text-on-surface-variant">{subject.attendance.attended} of {subject.attendance.total} sessions attended</p>
-          <span
-            className={cn('inline-flex mt-2 rounded-full border px-2.5 py-1 font-label text-[9px] font-bold tracking-[0.18em] uppercase', attendancePillClass)}
-            style={
-              attPct < 75
-                ? {
-                    borderColor: 'color-mix(in srgb, var(--error) 30%, transparent)',
-                    background: 'color-mix(in srgb, var(--error) 14%, transparent)',
-                  }
-                : attendanceMargin === 0
-                  ? {
-                      borderColor: 'color-mix(in srgb, var(--secondary) 26%, transparent)',
-                      background: 'color-mix(in srgb, var(--secondary) 14%, transparent)',
-                    }
-                  : {
-                      borderColor: 'color-mix(in srgb, var(--success) 30%, transparent)',
-                      background: 'color-mix(in srgb, var(--success) 14%, transparent)',
-                    }
-            }
-          >
-            {attendancePillLabel}
+      <div className="flex justify-between items-center gap-4">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-headline text-xl font-bold lowercase leading-[1.1] text-on-surface break-words">{subject.name}</h3>
+          <div className="mt-1.5 flex items-center gap-2">
+            <p className="font-label text-[10px] tracking-[0.14em] text-on-surface-variant uppercase">
+              {subject.attendance.attended}/{subject.attendance.total} sessions
+            </p>
+            <span
+              className={cn('inline-flex rounded-md border px-3 py-0.5 font-label text-[9px] font-bold tracking-tight', colorClass)}
+              style={{
+                 borderColor: `color-mix(in srgb, ${hexColor} 30%, transparent)`,
+                 background: `color-mix(in srgb, ${hexColor} 14%, transparent)`,
+              }}
+            >
+              {attPct.toFixed(1)}%
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-col items-center min-w-[3.5rem] shrink-0">
+          <span className={cn('font-headline text-[3rem] leading-[0.8] font-bold tracking-tighter', attendancePillClass)}>
+            {marginValue}
+          </span>
+          <span className={cn('mt-1 font-label text-[9px] font-bold uppercase tracking-widest opacity-80', attendancePillClass)}>
+            {marginLabel}
           </span>
         </div>
-        <span className={cn('font-headline text-[2rem] font-bold tracking-tighter', colorClass)}>
-          {attPct.toFixed(1)}%
-        </span>
       </div>
-      <ProgressBar value={attPct} color={hexColor} showText={false} />
+      <ProgressBar value={attPct} color={hexColor} showText={false} className="mt-2.5" />
     </>
   );
 }
