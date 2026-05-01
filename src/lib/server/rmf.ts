@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma';
 import { syncUserToDb } from './user-sync';
 import { unstable_cache } from 'next/cache';
 
-export const RMF_MAINTENANCE_MODE = true; // Set to true since Neon DB usage is full
+export const RMF_MAINTENANCE_MODE = false; // DB limit reset, RMF is now available
 
 
 // Optimized interfaces for consistency between API and Server Components
