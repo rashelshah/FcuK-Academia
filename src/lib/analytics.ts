@@ -14,44 +14,45 @@ declare global {
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? '';
 
 export function isGAEnabled() {
-  return typeof window !== 'undefined' && process.env.NODE_ENV === 'production' && Boolean(GA_MEASUREMENT_ID);
+  return typeof window !== 'undefined' && Boolean(GA_MEASUREMENT_ID);
 }
 
 export function getGAMeasurementId() {
   return GA_MEASUREMENT_ID;
 }
 
-export function initGA() {
-  if (!isGAEnabled() || window.__gaInitialized) return;
-
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = window.gtag || function gtag(...args: unknown[]) {
-    window.dataLayer.push(args);
-  };
-
-  window.gtag('js', new Date());
-  window.gtag('config', GA_MEASUREMENT_ID, { send_page_view: false });
-  window.__gaInitialized = true;
-}
-
 export function trackPageView(path: string) {
   if (!isGAEnabled() || !path) return;
-
-  initGA();
 
   if (window.__gaLastTrackedPagePath === path) return;
 
   window.__gaLastTrackedPagePath = path;
-  window.gtag?.('config', GA_MEASUREMENT_ID, {
-    page_path: path,
-    page_location: window.location.href,
-    page_title: document.title,
-  });
+
+  if (typeof window.gtag === 'function') {
+    window.gtag('config', GA_MEASUREMENT_ID, {
+      page_path: path,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
+  } else {
+    // If gtag is not ready yet, push directly to dataLayer
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'page_view',
+      page_path: path,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
+  }
 }
 
 export function trackEvent(name: string, params: EventParams = {}) {
   if (!isGAEnabled() || !name) return;
 
-  initGA();
-  window.gtag?.('event', name, params);
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', name, params);
+  } else {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event: name, ...params });
+  }
 }

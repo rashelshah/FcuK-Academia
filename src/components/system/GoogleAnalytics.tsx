@@ -1,32 +1,53 @@
 'use client';
 
-import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { useEffect, Suspense } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 
-import { getGAMeasurementId, initGA, isGAEnabled, trackPageView } from '@/lib/analytics';
+import { getGAMeasurementId, trackPageView } from '@/lib/analytics';
 
-export default function GoogleAnalytics() {
+function GoogleAnalyticsTracker() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const measurementId = getGAMeasurementId();
 
   useEffect(() => {
-    initGA();
-  }, []);
+    if (!pathname || !measurementId) return;
+    const url = searchParams?.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
+    trackPageView(url);
+  }, [pathname, searchParams, measurementId]);
 
-  useEffect(() => {
-    if (!pathname) return;
-    trackPageView(pathname);
-  }, [pathname]);
+  return null;
+}
 
-  if (!isGAEnabled() || !measurementId) {
+export default function GoogleAnalytics() {
+  const measurementId = getGAMeasurementId();
+
+  if (!measurementId) {
     return null;
   }
 
   return (
-    <Script
-      src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
-      strategy="afterInteractive"
-    />
+    <>
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){window.dataLayer.push(arguments);}
+          window.gtag = gtag;
+          gtag('js', new Date());
+          gtag('config', '${measurementId}', {
+            page_path: window.location.pathname,
+            send_page_view: false
+          });
+        `}
+      </Script>
+      <Suspense fallback={null}>
+        <GoogleAnalyticsTracker />
+      </Suspense>
+    </>
   );
 }
