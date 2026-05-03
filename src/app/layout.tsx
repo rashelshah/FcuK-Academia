@@ -10,6 +10,7 @@ import { NotificationProvider } from "@/context/NotificationContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import AppLayout from "@/components/layout/AppLayout";
 import GoogleAnalytics from "@/components/system/GoogleAnalytics";
+import UmamiAnalytics from "@/components/system/UmamiAnalytics";
 import CommunityPopup from "@/components/system/CommunityPopup";
 import CinematicIntroOverlay from "@/components/ui/CinematicIntroOverlay";
 import ServiceWorkerRegistration from "@/components/system/ServiceWorkerRegistration";
@@ -104,6 +105,7 @@ export default async function RootLayout({
         />
         <ServiceWorkerRegistration />
         <GoogleAnalytics />
+        <UmamiAnalytics />
         <ThemeProvider initialTheme={initialTheme}>
           <DashboardDataProvider>
             <AppStateProvider>
