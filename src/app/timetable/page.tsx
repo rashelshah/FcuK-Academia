@@ -47,7 +47,6 @@ export default function TimetablePage() {
         />
       </RevealText>
 
-      {error ? <p className="text-sm text-error font-body">{error}</p> : null}
       <section className="relative mt-2">
         <div
           className="absolute bottom-0 left-3 top-4 z-0 w-px"

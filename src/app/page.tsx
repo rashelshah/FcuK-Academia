@@ -291,7 +291,6 @@ export default function HomePage() {
             view all
           </Link>
         </RevealText>
-        {error ? <p className="text-sm text-error font-body">{error}</p> : null}
         <div className="flex flex-col gap-4">
           {recentMarks.length ? recentMarks.map((item, index) => (
             <RevealItem key={`${item.course}-${index}`}>

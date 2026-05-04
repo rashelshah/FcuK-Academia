@@ -104,7 +104,6 @@ export default function MarksPage() {
         <TargetGradeTrigger onClick={() => setTargetOpen(true)} />
       </RevealText>
 
-      {error ? <p className="text-sm text-error font-body">{error}</p> : null}
       <div className="grid grid-cols-1 gap-4">
         {loading ? (
           <div className="animate-pulse space-y-3">

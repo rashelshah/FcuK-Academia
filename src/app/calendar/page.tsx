@@ -207,7 +207,6 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {error ? <p className="mb-6 text-sm text-error font-body">{error}</p> : null}
         <div className="grid grid-cols-7 gap-y-8 text-center">
           {days.map((day) => (
             <div key={day} className="font-label text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">{day}</div>

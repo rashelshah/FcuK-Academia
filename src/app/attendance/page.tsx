@@ -164,7 +164,6 @@ export default function AttendancePage() {
             {predictedAttendance ? <X size={14} /> : 'predict'}
           </button>
         </RevealText>
-        {error ? <p className="text-sm text-error font-body">{error}</p> : null}
         <div className="grid grid-cols-1 gap-6">
           {loading ? (
             <div className="animate-pulse space-y-4">
