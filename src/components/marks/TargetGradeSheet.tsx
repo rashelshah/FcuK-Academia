@@ -126,6 +126,7 @@ function TargetGradeSheetContent({
   const currentExpectedMarks = activeSubject
     ? Math.min(expectedMarks[activeSubject.id] ?? 0, maxExpectedMarks)
     : 0;
+  const isExpectedDisabled = activeSubject ? maxExpectedMarks === 0 : true;
   const projectedInternals = activeSubject ? activeSubject.currentInternals + currentExpectedMarks : 0;
   const externalWeight = 40;
   const externalMax = activeSubject?.semesterExamMax ?? 0;
@@ -281,7 +282,7 @@ function TargetGradeSheetContent({
               <div className="mt-2 h-[3px] w-20 rounded-full bg-primary shadow-[var(--glow-primary)]" />
             </div>
 
-            <div className="min-w-0">
+            <div className={cn('min-w-0 transition-opacity duration-300', isExpectedDisabled && 'opacity-40 grayscale')}>
               <p className="font-label text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">
                 expected remaining
               </p>
@@ -297,10 +298,11 @@ function TargetGradeSheetContent({
             </div>
           </div>
 
-          <div className="mt-6 flex items-center gap-3">
+          <div className={cn('mt-6 flex items-center gap-3 transition-all duration-300', isExpectedDisabled && 'pointer-events-none opacity-40 grayscale')}>
             <button
               type="button"
               onClick={() => setExpectedForActive((current) => current - 1)}
+              disabled={isExpectedDisabled}
               className="theme-icon-button flex h-11 w-11 shrink-0 items-center justify-center text-on-surface"
             >
               -
@@ -320,12 +322,14 @@ function TargetGradeSheetContent({
                 step={1}
                 value={currentExpectedMarks}
                 onChange={handleExpectedInputChange}
+                disabled={isExpectedDisabled}
                 className="w-full bg-transparent text-center font-headline text-[1.7rem] font-bold uppercase text-secondary outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
             </div>
             <button
               type="button"
               onClick={() => setExpectedForActive((current) => current + 1)}
+              disabled={isExpectedDisabled}
               className="theme-icon-button flex h-11 w-11 shrink-0 items-center justify-center text-on-surface"
             >
               +
