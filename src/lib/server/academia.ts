@@ -594,10 +594,18 @@ function parseCourseMap(htmlContent: string | null) {
 
   for (let currentIndex = startIndex; currentIndex + 10 < cells.length; currentIndex += colCount) {
     const cols = cells.slice(currentIndex, currentIndex + colCount);
-    const courseCode = cleanText($(cols[1]).text());
-    if (!courseCode || courseCode.length < 3) continue;
+    const courseCodeRaw = cleanText($(cols[1]).text());
+    if (!courseCodeRaw || courseCodeRaw.length < 3) continue;
 
-    const courseTitle = cleanText($(cols[2]).text());
+    const match = courseCodeRaw.match(/^([A-Z0-9]{8,12})(?:\s*[-:]?\s*(.+))?$/i);
+    if (!match) continue;
+
+    const courseCode = match[1].toUpperCase();
+    let courseTitle = cleanText($(cols[2]).text());
+    if (!courseTitle || courseTitle === courseCode) {
+      if (match[2]) courseTitle = match[2].trim();
+    }
+
     const courseCredit = cleanText($(cols[3]).text());
     const courseCategory = cleanText($(cols[6]).text());
     let courseFaculty = cleanText($(cols[7]).text());
@@ -624,6 +632,13 @@ function parseCourseMap(htmlContent: string | null) {
       courseMap.set(slot, {
         ...itemBase,
         courseType: /^(P|L)/i.test(slot) || slot.toUpperCase() === 'LAB' ? 'Practical' : 'Theory',
+      });
+    }
+
+    if (courseCode) {
+      courseMap.set(courseCode, {
+        ...itemBase,
+        courseType: 'Theory',
       });
     }
   }
@@ -659,8 +674,13 @@ function parseAttendance(htmlContent: string | null, courseMap: Map<string, RawC
     const nextColText = cleanText($(cols[courseColIdx + 1]).text());
     let isShifted = false;
     
-    if (courseTitle || /theory|practical|lab/i.test(nextColText)) {
+    if (courseTitle) {
+      // Title was merged into the code cell itself — next col is already the category
       isShifted = true;
+    } else {
+      // Only shift if the next column is a SHORT standalone category keyword (e.g. "Theory", "Practical")
+      // NOT a long course title that happens to contain these words
+      isShifted = /^(theory|practical|lab|lecture)$/i.test(nextColText.trim());
     }
     
     if (!courseTitle) {
@@ -680,7 +700,10 @@ function parseAttendance(htmlContent: string | null, courseMap: Map<string, RawC
     const attendanceValue = cleanText($(cols[attendanceIdx]).text()) || '0';
 
     const courseSlot = cleanText($(cols[slotIdx]).text());
-    const course = courseMap.get(courseSlot);
+    let course = courseMap.get(courseSlot);
+    if (!course && courseCode) {
+      course = courseMap.get(courseCode);
+    }
 
     let finalCourseTitle = courseTitle;
     if ((!finalCourseTitle || finalCourseTitle === courseCode || finalCourseTitle.toLowerCase() === 'theory' || finalCourseTitle.toLowerCase() === 'practical') && course?.courseTitle) {
