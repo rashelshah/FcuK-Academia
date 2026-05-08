@@ -639,20 +639,59 @@ function parseAttendance(htmlContent: string | null, courseMap: Map<string, RawC
 
   for (const row of rows) {
     const cols = $(row).find('td').toArray();
-    if (cols.length < 9) continue;
-    const courseCode = cleanText($(cols[0]).text()).replace('Regular', '').trim();
-    if (!/^[A-Z0-9]{8,12}/.test(courseCode)) continue;
-    const courseSlot = cleanText($(cols[4]).text());
+    if (cols.length < 7) continue;
+
+    let courseColIdx = 0;
+    let courseCodeRaw = cleanText($(cols[courseColIdx]).text()).replace(/Regular/i, '').trim();
+    let courseMatch = courseCodeRaw.match(/^([A-Z0-9]{8,12})(?:\s*[-:]?\s*(.+))?$/i);
+
+    if (!courseMatch) {
+      courseColIdx = 1;
+      courseCodeRaw = cleanText($(cols[courseColIdx]).text()).replace(/Regular/i, '').trim();
+      courseMatch = courseCodeRaw.match(/^([A-Z0-9]{8,12})(?:\s*[-:]?\s*(.+))?$/i);
+    }
+
+    if (!courseMatch) continue;
+
+    const courseCode = courseMatch[1].toUpperCase();
+    let courseTitle = courseMatch[2]?.trim() || '';
+
+    const nextColText = cleanText($(cols[courseColIdx + 1]).text());
+    let isShifted = false;
+    
+    if (courseTitle || /theory|practical|lab/i.test(nextColText)) {
+      isShifted = true;
+    }
+    
+    if (!courseTitle) {
+      courseTitle = isShifted ? courseCode : cleanText($(cols[courseColIdx + 1]).text());
+    }
+
+    const categoryIdx = courseColIdx + (isShifted ? 1 : 2);
+    const facultyIdx = courseColIdx + (isShifted ? 2 : 3);
+    const slotIdx = courseColIdx + (isShifted ? 3 : 4);
+    
+    const conductedIdx = courseColIdx + (isShifted ? 5 : 6);
+    const absentIdx = courseColIdx + (isShifted ? 6 : 7);
+    const attendanceIdx = courseColIdx + (isShifted ? 7 : 8);
+
+    const conducted = Number(cleanText($(cols[conductedIdx]).text())) || 0;
+    const absent = Number(cleanText($(cols[absentIdx]).text())) || 0;
+    const attendanceValue = cleanText($(cols[attendanceIdx]).text()) || '0';
+
+    const courseSlot = cleanText($(cols[slotIdx]).text());
     const course = courseMap.get(courseSlot);
-    const conducted = Number(cleanText($(cols[6]).text())) || 0;
-    const absent = Number(cleanText($(cols[7]).text())) || 0;
-    const attendanceValue = cleanText($(cols[8]).text()) || '0';
+
+    let finalCourseTitle = courseTitle;
+    if ((!finalCourseTitle || finalCourseTitle === courseCode || finalCourseTitle.toLowerCase() === 'theory' || finalCourseTitle.toLowerCase() === 'practical') && course?.courseTitle) {
+      finalCourseTitle = course.courseTitle;
+    }
 
     items.push({
       courseCode,
-      courseTitle: cleanText($(cols[1]).text()),
+      courseTitle: finalCourseTitle,
       courseCredit: course?.courseCredit ?? '0',
-      courseCategory: cleanText($(cols[2]).text()),
+      courseCategory: cleanText($(cols[categoryIdx]).text()),
       courseFaculty: course?.courseFaculty ?? 'Unknown',
       courseSlot,
       courseConducted: conducted,
@@ -679,10 +718,21 @@ function parseMarks(htmlContent: string | null): RawMarkItem[] {
     const cols = $(row).children('td').toArray();
     if (cols.length < 3) continue;
 
-    const course = cleanText($(cols[0]).text());
-    if (!/^[A-Z0-9]{8,12}$/.test(course)) continue;
+    let courseColIdx = 0;
+    let courseRaw = cleanText($(cols[courseColIdx]).text());
+    let courseMatch = courseRaw.match(/^([A-Z0-9]{8,12})/i);
+    
+    if (!courseMatch) {
+      courseColIdx = 1;
+      courseRaw = cleanText($(cols[courseColIdx]).text());
+      courseMatch = courseRaw.match(/^([A-Z0-9]{8,12})/i);
+    }
+    
+    if (!courseMatch) continue;
 
-    const category = cleanText($(cols[1]).text());
+    const course = courseMatch[1].toUpperCase();
+    const category = cleanText($(cols[courseColIdx + 1]).text());
+    const marksColIdx = courseColIdx + 2;
     const exams: RawMarkItem['marks'] = [];
     let obtainedTotal = 0;
     let maxTotal = 0;
@@ -706,7 +756,7 @@ function parseMarks(htmlContent: string | null): RawMarkItem[] {
       maxTotal += maxMark;
     };
 
-    $(cols[2]).find('table td').each((_, cell) => {
+    $(cols[marksColIdx]).find('table td').each((_, cell) => {
       const cellHtml = $(cell).html() || '';
       const strongText = cleanText($(cell).find('strong').first().text());
       const remainingText = cleanText(
@@ -730,7 +780,7 @@ function parseMarks(htmlContent: string | null): RawMarkItem[] {
     });
 
     if (!exams.length) {
-      const parts = $(cols[2])
+      const parts = $(cols[marksColIdx])
         .text()
         .split(/\n+/)
         .map((part) => cleanText(part))
