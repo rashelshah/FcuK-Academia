@@ -96,21 +96,20 @@ export default function CommunityPopup() {
       return;
     }
 
-    window.sessionStorage.setItem(WHATSAPP_COMMUNITY_POPUP_CONFIG.sessionKey, 'true');
-    if (!devPreviewMode) {
-      window.localStorage.setItem(
-        WHATSAPP_COMMUNITY_POPUP_CONFIG.cooldownKey,
-        String(Date.now()),
-      );
-    }
-
     const openTimer = window.setTimeout(() => {
       hasOpenedRef.current = true;
       setOpen(true);
+      window.sessionStorage.setItem(WHATSAPP_COMMUNITY_POPUP_CONFIG.sessionKey, 'true');
+      if (!devPreviewMode) {
+        window.localStorage.setItem(
+          WHATSAPP_COMMUNITY_POPUP_CONFIG.cooldownKey,
+          String(Date.now()),
+        );
+      }
     }, 850);
 
     return () => window.clearTimeout(openTimer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showIntro]);
 
   useEffect(() => {
@@ -254,7 +253,7 @@ export default function CommunityPopup() {
                 className="max-w-[24ch] text-sm leading-6 sm:text-[0.95rem]"
                 style={{ color: colors.textMuted }}
               >
-                get updates, bug fixes, and random chaos from us.
+                get instant updates, feature drops, PYQs, bug fixes & campus chaos 👀
               </p>
 
               <div className="grid grid-cols-1 gap-3">
@@ -282,7 +281,7 @@ export default function CommunityPopup() {
                     queueCinematic();
                   }}
                 >
-                  join on whatsapp →
+                  LET ME IN →
                 </motion.button>
 
                 <motion.button
