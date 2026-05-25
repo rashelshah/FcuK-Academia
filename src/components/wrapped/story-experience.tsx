@@ -10,6 +10,7 @@ import { WrappedSlide } from "@/components/wrapped/wrapped-slide";
 import vendharSquare from "@/components/wrapped/images/vendhar-square.png";
 import tp2 from "@/components/wrapped/images/tp2.png";
 import logo from "@/components/wrapped/images/logo.png";
+import Image from "next/image";
 import { useTheme } from "@/context/ThemeContext";
 
 const STORY_DURATION = 7.8;
@@ -24,38 +25,36 @@ const FIGMA_ASSETS = {
 function BrandHeader() {
   return (
     <motion.div
-      className="relative z-30 mb-5"
+      className="relative z-30 mb-5 w-full pt-2"
       initial={{ opacity: 0, y: -18, filter: "blur(10px)" }}
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       transition={{ duration: 0.7, ease: EASE }}
     >
-      <div className="rounded-b-[1.7rem] rounded-t-[0.9rem] border border-white/16 bg-[linear-gradient(90deg,rgba(116,43,151,0.82),rgba(39,6,60,0.75))] px-3 py-3 shadow-[0_18px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-        <div className="grid grid-cols-[auto_1fr] items-center gap-4">
-          <div className="rounded-[1rem] border border-white/14 bg-[#0b0809] shadow-[0_8px_20px_rgba(0,0,0,0.25)] flex items-center justify-center overflow-hidden w-12 h-12 flex-shrink-0">
-            <img
-              alt="FcuK Logo"
-              className="h-18 w-18 object-cover flex-shrink-0"
-              style={{ imageRendering: "-webkit-optimize-contrast" }}
-              src={logo.src}
-            />
-          </div>
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center text-[#0b0809]">
-            <div className="leading-none">
-              <div className="font-[var(--font-kelly)] text-[1.15rem] tracking-[0.16em]">
-                Rashel
-              </div>
-              <div className="font-[var(--font-keania)] text-[1.15rem] tracking-[0.1em]">
-                Shah
-              </div>
+      <div className="flex items-center justify-between px-2">
+        <div className="rounded-full bg-[#0b0809] shadow-[0_8px_20px_rgba(0,0,0,0.25)] flex items-center justify-center overflow-hidden w-12 h-12 flex-shrink-0">
+          <Image
+            alt="FcuK Logo"
+            className="h-full w-full object-contain p-1"
+            style={{ imageRendering: "-webkit-optimize-contrast" }}
+            src={logo}
+          />
+        </div>
+        <div className="flex items-center gap-3 text-center text-white drop-shadow-md">
+          <div className="leading-none text-right">
+            <div className="font-[var(--font-kelly)] text-[1.2rem] tracking-[0.16em]">
+              Rashel
             </div>
-            <div className="font-[var(--font-kelly)] text-xl text-black/85">x</div>
-            <div className="leading-none">
-              <div className="font-[var(--font-kelly)] text-[1.15rem] tracking-[0.16em]">
-                Biswajit
-              </div>
-              <div className="font-[var(--font-keania)] text-[1.15rem] tracking-[0.1em]">
-                Sahu
-              </div>
+            <div className="font-[var(--font-keania)] text-[1.2rem] tracking-[0.1em] text-white/90">
+              Shah
+            </div>
+          </div>
+          <div className="font-[var(--font-kelly)] text-xl text-white/60">x</div>
+          <div className="leading-none text-left">
+            <div className="font-[var(--font-kelly)] text-[1.2rem] tracking-[0.16em]">
+              Biswajit
+            </div>
+            <div className="font-[var(--font-keania)] text-[1.2rem] tracking-[0.1em] text-white/90">
+              Sahu
             </div>
           </div>
         </div>
@@ -78,12 +77,11 @@ function IntroSlide() {
           animate={{ opacity: 1, x: 0, y: 0 }}
           transition={{ duration: 0.76, delay: 0.08, ease: EASE }}
         >
-          <img
+          <Image
             alt="Illustrated campus building"
             className="block h-auto w-full object-contain opacity-90"
-            height={560}
-            src={vendharSquare.src}
-            width={447}
+            src={vendharSquare}
+            priority
           />
         </motion.div>
 
@@ -93,12 +91,11 @@ function IntroSlide() {
           animate={{ opacity: 1, x: 0, y: 0 }}
           transition={{ duration: 0.74, delay: 0.12, ease: EASE }}
         >
-          <img
+          <Image
             alt="Illustrated high rise"
             className="block h-auto w-full object-contain opacity-90"
-            height={558}
-            src={tp2.src}
-            width={447}
+            src={tp2}
+            priority
           />
         </motion.div>
 
@@ -286,6 +283,101 @@ function OutroSlide() {
           </div>
         </motion.div>
       </div>
+    </>
+  );
+}
+
+function StoryBackground() {
+  return (
+    <>
+      <motion.div
+        aria-hidden
+        className="absolute inset-0 bg-[linear-gradient(180deg,#70258c_0%,#9d36a2_10%,#dd5fbe_20%,#ff88cb_28%,#ff6ec2_33%,#201120_35%,#090608_100%)]"
+        animate={{ opacity: [0.96, 1, 0.97] }}
+        transition={{
+          duration: 7.8,
+          ease: [0.22, 1, 0.36, 1],
+          repeat: Number.POSITIVE_INFINITY,
+          repeatType: "mirror"
+        }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,170,225,0.2),rgba(255,105,201,0.02)_30%,rgba(138,53,170,0.18)_60%,rgba(255,149,219,0.08)_86%)]"
+        animate={{
+          opacity: [0.26, 0.42, 0.3],
+          scale: [1, 1.02, 1]
+        }}
+        transition={{
+          duration: 10.2,
+          ease: [0.22, 1, 0.36, 1],
+          repeat: Number.POSITIVE_INFINITY,
+          repeatType: "mirror"
+        }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute inset-x-[-24%] top-[-16%] h-[44%] rounded-full bg-[radial-gradient(circle,_rgba(255,171,224,0.92),_rgba(250,92,182,0.62)_34%,_rgba(181,56,190,0.26)_64%,_transparent_78%)] blur-3xl"
+        animate={{
+          x: ["-4%", "5%", "-1%"],
+          y: ["0%", "4%", "-2%"],
+          scale: [0.98, 1.06, 1]
+        }}
+        transition={{
+          duration: 8.6,
+          ease: [0.22, 1, 0.36, 1],
+          repeat: Number.POSITIVE_INFINITY,
+          repeatType: "mirror"
+        }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute right-[-18%] top-[8%] h-[28%] w-[62%] rounded-full bg-[radial-gradient(circle,_rgba(255,203,233,0.7),_rgba(255,111,198,0.32)_50%,_transparent_78%)] blur-2xl"
+        animate={{
+          x: ["0%", "-6%", "2%"],
+          y: ["0%", "8%", "-4%"],
+          scale: [1, 1.1, 0.98]
+        }}
+        transition={{
+          duration: 7,
+          ease: [0.22, 1, 0.36, 1],
+          repeat: Number.POSITIVE_INFINITY,
+          repeatType: "mirror"
+        }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute left-[-12%] top-[12%] h-[18%] w-[54%] rounded-full bg-[radial-gradient(circle,_rgba(255,122,199,0.45),_rgba(255,122,199,0.12)_55%,_transparent_80%)] blur-2xl"
+        animate={{
+          x: ["0%", "8%", "-3%"],
+          y: ["0%", "-5%", "2%"],
+          scale: [0.96, 1.08, 1]
+        }}
+        transition={{
+          duration: 6.6,
+          ease: [0.22, 1, 0.36, 1],
+          repeat: Number.POSITIVE_INFINITY,
+          repeatType: "mirror"
+        }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute left-[14%] top-[2%] h-[16%] w-[72%] rounded-full bg-[radial-gradient(circle,_rgba(183,76,219,0.42),_rgba(183,76,219,0.08)_58%,_transparent_80%)] blur-2xl"
+        animate={{
+          x: ["0%", "6%", "-4%"],
+          opacity: [0.22, 0.34, 0.24]
+        }}
+        transition={{
+          duration: 11,
+          ease: [0.22, 1, 0.36, 1],
+          repeat: Number.POSITIVE_INFINITY,
+          repeatType: "mirror"
+        }}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_8%,rgba(255,255,255,0.16),transparent_22%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_52%,rgba(255,105,201,0.18),transparent_26%)]" />
+      <div className="absolute inset-x-0 top-[32.4%] h-16 bg-[linear-gradient(180deg,rgba(255,163,221,0.14),rgba(255,108,196,0.12)_32%,rgba(18,11,18,0.56)_72%,transparent)] blur-lg" />
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),transparent_24%,transparent_78%,rgba(255,255,255,0.03))]" />
     </>
   );
 }
@@ -578,6 +670,7 @@ export function StoryExperience() {
       className="story-no-scrollbar relative mx-auto h-[100svh] w-full max-w-screen-sm overflow-hidden bg-[#090608] text-white"
       onPointerDownCapture={handlePressStart}
     >
+      <StoryBackground />
       <StoryProgressBar
         currentIndex={safeCurrentIndex}
         progress={progress}
