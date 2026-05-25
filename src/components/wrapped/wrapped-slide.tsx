@@ -17,18 +17,15 @@ type WrappedSlideProps = {
 };
 
 const variants = {
-  enter: (direction: number) => ({
+  enter: {
     opacity: 0,
-    x: direction >= 0 ? 48 : -48,
-  }),
+  },
   center: {
     opacity: 1,
-    x: 0,
   },
-  exit: (direction: number) => ({
+  exit: {
     opacity: 0,
-    x: direction >= 0 ? -48 : 48,
-  })
+  }
 };
 
 export function WrappedSlide({
@@ -45,7 +42,7 @@ export function WrappedSlide({
       key={decorationVariant}
       className="absolute inset-0 overflow-hidden"
       style={{
-        willChange: "transform, opacity",
+        willChange: "opacity",
         transform: "translateZ(0)",
         WebkitTransform: "translateZ(0)",
         touchAction: "pan-y",
@@ -56,8 +53,8 @@ export function WrappedSlide({
       animate="center"
       exit="exit"
       transition={{
-        duration: 0.38,
-        ease: [0.22, 1, 0.36, 1]
+        duration: 0.28,
+        ease: "easeInOut"
       }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}

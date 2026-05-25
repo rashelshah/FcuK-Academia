@@ -62,9 +62,9 @@ function IntroSlide() {
       <div className="relative flex flex-1 flex-col">
         <div className="absolute inset-x-[-1rem] bottom-0 z-0 h-[63%] rounded-t-[2.4rem] bg-[#090608] shadow-[0_-28px_100px_rgba(0,0,0,0.42)]" />
         {/* Gradient fade - no blur filter, just opacity */}
-        <div className="absolute inset-x-0 top-[33.5%] z-10 h-20 bg-[linear-gradient(180deg,rgba(255,122,199,0.28),rgba(18,11,18,0.9)_68%,rgba(9,6,8,0))]" />
+        <div className="absolute inset-x-0 top-[33.5%] z-0 h-20 bg-[linear-gradient(180deg,rgba(255,122,199,0.28),rgba(18,11,18,0.9)_68%,rgba(9,6,8,0))]" />
 
-        <div className="absolute left-[-11%] top-[8%] z-10 w-[82%] animate-slide-in-left">
+        <div className="absolute left-[-11%] top-[8%] z-20 w-[82%] animate-slide-in-left">
           <Image
             alt="Illustrated campus building"
             className="block h-auto w-full object-contain opacity-90"
@@ -73,7 +73,7 @@ function IntroSlide() {
           />
         </div>
 
-        <div className="absolute right-[-11%] top-[0%] z-0 w-[82%] animate-slide-in-right">
+        <div className="absolute right-[-11%] top-[0%] z-10 w-[82%] animate-slide-in-right">
           <Image
             alt="Illustrated high rise"
             className="block h-auto w-full object-contain opacity-90"
@@ -82,7 +82,7 @@ function IntroSlide() {
           />
         </div>
 
-        <div className="relative z-20 pt-4">
+        <div className="relative z-30 pt-4">
           <h1
             className="max-w-[13rem] text-balance font-[var(--font-madimi)] text-[2.5rem] leading-[0.88] tracking-[-0.06em] text-white animate-fade-in-up"
           >
@@ -94,7 +94,7 @@ function IntroSlide() {
         </div>
 
         <div
-          className="absolute left-[0.5%] top-[58.5%] z-20 -rotate-[9deg] animate-card-in-left"
+          className="absolute left-[0.5%] top-[58.5%] z-30 -rotate-[9deg] animate-card-in-left"
         >
           <StatCard
             className="max-w-[12.0rem]"
@@ -106,7 +106,7 @@ function IntroSlide() {
         </div>
 
         <div
-          className="absolute right-[-0.5%] top-[72.5%] z-20 rotate-[8deg] animate-card-in-right"
+          className="absolute right-[-0.5%] top-[72.5%] z-30 rotate-[8deg] animate-card-in-right"
         >
           <StatCard
             className="max-w-[11.9rem]"
