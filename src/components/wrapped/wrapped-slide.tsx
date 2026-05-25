@@ -44,19 +44,24 @@ export function WrappedSlide({
     <motion.section
       key={decorationVariant}
       className="absolute inset-0 overflow-hidden"
-      style={{ willChange: "transform, opacity" }}
+      style={{
+        willChange: "transform, opacity",
+        transform: "translateZ(0)",
+        WebkitTransform: "translateZ(0)",
+        touchAction: "pan-y",
+      }}
       custom={direction}
       variants={variants}
       initial="enter"
       animate="center"
       exit="exit"
       transition={{
-        duration: 0.42,
+        duration: 0.38,
         ease: [0.22, 1, 0.36, 1]
       }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.12}
+      dragElastic={0.1}
       onDragStart={onDragStart}
       onDragEnd={(_, info) => onDragEnd(info)}
     >

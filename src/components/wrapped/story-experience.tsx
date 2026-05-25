@@ -22,9 +22,9 @@ function BrandHeader() {
   return (
     <motion.div
       className="relative z-30 mb-5 w-full pt-2"
-      initial={{ opacity: 0, y: -18, filter: "blur(10px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      transition={{ duration: 0.7, ease: EASE }}
+      initial={{ opacity: 0, y: -14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, ease: EASE }}
     >
       <div className="flex items-center justify-between px-2">
         <div className="rounded-full bg-[#0b0809] shadow-[0_8px_20px_rgba(0,0,0,0.25)] flex items-center justify-center overflow-hidden w-16 h-16 flex-shrink-0">
@@ -285,90 +285,37 @@ function OutroSlide() {
 function StoryBackground() {
   return (
     <>
-      <motion.div
+      {/* Base gradient — static, no animation needed */}
+      <div
         aria-hidden
         className="absolute inset-0 bg-[linear-gradient(180deg,#70258c_0%,#9d36a2_10%,#dd5fbe_20%,#ff88cb_28%,#ff6ec2_33%,#201120_35%,#090608_100%)]"
-        animate={{ opacity: [0.96, 1, 0.97] }}
-        transition={{
-          duration: 7.8,
-          ease: [0.22, 1, 0.36, 1],
-          repeat: Number.POSITIVE_INFINITY,
-          repeatType: "mirror"
-        }}
       />
-      <motion.div
+      {/* Overlay shimmer — opacity-only, GPU composited */}
+      <div
         aria-hidden
-        className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,170,225,0.2),rgba(255,105,201,0.02)_30%,rgba(138,53,170,0.18)_60%,rgba(255,149,219,0.08)_86%)]"
-        animate={{
-          opacity: [0.26, 0.42, 0.3],
-          scale: [1, 1.02, 1]
-        }}
-        transition={{
-          duration: 10.2,
-          ease: [0.22, 1, 0.36, 1],
-          repeat: Number.POSITIVE_INFINITY,
-          repeatType: "mirror"
-        }}
+        className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,170,225,0.2),rgba(255,105,201,0.02)_30%,rgba(138,53,170,0.18)_60%,rgba(255,149,219,0.08)_86%)] animate-wrapped-shimmer"
       />
-      <motion.div
+      {/* Blob 1 — top center */}
+      <div
         aria-hidden
-        className="absolute inset-x-[-24%] top-[-16%] h-[44%] rounded-full bg-[radial-gradient(circle,_rgba(255,171,224,0.92),_rgba(250,92,182,0.62)_34%,_rgba(181,56,190,0.26)_64%,_transparent_78%)] blur-3xl"
-        animate={{
-          x: ["-4%", "5%", "-1%"],
-          y: ["0%", "4%", "-2%"],
-          scale: [0.98, 1.06, 1]
-        }}
-        transition={{
-          duration: 8.6,
-          ease: [0.22, 1, 0.36, 1],
-          repeat: Number.POSITIVE_INFINITY,
-          repeatType: "mirror"
-        }}
+        className="absolute inset-x-[-24%] top-[-16%] h-[44%] rounded-full bg-[radial-gradient(circle,_rgba(255,171,224,0.92),_rgba(250,92,182,0.62)_34%,_rgba(181,56,190,0.26)_64%,_transparent_78%)] blur-3xl animate-blob-drift-1"
       />
-      <motion.div
+      {/* Blob 2 — top right */}
+      <div
         aria-hidden
-        className="absolute right-[-18%] top-[8%] h-[28%] w-[62%] rounded-full bg-[radial-gradient(circle,_rgba(255,203,233,0.7),_rgba(255,111,198,0.32)_50%,_transparent_78%)] blur-2xl"
-        animate={{
-          x: ["0%", "-6%", "2%"],
-          y: ["0%", "8%", "-4%"],
-          scale: [1, 1.1, 0.98]
-        }}
-        transition={{
-          duration: 7,
-          ease: [0.22, 1, 0.36, 1],
-          repeat: Number.POSITIVE_INFINITY,
-          repeatType: "mirror"
-        }}
+        className="absolute right-[-18%] top-[8%] h-[28%] w-[62%] rounded-full bg-[radial-gradient(circle,_rgba(255,203,233,0.7),_rgba(255,111,198,0.32)_50%,_transparent_78%)] blur-2xl animate-blob-drift-2"
       />
-      <motion.div
+      {/* Blob 3 — top left */}
+      <div
         aria-hidden
-        className="absolute left-[-12%] top-[12%] h-[18%] w-[54%] rounded-full bg-[radial-gradient(circle,_rgba(255,122,199,0.45),_rgba(255,122,199,0.12)_55%,_transparent_80%)] blur-2xl"
-        animate={{
-          x: ["0%", "8%", "-3%"],
-          y: ["0%", "-5%", "2%"],
-          scale: [0.96, 1.08, 1]
-        }}
-        transition={{
-          duration: 6.6,
-          ease: [0.22, 1, 0.36, 1],
-          repeat: Number.POSITIVE_INFINITY,
-          repeatType: "mirror"
-        }}
+        className="absolute left-[-12%] top-[12%] h-[18%] w-[54%] rounded-full bg-[radial-gradient(circle,_rgba(255,122,199,0.45),_rgba(255,122,199,0.12)_55%,_transparent_80%)] blur-2xl animate-blob-drift-3"
       />
-      <motion.div
+      {/* Blob 4 — upper mid */}
+      <div
         aria-hidden
-        className="absolute left-[14%] top-[2%] h-[16%] w-[72%] rounded-full bg-[radial-gradient(circle,_rgba(183,76,219,0.42),_rgba(183,76,219,0.08)_58%,_transparent_80%)] blur-2xl"
-        animate={{
-          x: ["0%", "6%", "-4%"],
-          opacity: [0.22, 0.34, 0.24]
-        }}
-        transition={{
-          duration: 11,
-          ease: [0.22, 1, 0.36, 1],
-          repeat: Number.POSITIVE_INFINITY,
-          repeatType: "mirror"
-        }}
+        className="absolute left-[14%] top-[2%] h-[16%] w-[72%] rounded-full bg-[radial-gradient(circle,_rgba(183,76,219,0.42),_rgba(183,76,219,0.08)_58%,_transparent_80%)] blur-2xl animate-blob-fade"
       />
+      {/* Static radial overlays */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_8%,rgba(255,255,255,0.16),transparent_22%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_52%,rgba(255,105,201,0.18),transparent_26%)]" />
       <div className="absolute inset-x-0 top-[32.4%] h-16 bg-[linear-gradient(180deg,rgba(255,163,221,0.14),rgba(255,108,196,0.12)_32%,rgba(18,11,18,0.56)_72%,transparent)] blur-lg" />
@@ -663,6 +610,11 @@ export function StoryExperience() {
   return (
     <main
       className="story-no-scrollbar relative mx-auto h-[100svh] w-full max-w-screen-sm overflow-hidden bg-[#090608] text-white"
+      style={{
+        isolation: "isolate",
+        transform: "translateZ(0)",
+        WebkitTransform: "translateZ(0)",
+      }}
       onPointerDownCapture={handlePressStart}
     >
       <StoryBackground />

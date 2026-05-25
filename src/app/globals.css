@@ -700,3 +700,68 @@
 .animate-pulse-slow {
   animation: pulseSlow 5.8s ease-in-out infinite;
 }
+
+/* ─── Wrapped Section: Background blob drift animations (CSS-only, GPU composited) ───
+ * Using ONLY transform (translate) and opacity — the two CSS properties that are
+ * guaranteed to be composited by the browser without triggering layout or paint.
+ * This keeps the background animations running smoothly on the GPU compositor
+ * thread, completely independent of the JS main thread, even during slide transitions.
+ * Note: blur() is NOT animated here — it's a static filter on the element.
+ * ─────────────────────────────────────────────────────────────────────────────────── */
+
+@keyframes blobDrift1 {
+  0%   { transform: translate(0, 0); }
+  30%  { transform: translate(5%, 4%); }
+  60%  { transform: translate(-4%, 2%); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes blobDrift2 {
+  0%   { transform: translate(0, 0); }
+  40%  { transform: translate(-6%, 8%); }
+  70%  { transform: translate(2%, 4%); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes blobDrift3 {
+  0%   { transform: translate(0, 0); }
+  35%  { transform: translate(8%, -5%); }
+  65%  { transform: translate(-3%, 2%); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes blobFade {
+  0%, 100% { opacity: 0.22; }
+  50%       { opacity: 0.34; }
+}
+
+@keyframes wrappedShimmer {
+  0%, 100% { opacity: 0.26; }
+  50%       { opacity: 0.42; }
+}
+
+.animate-blob-drift-1 {
+  will-change: transform;
+  animation: blobDrift1 8.6s ease-in-out infinite;
+}
+
+.animate-blob-drift-2 {
+  will-change: transform;
+  animation: blobDrift2 7s ease-in-out infinite;
+}
+
+.animate-blob-drift-3 {
+  will-change: transform;
+  animation: blobDrift3 6.6s ease-in-out infinite;
+}
+
+.animate-blob-fade {
+  will-change: opacity;
+  animation: blobFade 11s ease-in-out infinite;
+}
+
+.animate-wrapped-shimmer {
+  will-change: opacity;
+  animation: wrappedShimmer 10.2s ease-in-out infinite;
+}
+

@@ -325,7 +325,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-      <style jsx>{`
+      <style>{`
         .login-placeholder::placeholder {
           opacity: 1;
         }
@@ -338,7 +338,7 @@ export default function LoginPage() {
           color: color-mix(in srgb, var(--color-text) 22%, #515550 78%);
         }
 
-        :global(html[data-theme='mint-gray'] .login-themed-input) {
+        html[data-theme='mint-gray'] .login-themed-input {
           font-family: var(--font-theme);
           font-weight: 400;
           letter-spacing: 0;
