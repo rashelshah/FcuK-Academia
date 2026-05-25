@@ -672,3 +672,31 @@
   100% { clip-path: circle(150% at 50% 50%); opacity: 1; }
 }
 
+/* ─── Wrapped Section: CSS-only float animations (GPU composited, no JS overhead) */
+@keyframes floatSlow {
+  0%, 100% { transform: translate(0, 0); }
+  33%       { transform: translate(10px, -8px); }
+  66%       { transform: translate(-6px, 6px); }
+}
+
+@keyframes floatMedium {
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(-9px, 10px); }
+}
+
+@keyframes pulseSlow {
+  0%, 100% { opacity: 0.66; transform: scale(0.94); }
+  50%       { opacity: 0.92; transform: scale(1.06); }
+}
+
+.animate-float-slow {
+  animation: floatSlow 6.8s ease-in-out infinite;
+}
+
+.animate-float-medium {
+  animation: floatMedium 7.4s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 5.8s ease-in-out infinite;
+}

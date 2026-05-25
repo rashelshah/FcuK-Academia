@@ -19,18 +19,15 @@ type WrappedSlideProps = {
 const variants = {
   enter: (direction: number) => ({
     opacity: 0,
-    x: direction >= 0 ? 56 : -56,
-    scale: 0.985,
+    x: direction >= 0 ? 48 : -48,
   }),
   center: {
     opacity: 1,
     x: 0,
-    scale: 1,
   },
   exit: (direction: number) => ({
     opacity: 0,
-    x: direction >= 0 ? -42 : 42,
-    scale: 0.992,
+    x: direction >= 0 ? -48 : 48,
   })
 };
 
@@ -47,13 +44,14 @@ export function WrappedSlide({
     <motion.section
       key={decorationVariant}
       className="absolute inset-0 overflow-hidden"
+      style={{ willChange: "transform, opacity" }}
       custom={direction}
       variants={variants}
       initial="enter"
       animate="center"
       exit="exit"
       transition={{
-        duration: 0.68,
+        duration: 0.42,
         ease: [0.22, 1, 0.36, 1]
       }}
       drag="x"
