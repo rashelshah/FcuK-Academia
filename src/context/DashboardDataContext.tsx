@@ -207,6 +207,12 @@ export function DashboardDataProvider({ children }: { children: React.ReactNode 
 
 export function useDashboardDataContext() {
   const context = useContext(DashboardDataContext);
-  if (!context) throw new Error('useDashboardDataContext must be used within a DashboardDataProvider');
+  if (!context) {
+    return {
+      userInfo: null, attendance: [], markList: [], timetable: [], calendar: [],
+      loading: false, refreshing: false, isStale: false, error: null,
+      refreshDashboard: async () => {},
+    } as DashboardDataContextValue;
+  }
   return context;
 }

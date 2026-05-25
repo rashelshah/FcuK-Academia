@@ -10,6 +10,7 @@ import { WrappedSlide } from "@/components/wrapped/wrapped-slide";
 import vendharSquare from "@/components/wrapped/images/vendhar-square.png";
 import tp2 from "@/components/wrapped/images/tp2.png";
 import logo from "@/components/wrapped/images/logo.png";
+import { useTheme } from "@/context/ThemeContext";
 
 const STORY_DURATION = 7.8;
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -331,12 +332,13 @@ export function StoryExperience() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUnlockedRef = useRef(false);
 
+  const { showIntro } = useTheme();
   const safeCurrentIndex = clampIndex(currentIndex);
   const activeSlide = useMemo(
     () => slides[safeCurrentIndex] ?? slides[0],
     [safeCurrentIndex]
   );
-  const isPaused = reducedMotion || isHolding || isDocumentHidden || isCompleted;
+  const isPaused = reducedMotion || isHolding || isDocumentHidden || isCompleted || showIntro;
 
   useEffect(() => {
     progressRef.current = progress;

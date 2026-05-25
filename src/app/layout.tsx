@@ -12,6 +12,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import GoogleAnalytics from "@/components/system/GoogleAnalytics";
 import UmamiAnalytics from "@/components/system/UmamiAnalytics";
 import CommunityPopup from "@/components/system/CommunityPopup";
+import IntroOverlay from "@/components/ui/IntroOverlay";
 import CinematicIntroOverlay from "@/components/ui/CinematicIntroOverlay";
 import ServiceWorkerRegistration from "@/components/system/ServiceWorkerRegistration";
 import dynamic from 'next/dynamic';
@@ -108,7 +109,10 @@ export default async function RootLayout({
         <UmamiAnalytics />
         <ThemeProvider initialTheme={initialTheme}>
           {process.env.NEXT_PUBLIC_WRAP_MODE === 'true' ? (
-            children
+            <>
+              <IntroOverlay />
+              {children}
+            </>
           ) : (
             <DashboardDataProvider>
               <AppStateProvider>
