@@ -107,16 +107,20 @@ export default async function RootLayout({
         <GoogleAnalytics />
         <UmamiAnalytics />
         <ThemeProvider initialTheme={initialTheme}>
-          <DashboardDataProvider>
-            <AppStateProvider>
-              <NotificationProvider>
-                <CommunityPopup />
-                <AppLayout>
-                  {children}
-                </AppLayout>
-              </NotificationProvider>
-            </AppStateProvider>
-          </DashboardDataProvider>
+          {process.env.NEXT_PUBLIC_WRAP_MODE === 'true' ? (
+            children
+          ) : (
+            <DashboardDataProvider>
+              <AppStateProvider>
+                <NotificationProvider>
+                  <CommunityPopup />
+                  <AppLayout>
+                    {children}
+                  </AppLayout>
+                </NotificationProvider>
+              </AppStateProvider>
+            </DashboardDataProvider>
+          )}
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />

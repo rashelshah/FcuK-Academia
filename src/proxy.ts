@@ -23,6 +23,17 @@ export function proxy(request: NextRequest) {
 
   if (isStatic) return NextResponse.next();
 
+  // --- FCUK WRAP FEATURE FLAG ---
+  const isWrapMode = process.env.NEXT_PUBLIC_WRAP_MODE === 'true';
+  console.log('PROXY FIRED, PATH:', pathname, 'WRAP_MODE:', process.env.NEXT_PUBLIC_WRAP_MODE, 'IS_WRAP_MODE:', isWrapMode);
+  if (isWrapMode) {
+    if (pathname === '/wrap') {
+      return NextResponse.next();
+    }
+    return NextResponse.rewrite(new URL('/wrap', request.url));
+  }
+  // ------------------------------
+
   const hasSession = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
   const isPublic = PUBLIC_PATHS.includes(pathname);
 

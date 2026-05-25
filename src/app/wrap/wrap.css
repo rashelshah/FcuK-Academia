@@ -1,0 +1,58 @@
+@import url("https://fonts.googleapis.com/css2?family=IM+Fell+Great+Primer+SC&family=Keania+One&family=Kelly+Slab&family=Madimi+One&display=swap");
+
+.wrap-experience {
+  --background: #090608;
+  --foreground: #fff7fd;
+  --fcuk-black: #090608;
+  --fcuk-black-soft: #151014;
+  --fcuk-pink: #f06bc1;
+  --fcuk-pink-hot: #ff66c8;
+  --fcuk-purple: #7b2f93;
+  --fcuk-purple-deep: #2c083d;
+  --fcuk-cream: #e9dfd4;
+  --fcuk-card-light: #f8f4ef;
+  --fcuk-glass: rgba(255, 255, 255, 0.1);
+  --font-kelly: "Kelly Slab", "Trebuchet MS", serif;
+  --font-keania: "Keania One", "Georgia", serif;
+  --font-madimi: "Madimi One", "Trebuchet MS", sans-serif;
+  --font-imfell: "IM Fell Great Primer SC", "Georgia", serif;
+
+  background: var(--fcuk-black);
+  color: var(--foreground);
+  scrollbar-width: none;
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow: hidden;
+  font-family: var(--font-kelly), serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap-experience::-webkit-scrollbar {
+  display: none;
+}
+
+.wrap-experience a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.wrap-experience button {
+  font: inherit;
+}
+
+.story-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.story-no-scrollbar {
+  scrollbar-width: none;
+}
+
+.text-shadow-soft {
+  text-shadow: 0 10px 26px rgba(0, 0, 0, 0.32);
+}
+
+.text-shadow-glow {
+  text-shadow: 0 0 24px rgba(255, 102, 200, 0.36);
+}
