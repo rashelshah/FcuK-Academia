@@ -2,7 +2,7 @@
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "framer-motion";
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
-import { GroupIcon, MobileCheckIcon, MoodIcon, TwinkleStarIcon } from "@/components/wrapped/icons";
+import { GroupIcon, MobileCheckIcon, MoodIcon, TwinkleStarIcon, SpeakerIcon, SpeakerOffIcon } from "@/components/wrapped/icons";
 import { NavigationButtons } from "@/components/wrapped/navigation-buttons";
 import { StatCard } from "@/components/wrapped/stat-card";
 import { StoryProgressBar } from "@/components/wrapped/story-progress-bar";
@@ -15,7 +15,7 @@ import logo from "@/components/wrapped/images/logo.png";
 import Image from "next/image";
 import { useTheme } from "@/context/ThemeContext";
 
-const STORY_DURATION = 7.8;
+
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 function BrandHeader() {
@@ -298,6 +298,8 @@ export function StoryExperience() {
   const loopTokenRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUnlockedRef = useRef(false);
+  const [storyDuration, setStoryDuration] = useState(7.8);
+  const [isMuted, setIsMuted] = useState(false);
 
   const { showIntro } = useTheme();
   const safeCurrentIndex = clampIndex(currentIndex);
@@ -312,6 +314,12 @@ export function StoryExperience() {
   }, [progress]);
 
   useEffect(() => {
+    if (!showIntro) {
+      audioUnlockedRef.current = true;
+    }
+  }, [showIntro]);
+
+  useEffect(() => {
     const sources = [vendharSquare.src, tp2.src];
     const images = sources.map((src) => {
       const image = new window.Image();
@@ -320,16 +328,22 @@ export function StoryExperience() {
       return image;
     });
 
-    const audio = new Audio("/music/background-track.mp3");
+    const audio = new Audio("/sounds/Swing-Machine.mp3");
     audio.loop = false;
     audio.preload = "auto";
-    audio.volume = 0.4;
+    audio.volume = 0.15;
     const handleAudioError = () => {
       if (audioRef.current === audio) {
         audioRef.current = null;
       }
     };
+    const handleAudioLoaded = () => {
+      if (audio.duration && audio.duration !== Infinity) {
+        setStoryDuration(audio.duration / slides.length);
+      }
+    };
     audio.addEventListener("error", handleAudioError);
+    audio.addEventListener("loadedmetadata", handleAudioLoaded);
     audioRef.current = audio;
 
     return () => {
@@ -338,6 +352,7 @@ export function StoryExperience() {
       });
 
       audio.removeEventListener("error", handleAudioError);
+      audio.removeEventListener("loadedmetadata", handleAudioLoaded);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";
@@ -416,7 +431,7 @@ export function StoryExperience() {
 
     const loopToken = loopTokenRef.current + 1;
     loopTokenRef.current = loopToken;
-    const durationMs = STORY_DURATION * 1000;
+    const durationMs = storyDuration * 1000;
 
     const step = (timestamp: number) => {
       if (loopTokenRef.current !== loopToken) {
@@ -466,7 +481,7 @@ export function StoryExperience() {
         rafRef.current = null;
       }
     };
-  }, [isPaused, safeCurrentIndex]);
+  }, [isPaused, safeCurrentIndex, storyDuration]);
 
   useEffect(() => {
     if (!isHolding) {
@@ -498,6 +513,8 @@ export function StoryExperience() {
       return;
     }
 
+    audio.muted = isMuted;
+
     if (isPaused) {
       audio.pause();
       return;
@@ -507,8 +524,17 @@ export function StoryExperience() {
       return;
     }
 
-    void audio.play().catch(() => {});
-  }, [isPaused, safeCurrentIndex]);
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((e) => {
+        if (e.name === "NotAllowedError") {
+          audio.muted = true;
+          setIsMuted(true);
+          void audio.play().catch(() => {});
+        }
+      });
+    }
+  }, [isPaused, safeCurrentIndex, isMuted]);
 
   const handleDragStart = () => {
     setIsHolding(true);
@@ -540,6 +566,11 @@ export function StoryExperience() {
     lastFrameRef.current = null;
   };
 
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMuted((prev) => !prev);
+  };
+
   return (
     <main
       className="story-no-scrollbar relative mx-auto h-[100svh] w-full max-w-screen-sm overflow-hidden bg-[#090608] text-white"
@@ -556,6 +587,15 @@ export function StoryExperience() {
         progress={progress}
         total={slides.length}
       />
+
+      <button
+        onClick={toggleMute}
+        onPointerDownCapture={(e) => e.stopPropagation()}
+        className="absolute top-24 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+        aria-label={isMuted ? "Unmute" : "Mute"}
+      >
+        {isMuted ? <SpeakerOffIcon className="h-5 w-5" /> : <SpeakerIcon className="h-5 w-5" />}
+      </button>
 
       <AnimatePresence initial={false} mode="popLayout" custom={direction}>
         <WrappedSlide
