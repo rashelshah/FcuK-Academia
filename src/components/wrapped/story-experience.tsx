@@ -20,12 +20,7 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 
 function BrandHeader() {
   return (
-    <motion.div
-      className="relative z-30 mb-5 w-full pt-2"
-      initial={{ opacity: 0, y: -14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.55, ease: EASE }}
-    >
+    <div className="relative z-30 mb-5 w-full pt-2 animate-slide-in-header">
       <div className="flex items-center justify-between px-2">
         <div className="rounded-full bg-[#0b0809] shadow-[0_8px_20px_rgba(0,0,0,0.25)] flex items-center justify-center overflow-hidden w-16 h-16 flex-shrink-0">
           <Image
@@ -56,7 +51,7 @@ function BrandHeader() {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -66,78 +61,60 @@ function IntroSlide() {
       <BrandHeader />
       <div className="relative flex flex-1 flex-col">
         <div className="absolute inset-x-[-1rem] bottom-0 z-0 h-[63%] rounded-t-[2.4rem] bg-[#090608] shadow-[0_-28px_100px_rgba(0,0,0,0.42)]" />
-        <div className="absolute inset-x-0 top-[33.5%] z-10 h-20 bg-[linear-gradient(180deg,rgba(255,122,199,0.3),rgba(18,11,18,0.92)_68%,rgba(9,6,8,0))] blur-xl" />
+        {/* Gradient fade - no blur filter, just opacity */}
+        <div className="absolute inset-x-0 top-[33.5%] z-10 h-20 bg-[linear-gradient(180deg,rgba(255,122,199,0.28),rgba(18,11,18,0.9)_68%,rgba(9,6,8,0))]" />
 
-        <motion.div
-          className="absolute left-[-11%] top-[8%] z-10 w-[82%]"
-          initial={{ opacity: 0, x: -24, y: 24 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          transition={{ duration: 0.76, delay: 0.08, ease: EASE }}
-        >
+        <div className="absolute left-[-11%] top-[8%] z-10 w-[82%] animate-slide-in-left">
           <Image
             alt="Illustrated campus building"
             className="block h-auto w-full object-contain opacity-90"
             src={vendharSquare}
             priority
           />
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="absolute right-[-11%] top-[0%] z-0 w-[82%]"
-          initial={{ opacity: 0, x: 20, y: 24 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          transition={{ duration: 0.74, delay: 0.12, ease: EASE }}
-        >
+        <div className="absolute right-[-11%] top-[0%] z-0 w-[82%] animate-slide-in-right">
           <Image
             alt="Illustrated high rise"
             className="block h-auto w-full object-contain opacity-90"
             src={tp2}
             priority
           />
-        </motion.div>
+        </div>
 
         <div className="relative z-20 pt-4">
-          <motion.h1
-            className="max-w-[13rem] text-balance font-[var(--font-madimi)] text-[2.5rem] leading-[0.88] tracking-[-0.06em] text-white text-shadow-glow"
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
+          <h1
+            className="max-w-[13rem] text-balance font-[var(--font-madimi)] text-[2.5rem] leading-[0.88] tracking-[-0.06em] text-white animate-fade-in-up"
           >
             PYQ
             <span className="block font-[var(--font-imfell)] text-[2rem] tracking-wide text-[#fceaff]">
               Took Over
             </span>
-          </motion.h1>
+          </h1>
         </div>
 
-        <motion.div
-          className="absolute left-[0.5%] top-[51.8%] z-20"
-          initial={{ opacity: 0, y: 32, rotate: -12 }}
-          animate={{ opacity: 1, y: 0, rotate: -9 }}
-          transition={{ duration: 0.85, delay: 0.22, ease: EASE }}
+        <div
+          className="absolute left-[0.5%] top-[58.5%] z-20 -rotate-[9deg] animate-card-in-left"
         >
           <StatCard
-            className="max-w-[12.6rem]"
+            className="max-w-[12.0rem]"
             title="PYQs Opened"
             value="2000+"
             icon={<GroupIcon />}
             tone="light"
           />
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="absolute right-[-0.5%] top-[65.8%] z-20"
-          initial={{ opacity: 0, y: 38, rotate: 10 }}
-          animate={{ opacity: 1, y: 0, rotate: 8 }}
-          transition={{ duration: 0.9, delay: 0.3, ease: EASE }}
+        <div
+          className="absolute right-[-0.5%] top-[72.5%] z-20 rotate-[8deg] animate-card-in-right"
         >
           <StatCard
-            className="max-w-[12.5rem]"
+            className="max-w-[11.9rem]"
             title="Most Visited Section"
             value="Lock In"
             icon={<MoodIcon />}
           />
-        </motion.div>
+        </div>
 
       </div>
     </>
@@ -151,79 +128,45 @@ function CitySlide() {
       <div className="relative flex flex-1 flex-col">
         <div className="absolute inset-x-0 top-0 h-[43%] bg-[linear-gradient(180deg,transparent_0%,transparent_28%,rgba(9,6,8,0.08)_100%)]" />
 
-        <motion.div
-          className="absolute left-[-11%] top-[16.4%] z-10 w-[88%]"
-          initial={{ opacity: 0, x: -24, y: 24 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
-        >
+        <div className="absolute left-[-11%] top-[16.4%] z-10 w-[88%] animate-slide-in-left">
           <Image
             alt="Illustrated campus building"
             className="block h-auto w-full object-contain"
             src={ub}
             priority
           />
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="absolute right-[-19%] top-[8.2%] z-0 w-[80%]"
-          initial={{ opacity: 0, x: 20, y: 24 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.12, ease: EASE }}
-        >
+        <div className="absolute right-[-19%] top-[8.2%] z-0 w-[80%] animate-slide-in-right">
           <Image
             alt="Illustrated high rise"
             className="block h-auto w-full object-contain"
             src={tp}
             priority
           />
-        </motion.div>
-
-        <div className="absolute inset-x-[-1rem] bottom-0 z-0 h-[39%] rounded-t-[2.3rem] bg-[#090608] shadow-[0_-24px_90px_rgba(0,0,0,0.44)]" />
-        <div className="absolute bottom-[7.4rem] right-[15%] z-10 h-24 w-36 rotate-[-13deg] bg-[linear-gradient(140deg,#ff78cd,#ed48b7)] opacity-95 [clip-path:polygon(48%_0%,58%_38%,100%_20%,68%_49%,100%_57%,60%_61%,74%_100%,48%_70%,26%_100%,39%_61%,0%_60%,31%_49%,0%_21%,41%_38%)]" />
-        <div className="absolute left-8 top-[73.8%] z-10 text-[2rem] leading-none text-[#ff6dca]">*</div>
-        <motion.div
-          className="absolute left-4 bottom-[9.35rem] z-10 max-w-[12rem] rounded-[1.7rem] border border-white/10 bg-[rgba(20,16,22,0.82)] px-4 py-3 shadow-[0_18px_30px_rgba(0,0,0,0.35)]"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.18, ease: EASE }}
-        >
-          <div className="font-[var(--font-imfell)] text-[1.25rem] leading-none text-white">
-            Campus Pulse
-          </div>
-          <p className="mt-2 text-sm leading-6 text-white/68">
-            Whole skyline looked like a revision montage.
-          </p>
-        </motion.div>
-
-        <motion.div
-          className="absolute left-[0.5%] top-[52.2%] z-20"
-          initial={{ opacity: 0, y: 34, rotate: -10 }}
-          animate={{ opacity: 1, y: 0, rotate: -8 }}
-          transition={{ duration: 0.6, delay: 0.26, ease: EASE }}
+        </div>
+        <div
+          className="absolute left-[0.5%] top-[58.9%] z-20 -rotate-[8deg] animate-card-in-left"
         >
           <StatCard
-            className="max-w-[12.6rem]"
+            className="max-w-[12.0rem]"
             title="Number of Users"
             value="10K+"
             icon={<GroupIcon />}
             tone="light"
           />
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="absolute right-[-0.5%] top-[64.5%] z-20"
-          initial={{ opacity: 0, y: 34, rotate: 13 }}
-          animate={{ opacity: 1, y: 0, rotate: 12 }}
-          transition={{ duration: 0.6, delay: 0.34, ease: EASE }}
+        <div
+          className="absolute right-[-0.5%] top-[71.2%] z-20 rotate-[12deg] animate-card-in-right"
         >
           <StatCard
-            className="max-w-[12.5rem]"
+            className="max-w-[11.9rem]"
             title="Page Views"
             value="60K+"
             icon={<MobileCheckIcon />}
           />
-        </motion.div>
+        </div>
       </div>
     </>
   );
@@ -234,16 +177,11 @@ function OutroSlide() {
     <>
       <BrandHeader />
       <div className="relative flex flex-1 flex-col">
-        <motion.div
-          className="relative z-20 mt-10"
-          initial={{ opacity: 0, y: 22 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.05, ease: EASE }}
-        >
+        <div className="relative z-20 mt-10 animate-fade-in-up">
           <p className="mb-3 text-[0.76rem] uppercase tracking-[0.34em] text-white/65">
             See You Guys
           </p>
-          <h2 className="max-w-[13rem] text-balance font-[var(--font-imfell)] text-[4rem] leading-[0.88] text-white text-shadow-soft">
+          <h2 className="max-w-[13rem] text-balance font-[var(--font-imfell)] text-[4rem] leading-[0.88] text-white">
             Semester
             <span className="block font-[var(--font-madimi)] text-[3.5rem] tracking-[-0.05em] text-[#ffd6f0]">
               Over.
@@ -253,15 +191,10 @@ function OutroSlide() {
             We are pulling up next semester louder, sharper, and still doing
             impossible comebacks five minutes before the deadline.
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="relative z-20 mt-auto pb-10"
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.22, ease: EASE }}
-        >
-          <div className="rounded-[2.25rem] border border-white/12 bg-[rgba(20,16,22,0.82)] p-5 shadow-[0_24px_46px_rgba(0,0,0,0.34)]">
+        <div className="relative z-20 mt-auto pb-10 animate-card-in-right">
+          <div className="rounded-[2.25rem] border border-white/12 bg-[#14101a] p-5 shadow-[0_24px_46px_rgba(0,0,0,0.34)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="font-[var(--font-imfell)] text-[2rem] leading-none text-white">
@@ -276,7 +209,7 @@ function OutroSlide() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </>
   );
@@ -624,7 +557,7 @@ export function StoryExperience() {
         total={slides.length}
       />
 
-      <AnimatePresence initial={false} mode="sync" custom={direction}>
+      <AnimatePresence initial={false} mode="popLayout" custom={direction}>
         <WrappedSlide
           key={activeSlide.key}
           decorationVariant={activeSlide.decoration}

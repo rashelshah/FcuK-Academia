@@ -765,3 +765,70 @@
   animation: wrappedShimmer 10.2s ease-in-out infinite;
 }
 
+/* ─── Wrapped Slide Content: CSS-only enter animations ──────────────────────
+ * These fire once on mount (animation-fill-mode:both) and run entirely on
+ * the GPU compositor. They perfectly replace the removed Framer Motion inner
+ * animations, at zero JS cost. The slide itself (WrappedSlide) handles the
+ * cross-slide opacity+translate transition via Framer Motion separately.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translate(-18px, 18px); }
+  to   { opacity: 1; transform: translate(0, 0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translate(16px, 18px); }
+  to   { opacity: 1; transform: translate(0, 0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardInLeft {
+  from { opacity: 0; transform: translateY(22px) translateX(-8px); }
+  to   { opacity: 1; transform: translateY(0) translateX(0); }
+}
+
+@keyframes cardInRight {
+  from { opacity: 0; transform: translateY(22px) translateX(8px); }
+  to   { opacity: 1; transform: translateY(0) translateX(0); }
+}
+
+@keyframes slideInHeader {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Animation timing uses cubic-bezier matching framer EASE for visual consistency */
+.animate-slide-in-left {
+  will-change: transform, opacity;
+  animation: slideInLeft 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-slide-in-right {
+  will-change: transform, opacity;
+  animation: slideInRight 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+}
+
+.animate-fade-in-up {
+  will-change: transform, opacity;
+  animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+.animate-card-in-left {
+  will-change: transform, opacity;
+  animation: cardInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+}
+
+.animate-card-in-right {
+  will-change: transform, opacity;
+  animation: cardInRight 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.26s both;
+}
+
+.animate-slide-in-header {
+  will-change: transform, opacity;
+  animation: slideInHeader 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
