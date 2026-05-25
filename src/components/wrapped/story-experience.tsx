@@ -139,7 +139,7 @@ function IntroSlide() {
           <StatCard
             className="max-w-[12.5rem]"
             title="Most Visited Section"
-            value="PYQ"
+            value="Lock In"
             icon={<MoodIcon />}
           />
         </motion.div>
@@ -212,7 +212,7 @@ function CitySlide() {
           <StatCard
             className="max-w-[12.6rem]"
             title="Number of Users"
-            value="10000+"
+            value="10K+"
             icon={<GroupIcon />}
             tone="light"
           />
@@ -227,7 +227,7 @@ function CitySlide() {
           <StatCard
             className="max-w-[12.5rem]"
             title="Page Views"
-            value="60000+"
+            value="60K+"
             icon={<MobileCheckIcon />}
           />
         </motion.div>

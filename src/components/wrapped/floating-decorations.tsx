@@ -29,10 +29,7 @@ export function FloatingDecorations({ variant }: FloatingDecorationsProps) {
           animate={{ x: [0, -18, 8], y: [0, 18, -12] }}
           transition={{ ...floatTransition, duration: 7.4 }}
         />
-        <div
-          aria-hidden
-          className="absolute inset-x-6 top-26 h-64 rounded-[3rem] border border-white/10 bg-[linear-gradient(140deg,rgba(255,255,255,0.06),rgba(255,255,255,0.01))] blur-[0.2px]"
-        />
+
         <div aria-hidden className="absolute left-8 top-[41%] text-4xl text-[#ff70ce]">
           *
         </div>
