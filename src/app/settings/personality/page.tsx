@@ -20,6 +20,7 @@ const PERSONALITIES: {
   description: string;
   image: string;
   badges: string[];
+  titleClassName: string;
 }[] = [
     {
       id: 'fcuk_academia',
@@ -27,6 +28,7 @@ const PERSONALITIES: {
       description: 'The classic experience. Brutally honest, slightly toxic, perfectly chaotic.',
       image: '/images/personalities/fcuk_academia_user.png',
       badges: ['0% Attendance', 'Due Today', 'Help'],
+      titleClassName: 'font-headline font-black text-white uppercase tracking-tighter',
     },
     {
       id: 'girlie_pop',
@@ -34,6 +36,7 @@ const PERSONALITIES: {
       description: 'Slaying the semester. Pure aesthetic ✨, 100% romanticizing the academic struggle 💅.',
       image: '/images/personalities/girlie_pop_user2.png',
       badges: ['Matcha Powered', 'Aesthetic Notes', 'Manifesting A+'],
+      titleClassName: 'font-serif font-bold text-pink-200 italic tracking-wide',
     },
     {
       id: 'sigma',
@@ -41,6 +44,7 @@ const PERSONALITIES: {
       description: 'Cold, calculated, and optimized. Pure discipline. Zero distractions.',
       image: '/images/personalities/sigma_user.png',
       badges: ['Deep Work', 'Do Not Disturb', '25:5 Pomodoro'],
+      titleClassName: 'font-headline font-black text-white uppercase tracking-[0.15em]',
     },
     {
       id: 'delulu',
@@ -48,6 +52,7 @@ const PERSONALITIES: {
       description: 'Manifesting distinction. Believing in the curve. Everything is fine ✨.',
       image: '/images/personalities/delulu_user2.png',
       badges: ['A+ Vibes', 'It Is What It Is', 'Trust The Curve'],
+      titleClassName: 'font-sans font-black text-fuchsia-300 lowercase tracking-tighter',
     },
     {
       id: 'academic_victim',
@@ -55,6 +60,7 @@ const PERSONALITIES: {
       description: 'Barely scraping by. Fueled by caffeine, panic, and desperate prayers.',
       image: '/images/personalities/academic_victim_user.png',
       badges: ['3AM Crew', 'Need Coffee', 'Send Help'],
+      titleClassName: 'font-headline font-black text-amber-100 uppercase tracking-tight',
     },
     {
       id: 'corporate_hustler',
@@ -62,6 +68,7 @@ const PERSONALITIES: {
       description: 'Treating college like a B2B SaaS startup. Optimizing synergies and avoiding academic layoffs.',
       image: '/images/personalities/corporate_hustler_user2.png',
       badges: ['Networking', "Let's Connect", 'Synergy'],
+      titleClassName: 'font-headline font-black text-[#93c5fd] uppercase tracking-tight text-[2.6rem] leading-[0.75]',
     },
     {
       id: 'brain_rot',
@@ -69,6 +76,7 @@ const PERSONALITIES: {
       description: 'Chronically online. Skibidi rizz and negative aura for when you definitely did not cook.',
       image: '/images/personalities/brain_rot_user2.png',
       badges: ['Chronically Online', '-1000 Aura', 'Doomscrolling'],
+      titleClassName: 'font-headline font-black text-[#b9ff3f] lowercase italic tracking-tight',
     },
   ];
 
@@ -220,7 +228,7 @@ export default function PersonalitySelectionPage() {
                       alt={personality.name}
                       fill
                       sizes="(max-width: 768px) 80vw, 320px"
-                      className="object-cover pointer-events-none"
+                      className="object-cover object-top pointer-events-none"
                       priority={isZero || isOne}
                     />
 
@@ -233,7 +241,7 @@ export default function PersonalitySelectionPage() {
                     />
 
                     <div className="absolute inset-x-0 bottom-0 z-30 flex flex-col gap-4 p-6 pb-7">
-                      <h3 className="font-headline text-[2.8rem] font-black leading-[0.9] tracking-tighter text-white uppercase drop-shadow-lg">
+                      <h3 className={cn("text-[2.8rem] leading-[0.9] drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]", personality.titleClassName)}>
                         {personality.name}
                       </h3>
 

@@ -130,6 +130,8 @@ export default function SettingsPage() {
         </div>
       </GlassCard>
 
+      <PersonalityModeSelector />
+
       <section className="space-y-4">
         <SectionHeading
           kicker="appearance"
@@ -209,7 +211,6 @@ export default function SettingsPage() {
         </GlassCard>
       </section>
 
-      <PersonalityModeSelector />
       <DayOrderSelector />
 
       <section className="space-y-4 pt-1">
