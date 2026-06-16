@@ -63,7 +63,7 @@ export function PersonalityProvider({ children }: { children: React.ReactNode })
 
     trackEvent('personality_mode_changed', { mode: newMode });
 
-    if (user?.id) {
+    if (user?.regNumber) {
       try {
         await fetch('/api/user/personality', {
           method: 'POST',
