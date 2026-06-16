@@ -18,8 +18,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: result.error || 'session expired. Log In again.' }, { status: 401 });
     }
 
+    const { syncUserToDb } = await import('@/lib/server/user-sync');
+    const dbUser = await syncUserToDb();
+
+    const userInfoWithMode = {
+      ...result.snapshot.userInfo,
+      personalityMode: dbUser?.personalityMode || undefined,
+    };
+
     const jsonResponse = NextResponse.json({
-      userInfo: result.snapshot.userInfo,
+      userInfo: userInfoWithMode,
       attendance: result.snapshot.attendance,
       markList: result.snapshot.markList,
       timetable: result.snapshot.timetable,

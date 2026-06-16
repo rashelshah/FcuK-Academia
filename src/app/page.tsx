@@ -15,6 +15,9 @@ import { useAppState } from '@/context/AppStateContext';
 import { formatDayOrderNumber, getClassesForDay, getClassWindow, getCurrentClassIndex, getDayOrders, getOverallAttendance, getScheduleSnapshot, getTotalMarks, getWeakestMark } from '@/lib/academia-ui';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
+import { usePersonalityMode } from '@/context/PersonalityContext';
+import { getPersonalityCopy } from '@/lib/personalization';
+import { FEATURES } from '@/lib/features';
 
 export default function HomePage() {
   const { user, attendance, marks, timetable, calendar, loading, error } = useDashboard();
@@ -23,6 +26,7 @@ export default function HomePage() {
     availableDayOrders,
     setActiveDayOrder,
   } = useAppState();
+  const { mode } = usePersonalityMode();
   const timetableDayOrders = useMemo(() => getDayOrders(timetable), [timetable]);
   const dayOrders = useMemo(
     () => [...new Set([...availableDayOrders, ...timetableDayOrders])].sort((left, right) => left - right),
@@ -97,8 +101,14 @@ export default function HomePage() {
   const weakestMark = getWeakestMark(marks);
   const firstName = user?.name?.split(' ')[0]?.trim() || 'student';
   const profileName = firstName ? `${firstName.charAt(0).toUpperCase()}${firstName.slice(1).toLowerCase()}` : 'Student';
-  const greetings = useMemo(
-    () => [
+
+  const { greeting, footerTitle, footerSubtitle } = useMemo(() => {
+    if (FEATURES.ENABLE_PERSONALITY_MODES) {
+      const copy = getPersonalityCopy({ mode, user });
+      return { greeting: copy.home.greeting, footerTitle: copy.footer.message, footerSubtitle: copy.footer.submessage };
+    }
+
+    const legacyGreetings = [
       `you made it, ${profileName}`,
       `ready to suffer, ${profileName}?`,
       `lock in, ${profileName}`,
@@ -106,31 +116,27 @@ export default function HomePage() {
       `cooked yet, ${profileName}?`,
       `FcuKed yet, ${profileName}?`,
       `don't fail today, ${profileName}`,
-    ],
-    [profileName],
-  );
-  const greeting = useMemo(() => {
-    const seed = `${user?.regNumber || ''}${profileName}`;
-    const hash = [...seed].reduce((total, char, index) => total + (char.charCodeAt(0) * (index + 1)), 0);
-    return greetings[hash % greetings.length] || greetings[0];
-  }, [greetings, profileName, user?.regNumber]);
-  const footerMessages = useMemo(
-    () => [
+    ];
+    const legacyFooterMessages = [
       'Study. Survive. Repeat.',
       'Still Passing?',
       'Stay Cooked!',
-     "Don’t Fail.",
+      "Don’t Fail.",
       'Barely Surviving.',
       'Academically Alive.',
       'Built to Survive.',
-    ],
-    [],
-  );
-  const footerTitle = useMemo(() => {
-    const seed = `${user?.regNumber || ''}${profileName}footer`;
-    const hash = [...seed].reduce((total, char, index) => total + (char.charCodeAt(0) * (index + 3)), 0);
-    return footerMessages[hash % footerMessages.length] || footerMessages[0];
-  }, [footerMessages, profileName, user?.regNumber]);
+    ];
+    
+    const seedGreeting = `${user?.regNumber || ''}${profileName}`;
+    const hashGreeting = [...seedGreeting].reduce((total, char, index) => total + (char.charCodeAt(0) * (index + 1)), 0);
+    const legacyGreeting = legacyGreetings[hashGreeting % legacyGreetings.length] || legacyGreetings[0];
+
+    const seedFooter = `${user?.regNumber || ''}${profileName}footer`;
+    const hashFooter = [...seedFooter].reduce((total, char, index) => total + (char.charCodeAt(0) * (index + 3)), 0);
+    const legacyFooterTitle = legacyFooterMessages[hashFooter % legacyFooterMessages.length] || legacyFooterMessages[0];
+
+    return { greeting: legacyGreeting, footerTitle: legacyFooterTitle, footerSubtitle: undefined };
+  }, [mode, user, profileName]);
   const featuredTitleSizeClass = useMemo(() => {
     const longestWord = featuredTitle
       .split(/\s+/)
@@ -357,7 +363,7 @@ export default function HomePage() {
       </RevealItem>
 
       <RevealItem>
-        <HomeFooter title={footerTitle} />
+        <HomeFooter title={footerTitle} subtitle={footerSubtitle} />
       </RevealItem>
       </PageReveal>
     </div>

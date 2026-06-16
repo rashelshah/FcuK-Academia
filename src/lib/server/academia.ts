@@ -119,6 +119,7 @@ export interface RawUserInfo {
   department: string;
   semester: string;
   batch: string;
+  personalityMode?: string;
 }
 
 function cleanText(value: string | undefined | null) {

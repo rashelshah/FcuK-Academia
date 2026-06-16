@@ -18,6 +18,7 @@ import { createPortal } from 'react-dom';
 
 import AppHeader from '@/components/layout/AppHeader';
 import DayOrderSelector from '@/components/settings/DayOrderSelector';
+import PersonalityModeSelector from '@/components/settings/PersonalityModeSelector';
 import Button from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
 import UserAvatar from '@/components/ui/UserAvatar';
@@ -208,6 +209,7 @@ export default function SettingsPage() {
         </GlassCard>
       </section>
 
+      <PersonalityModeSelector />
       <DayOrderSelector />
 
       <section className="space-y-4 pt-1">

@@ -8,6 +8,7 @@ import { AppStateProvider } from "@/context/AppStateContext";
 import { DashboardDataProvider } from "@/context/DashboardDataContext";
 import { NotificationProvider } from "@/context/NotificationContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { PersonalityProvider } from "@/context/PersonalityContext";
 import AppLayout from "@/components/layout/AppLayout";
 import GoogleAnalytics from "@/components/system/GoogleAnalytics";
 import UmamiAnalytics from "@/components/system/UmamiAnalytics";
@@ -117,10 +118,12 @@ export default async function RootLayout({
             <DashboardDataProvider>
               <AppStateProvider>
                 <NotificationProvider>
-                  <CommunityPopup />
-                  <AppLayout>
-                    {children}
-                  </AppLayout>
+                  <PersonalityProvider>
+                    <CommunityPopup />
+                    <AppLayout>
+                      {children}
+                    </AppLayout>
+                  </PersonalityProvider>
                 </NotificationProvider>
               </AppStateProvider>
             </DashboardDataProvider>
