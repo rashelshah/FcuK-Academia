@@ -34,7 +34,12 @@ export default function TextType({
   const finishedRef = useRef(isAlreadyTyped);
 
   useEffect(() => {
-    if (isAlreadyTyped) return; // Skip effects completely if cached
+    if (isAlreadyTyped) {
+      setDisplayText(text);
+      setShowCursor(false);
+      finishedRef.current = true;
+      return;
+    }
 
     if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
     if (resetRef.current) window.clearTimeout(resetRef.current);

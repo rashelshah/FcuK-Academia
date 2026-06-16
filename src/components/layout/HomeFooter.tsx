@@ -6,6 +6,7 @@ import LegalModal from '@/components/ui/LegalModal';
 
 interface HomeFooterProps {
   title: string;
+  subtitle?: string;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */
@@ -519,7 +520,7 @@ Use responsibly.`;
 
 type LegalDoc = 'policy' | 'terms' | 'legal' | null;
 
-export default function HomeFooter({ title }: HomeFooterProps) {
+export default function HomeFooter({ title, subtitle }: HomeFooterProps) {
   const [openDoc, setOpenDoc] = useState<LegalDoc>(null);
 
   return (
@@ -533,7 +534,7 @@ export default function HomeFooter({ title }: HomeFooterProps) {
             {title}
           </p>
           <p className="max-w-sm text-sm leading-7 text-on-surface-variant">
-            Crafted to make the SRM grind feel a little less brutal and a lot more alive.
+            {subtitle || 'Crafted to make the SRM grind feel a little less brutal and a lot more alive.'}
           </p>
 
           {/* Legal links bar */}

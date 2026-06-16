@@ -11,7 +11,11 @@ import SubjectCard from '@/components/dashboard/SubjectCard';
 import ThemedNumberText from '@/components/ui/ThemedNumberText';
 import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
 import { useMarks } from '@/hooks/useMarks';
+import { useUser } from '@/hooks/useUser';
 import { getMarksPercentage, getWeakestMark } from '@/lib/academia-ui';
+import { usePersonalityMode } from '@/context/PersonalityContext';
+import { getPersonalityCopy } from '@/lib/personalization';
+import { FEATURES } from '@/lib/features';
 
 function formatMarkValue(value: number) {
   return value.toLocaleString('en-US', {
@@ -32,6 +36,17 @@ export default function MarksPage() {
   const weakestSubjectName = marks.find((subject) => subject.code === weakest?.course)?.name
     ?? weakest?.course?.toLowerCase()
     ?? 'no weak link';
+
+  const { user } = useUser();
+  const { mode } = usePersonalityMode();
+  
+  const { bannerTitle, bannerSubtitle } = React.useMemo(() => {
+    if (FEATURES.ENABLE_PERSONALITY_MODES) {
+      const copy = getPersonalityCopy({ mode, user });
+      return { bannerTitle: copy.marks.bannerTitle, bannerSubtitle: copy.marks.bannerSubtitle };
+    }
+    return { bannerTitle: "you're FcuKed", bannerSubtitle: "subjects requiring immediate trauma recovery" };
+  }, [mode, user]);
 
   return (
     <PageReveal className="flex flex-col gap-6 pb-28 pt-4">
@@ -73,8 +88,8 @@ export default function MarksPage() {
           >
             <AlertTriangle className="absolute right-5 top-5 h-6 w-6 text-error" />
             <div className="mb-4 w-full text-left pr-10">
-              <h3 className="font-headline text-[2rem] font-bold normal-case tracking-tight text-error">you&apos;re FcuKed</h3>
-              <p className="mt-1 text-[13px] leading-5 text-on-surface-variant">subjects requiring immediate trauma recovery</p>
+              <h3 className="font-headline text-[2rem] font-bold normal-case tracking-tight text-error">{bannerTitle}</h3>
+              <p className="mt-1 text-[13px] leading-5 text-on-surface-variant">{bannerSubtitle}</p>
             </div>
             <div
               className="flex flex-col gap-3 rounded-[20px] p-4 sm:flex-row sm:items-end sm:justify-between sm:p-5"

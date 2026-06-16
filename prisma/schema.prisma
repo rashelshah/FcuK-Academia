@@ -14,6 +14,7 @@ model User {
   image              String?
   emailVerified      DateTime?
   isAdmin            Boolean         @default(false)
+  personalityMode    String          @default("fcuk_academia")
   createdAt          DateTime        @default(now())
   accounts           Account[]
   sessions           Session[]

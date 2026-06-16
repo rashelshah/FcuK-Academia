@@ -13,8 +13,12 @@ import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/
 import { useAppState } from '@/context/AppStateContext';
 import { useDashboardDataContext } from '@/context/DashboardDataContext';
 import { useAttendance } from '@/hooks/useAttendance';
+import { useUser } from '@/hooks/useUser';
 import type { Subject } from '@/lib/types';
 import { formatDayOrderNumber } from '@/lib/academia-ui';
+import { usePersonalityMode } from '@/context/PersonalityContext';
+import { getPersonalityCopy } from '@/lib/personalization';
+import { FEATURES } from '@/lib/features';
 
 export default function AttendancePage() {
   const { attendance, attendanceList, loading, error } = useAttendance();
@@ -52,7 +56,16 @@ export default function AttendancePage() {
   );
   const hasRequiredClasses = Boolean(critical);
   const survivedBlue = '#67b7ff';
-  const summaryTitle = hasRequiredClasses ? "you're cooked" : 'you survived (for now)';
+
+  const { user } = useUser();
+  const { mode } = usePersonalityMode();
+  const summaryTitle = useMemo(() => {
+    if (FEATURES.ENABLE_PERSONALITY_MODES) {
+      const copy = getPersonalityCopy({ mode, user });
+      return hasRequiredClasses ? copy.attendance.bannerTitleBad : copy.attendance.bannerTitleGood;
+    }
+    return hasRequiredClasses ? "you're cooked" : 'you survived (for now)';
+  }, [mode, user, hasRequiredClasses]);
   const summaryGlowColor = hasRequiredClasses ? 'error' : 'secondary';
   const summaryAccentColor = hasRequiredClasses ? 'var(--error)' : survivedBlue;
   const summaryBody = hasRequiredClasses
