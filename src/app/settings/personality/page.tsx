@@ -190,13 +190,13 @@ export default function PersonalitySelectionPage() {
                   opacity = 0.8;
                   zIndex = 2;
                   x = offset > 0 ? "18%" : "-18%";
-                  y = 24;
+                  y = 0;
                 } else {
                   scale = 0.85;
                   opacity = 0.5;
                   zIndex = 1;
                   x = offset > 0 ? "32%" : "-32%";
-                  y = 48;
+                  y = 0;
                 }
 
                 return (
@@ -236,7 +236,7 @@ export default function PersonalitySelectionPage() {
                     <div
                       className="absolute inset-0 pointer-events-none z-10"
                       style={{
-                        background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0.95) 100%)',
+                        background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 45%, rgba(0,0,0,1) 100%)',
                         borderRadius: 'inherit'
                       }}
                     />
