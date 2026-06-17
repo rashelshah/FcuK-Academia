@@ -18,6 +18,12 @@ export interface PersonalityCopy {
     bannerTitleGood: string[];
     bannerTitleBad: string[];
   };
+  notifications: {
+    upcomingClass: { title: string; message: string };
+    attendanceWarning: { title: string; message: string };
+    marksGood: { title: string; message: string };
+    marksBad: { title: string; message: string };
+  };
 }
 
 export const personalityContent: Record<PersonalityMode, PersonalityCopy> = {
@@ -58,6 +64,12 @@ export const personalityContent: Record<PersonalityMode, PersonalityCopy> = {
       bannerTitleGood: ['you survived (for now)'],
       bannerTitleBad: ["you're cooked"],
     },
+    notifications: {
+      upcomingClass: { title: 'class radar', message: '📚 Bhai uth ja… 30 min mein {subject} hai 💀' },
+      attendanceWarning: { title: 'attendance cooked alert', message: '⚠️ Pushpa jhukega nahi… par tera attendance jhuk gaya hai 💀' },
+      marksGood: { title: 'marks just dropped', message: '🔥 Aaj khush toh bahut hoge tum 😏' },
+      marksBad: { title: 'marks just dropped', message: '💀 This too shall pass...' },
+    },
   },
   girlie_pop: {
     home: {
@@ -86,6 +98,12 @@ export const personalityContent: Record<PersonalityMode, PersonalityCopy> = {
     attendance: {
       bannerTitleGood: ['attendance check passed bestie ✨'],
       bannerTitleBad: ['attendance needs some love 💖'],
+    },
+    notifications: {
+      upcomingClass: { title: 'class time bestie ✨', message: '💅 time to romanticize {subject} in 30 mins' },
+      attendanceWarning: { title: 'attendance emergency 🚨', message: '✨ bestie your attendance is giving drop-out energy, please fix it' },
+      marksGood: { title: 'academic weapon 💅', message: '✨ slaying those marks bestie, we love to see it' },
+      marksBad: { title: 'minor setback 💖', message: '💅 it\'s okay bestie, we\'re doing it for the plot anyway' },
     },
   },
   sigma: {
@@ -116,6 +134,12 @@ export const personalityContent: Record<PersonalityMode, PersonalityCopy> = {
       bannerTitleGood: ['attendance metrics optimal'],
       bannerTitleBad: ['attendance below target threshold'],
     },
+    notifications: {
+      upcomingClass: { title: 'schedule alert', message: '🗿 {subject} commences in 30 minutes. stay locked in.' },
+      attendanceWarning: { title: 'metrics warning', message: '⚠️ attendance below optimal threshold. immediate action required.' },
+      marksGood: { title: 'performance optimal', message: '📈 marks updated. acceptable optimization level achieved.' },
+      marksBad: { title: 'performance deficit', message: '📉 unacceptable metrics. optimize your study routine immediately.' },
+    },
   },
   delulu: {
     home: {
@@ -144,6 +168,12 @@ export const personalityContent: Record<PersonalityMode, PersonalityCopy> = {
     attendance: {
       bannerTitleGood: ['perfect attendance energy ✨'],
       bannerTitleBad: ['there\'s still time to recover ✨'],
+    },
+    notifications: {
+      upcomingClass: { title: 'manifesting a class ✨', message: '🔮 {subject} in 30 mins (if it even exists)' },
+      attendanceWarning: { title: 'energy check ✨', message: '⚠️ the universe is telling you to attend class (or not, trust the curve)' },
+      marksGood: { title: 'manifestation successful', message: '✨ I literally manifested this. A+ energy.' },
+      marksBad: { title: 'marks illusion ✨', message: '💀 these marks are just a social construct anyway' },
     },
   },
   academic_victim: {
@@ -174,6 +204,12 @@ export const personalityContent: Record<PersonalityMode, PersonalityCopy> = {
       bannerTitleGood: ['barely scraping by'],
       bannerTitleBad: ['may the attendance gods help you'],
     },
+    notifications: {
+      upcomingClass: { title: 'impending doom', message: '😭 30 mins until {subject}... send help' },
+      attendanceWarning: { title: 'academic collapse', message: '⚠️ attendance is ruined. it\'s so over for us.' },
+      marksGood: { title: 'miracle occurred', message: '😭 I survived... thank god' },
+      marksBad: { title: 'more trauma', message: '💀 just drop me out already' },
+    },
   },
   corporate_hustler: {
     home: {
@@ -203,6 +239,12 @@ export const personalityContent: Record<PersonalityMode, PersonalityCopy> = {
       bannerTitleGood: ['KPIs are looking green'],
       bannerTitleBad: ['we need to talk about your utilization rate'],
     },
+    notifications: {
+      upcomingClass: { title: 'calendar block', message: '🤝 hard stop in 30 mins for {subject} sync' },
+      attendanceWarning: { title: 'kpi warning', message: '⚠️ your attendance utilization rate is severely impacting ROI' },
+      marksGood: { title: 'q3 performance excellent', message: '📈 outstanding deliverables on these marks. great synergy.' },
+      marksBad: { title: 'performance review needed', message: '📉 we need to circle back on these deliverables' },
+    },
   },
   brain_rot: {
     home: {
@@ -231,6 +273,12 @@ export const personalityContent: Record<PersonalityMode, PersonalityCopy> = {
     attendance: {
       bannerTitleGood: ['W aura'],
       bannerTitleBad: ['negative 1000 aura'],
+    },
+    notifications: {
+      upcomingClass: { title: 'skibidi radar', message: '🧠 30 mins till {subject}... bro is cooked' },
+      attendanceWarning: { title: 'negative aura alert', message: '⚠️ bro\'s attendance is literally giving -10000 aura' },
+      marksGood: { title: 'W rizz', message: '🔥 bro actually cooked. massive W.' },
+      marksBad: { title: 'L aura', message: '💀 bro is absolutely washed. put the fries in the bag.' },
     },
   },
 };

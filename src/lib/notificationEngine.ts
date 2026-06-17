@@ -23,6 +23,7 @@ import type {
   RawMarkItem,
   RawTimetableItem,
 } from '@/lib/server/academia';
+import { type PersonalityMode, personalityContent } from '@/config/personality';
 
 interface NotificationEngineInput {
   attendance: RawAttendanceItem[];
@@ -30,6 +31,7 @@ interface NotificationEngineInput {
   timetable: RawTimetableItem[];
   calendar: RawCalendarMonth[];
   now?: Date;
+  personalityMode?: PersonalityMode;
 }
 
 const CLASS_REMINDER_LEAD_MINUTES = 30;
@@ -79,6 +81,7 @@ function getUpcomingClassNotification(
   timetable: RawTimetableItem[],
   calendar: RawCalendarMonth[],
   now: Date,
+  mode: PersonalityMode = 'fcuk_academia',
 ) {
   const todayEntry = getCalendarEntryForDate(calendar, now);
   const dayOrder = Number(todayEntry?.day.dayOrder);
@@ -98,9 +101,13 @@ function getUpcomingClassNotification(
     if (hasSeenNotification('class', identifier, now)) continue;
 
     markNotificationSeen('class', identifier, now);
+    
+    const copy = personalityContent[mode].notifications.upcomingClass;
+    const message = copy.message.replace('{subject}', formatSubjectName(classItem.courseTitle));
+
     return {
-      title: 'class radar',
-      message: `📚 Bhai uth ja… 30 min mein ${formatSubjectName(classItem.courseTitle)} hai 💀`,
+      title: copy.title,
+      message,
       type: 'class',
       sound: 'class',
       source: 'engine',
@@ -114,7 +121,7 @@ function getUpcomingClassNotification(
   return null;
 }
 
-function getAttendanceWarningNotification(attendance: RawAttendanceItem[], now: Date) {
+function getAttendanceWarningNotification(attendance: RawAttendanceItem[], now: Date, mode: PersonalityMode = 'fcuk_academia') {
   const criticalAttendance = getCriticalAttendance(attendance);
   if (!criticalAttendance) return null;
 
@@ -127,9 +134,11 @@ function getAttendanceWarningNotification(attendance: RawAttendanceItem[], now: 
   }
 
   markNotificationSeen('attendance', identifier, now);
+  const copy = personalityContent[mode].notifications.attendanceWarning;
+
   return {
-    title: 'attendance cooked alert',
-    message: '⚠️ Pushpa jhukega nahi… par tera attendance jhuk gaya hai 💀',
+    title: copy.title,
+    message: copy.message,
     type: 'warning',
     sound: 'warning',
     source: 'engine',
@@ -141,7 +150,7 @@ function getAttendanceWarningNotification(attendance: RawAttendanceItem[], now: 
   } satisfies NotificationPayload;
 }
 
-function getMarksUpdateNotification(markList: RawMarkItem[], now: Date) {
+function getMarksUpdateNotification(markList: RawMarkItem[], now: Date, mode: PersonalityMode = 'fcuk_academia') {
   const currentSnapshot = getMarksSnapshot(markList, now);
   const previousSnapshot = readPreviousMarksSnapshot();
 
@@ -159,10 +168,13 @@ function getMarksUpdateNotification(markList: RawMarkItem[], now: Date) {
 
   markNotificationSeen('marks', identifier, now);
 
+  const copyGood = personalityContent[mode].notifications.marksGood;
+  const copyBad = personalityContent[mode].notifications.marksBad;
+
   if (delta >= 0) {
     return {
-      title: 'marks just dropped',
-      message: '🔥 Aaj khush toh bahut hoge tum 😏',
+      title: copyGood.title,
+      message: copyGood.message,
       type: 'good',
       sound: 'good',
       source: 'engine',
@@ -175,8 +187,8 @@ function getMarksUpdateNotification(markList: RawMarkItem[], now: Date) {
   }
 
   return {
-    title: 'marks just dropped',
-    message: '💀 This too shall pass...',
+    title: copyBad.title,
+    message: copyBad.message,
     type: 'bad',
     sound: 'bad',
     source: 'engine',
@@ -194,16 +206,17 @@ export function evaluateNotificationEngine({
   timetable,
   calendar,
   now = new Date(),
+  personalityMode = 'fcuk_academia',
 }: NotificationEngineInput) {
   const notifications: NotificationPayload[] = [];
 
-  const upcomingClass = getUpcomingClassNotification(timetable, calendar, now);
+  const upcomingClass = getUpcomingClassNotification(timetable, calendar, now, personalityMode);
   if (upcomingClass) notifications.push(upcomingClass);
 
-  const attendanceWarning = getAttendanceWarningNotification(attendance, now);
+  const attendanceWarning = getAttendanceWarningNotification(attendance, now, personalityMode);
   if (attendanceWarning) notifications.push(attendanceWarning);
 
-  const marksUpdate = getMarksUpdateNotification(markList, now);
+  const marksUpdate = getMarksUpdateNotification(markList, now, personalityMode);
   if (marksUpdate) notifications.push(marksUpdate);
 
   return notifications;

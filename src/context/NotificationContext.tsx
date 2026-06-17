@@ -14,6 +14,7 @@ import React, {
 import type { MessagePayload } from 'firebase/messaging';
 
 import { useDashboardDataContext } from '@/context/DashboardDataContext';
+import { usePersonalityMode } from '@/context/PersonalityContext';
 import { evaluateNotificationEngine, getNextNotificationEngineDelay } from '@/lib/notificationEngine';
 import {
   NOTIFICATIONS_DEFAULT_DURATION_MS,
@@ -104,6 +105,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     markList,
     timetable,
   } = useDashboardDataContext();
+  const { mode } = usePersonalityMode();
   const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
   const [permissionState, setPermissionState] = useState<NotificationPermissionState>('unknown');
   const [notificationQueue, setNotificationQueue] = useState<NotificationToastItem[]>([]);
@@ -121,12 +123,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const markListRef = useRef(markList);
   const timetableRef = useRef(timetable);
   const loadingRef = useRef(loading);
+  const modeRef = useRef(mode);
 
   attendanceRef.current = attendance;
   calendarRef.current = calendar;
   markListRef.current = markList;
   timetableRef.current = timetable;
   loadingRef.current = loading;
+  modeRef.current = mode;
 
   const dismissNotification = useCallback((id: string) => {
     setNotificationQueue((current) => current.filter((item) => item.id !== id));
@@ -216,6 +220,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       markList: markListRef.current,
       timetable: timetableRef.current,
       calendar: calendarRef.current,
+      personalityMode: modeRef.current,
     });
 
     nextNotifications.forEach((payload) => enqueueNotification(payload));

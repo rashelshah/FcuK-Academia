@@ -117,14 +117,14 @@ export default async function RootLayout({
           ) : (
             <DashboardDataProvider>
               <AppStateProvider>
-                <NotificationProvider>
-                  <PersonalityProvider>
+                <PersonalityProvider>
+                  <NotificationProvider>
                     <CommunityPopup />
                     <AppLayout>
                       {children}
                     </AppLayout>
-                  </PersonalityProvider>
-                </NotificationProvider>
+                  </NotificationProvider>
+                </PersonalityProvider>
               </AppStateProvider>
             </DashboardDataProvider>
           )}
