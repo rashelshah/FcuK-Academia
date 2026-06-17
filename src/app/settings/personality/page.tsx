@@ -160,7 +160,7 @@ export default function PersonalitySelectionPage() {
             </section>
 
             {/* Stacked Hero Carousel */}
-            <div className="relative flex h-[62vh] w-full items-start justify-center pt-2">
+            <div className="relative flex h-[62vh] md:h-[75vh] w-full items-start justify-center pt-2">
               {PERSONALITIES.map((personality, index) => {
                 const isActiveMode = mode === personality.id;
                 const length = PERSONALITIES.length;
@@ -192,17 +192,17 @@ export default function PersonalitySelectionPage() {
                   x = offset > 0 ? "18%" : "-18%";
                   y = 0;
                 } else {
-                  scale = 0.85;
-                  opacity = 0.5;
+                  scale = 0.7;
+                  opacity = 0;
                   zIndex = 1;
-                  x = offset > 0 ? "32%" : "-32%";
+                  x = offset > 0 ? "50%" : "-50%";
                   y = 0;
                 }
 
                 return (
                   <motion.div
                     key={personality.id}
-                    className="absolute flex h-[56vh] w-[76vw] max-w-[320px] shrink-0 flex-col overflow-hidden rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.25)] touch-pan-y bg-surface-card"
+                    className="absolute flex h-[56vh] w-[76vw] max-w-[320px] md:h-[68vh] md:max-w-[420px] lg:h-[70vh] lg:max-w-[480px] shrink-0 flex-col overflow-hidden rounded-[28px] md:rounded-[36px] shadow-[0_20px_60px_rgba(0,0,0,0.25)] touch-pan-y bg-black"
                     style={{
                       willChange: 'transform, opacity',
                       transform: 'translateZ(0)',
@@ -228,7 +228,7 @@ export default function PersonalitySelectionPage() {
                       src={personality.image}
                       alt={personality.name}
                       fill
-                      sizes="(max-width: 768px) 80vw, 320px"
+                      sizes="(max-width: 768px) 80vw, (max-width: 1024px) 420px, 480px"
                       className="object-cover object-top pointer-events-none"
                       priority={true}
                     />
