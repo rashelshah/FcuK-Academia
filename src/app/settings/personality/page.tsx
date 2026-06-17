@@ -89,14 +89,14 @@ export default function PersonalitySelectionPage() {
     const idx = PERSONALITIES.findIndex(p => p.id === mode);
     return idx === -1 ? 0 : idx;
   });
-  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
 
   const onDragStart = () => {
-    setIsDragging(true);
+    isDraggingRef.current = true;
   };
 
   const onDragEnd = (event: any, info: any) => {
-    setIsDragging(false);
+    isDraggingRef.current = false;
     const swipeThreshold = 30;
     const velocityThreshold = 400;
 
@@ -108,12 +108,12 @@ export default function PersonalitySelectionPage() {
   };
 
   useEffect(() => {
-    if (isDragging) return;
     const timer = setInterval(() => {
+      if (isDraggingRef.current) return;
       setActiveIndex((prev) => (prev + 1) % PERSONALITIES.length);
     }, 2000);
     return () => clearInterval(timer);
-  }, [activeIndex, isDragging]);
+  }, [activeIndex]);
 
   const handleModeSelect = (selectedId: PersonalityMode) => {
     if (selectedId === mode) {
