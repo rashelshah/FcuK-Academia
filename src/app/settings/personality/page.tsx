@@ -204,7 +204,8 @@ export default function PersonalitySelectionPage() {
                     key={personality.id}
                     className="absolute flex h-[56vh] w-[76vw] max-w-[320px] shrink-0 flex-col overflow-hidden rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.25)] touch-pan-y bg-surface-card"
                     style={{
-                      WebkitMaskImage: '-webkit-radial-gradient(white, black)'
+                      willChange: 'transform, opacity',
+                      transform: 'translateZ(0)',
                     }}
                     animate={{
                       scale,
@@ -229,7 +230,7 @@ export default function PersonalitySelectionPage() {
                       fill
                       sizes="(max-width: 768px) 80vw, 320px"
                       className="object-cover object-top pointer-events-none"
-                      priority={isZero || isOne}
+                      priority={true}
                     />
 
                     <div
