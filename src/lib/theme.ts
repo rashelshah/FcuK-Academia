@@ -1,5 +1,7 @@
 import { motionPresets } from '@/lib/motion';
 import { ThemeDefinition, ThemeType } from '@/lib/types';
+import { retroTheme } from '@/themes/retro';
+import { tekkenTheme } from '@/themes/tekken';
 
 export const defaultTheme: ThemeType = 'neon-lime';
 export const THEME_STORAGE_KEY = 'fcuk-academia-theme';
@@ -22,6 +24,8 @@ export const themeOrder: ThemeType[] = [
   'purple-peach',
   'mint-gray',
   'soft-pink-beige',
+  'retro',
+  'tekken',
 ];
 
 export const themeFontMap: Record<ThemeType, string> = {
@@ -40,6 +44,8 @@ export const themeFontMap: Record<ThemeType, string> = {
   'orange-noir': '"ThemeNumberOrangeNoir", sans-serif',
   'neo-brutal-pop': '"ThemeNumberNeoBrutalPop", sans-serif',
   'royal-amethyst': '"ThemeNumberRoyalAmethyst", serif',
+  retro: '"MS Sans Serif", "Tahoma", "Verdana", sans-serif',
+  tekken: '"ThemeNumberTekken", "Orbitron", "Eurostile", sans-serif',
 };
 
 export const themes: Record<ThemeType, ThemeDefinition> = {
@@ -902,6 +908,8 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     },
     motion: motionPresets.elegantFloat,
   },
+  retro: retroTheme,
+  tekken: tekkenTheme,
 };
 
 type Rgb = { r: number; g: number; b: number };

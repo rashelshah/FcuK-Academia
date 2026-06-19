@@ -13,6 +13,7 @@ import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/
 import { useMarks } from '@/hooks/useMarks';
 import { useUser } from '@/hooks/useUser';
 import { getMarksPercentage, getWeakestMark } from '@/lib/academia-ui';
+import { useTheme } from '@/context/ThemeContext';
 import { usePersonalityMode } from '@/context/PersonalityContext';
 import { getPersonalityCopy } from '@/lib/personalization';
 import { FEATURES } from '@/lib/features';
@@ -39,28 +40,35 @@ export default function MarksPage() {
 
   const { user } = useUser();
   const { mode } = usePersonalityMode();
+  const { theme } = useTheme();
   
   const { bannerTitle, bannerSubtitle } = React.useMemo(() => {
+    let title = "you're FcuKed";
+    let subtitle = "subjects requiring immediate trauma recovery";
     if (FEATURES.ENABLE_PERSONALITY_MODES) {
       const copy = getPersonalityCopy({ mode, user });
-      return { bannerTitle: copy.marks.bannerTitle, bannerSubtitle: copy.marks.bannerSubtitle };
+      title = copy.marks.bannerTitle;
+      subtitle = copy.marks.bannerSubtitle;
     }
-    return { bannerTitle: "you're FcuKed", bannerSubtitle: "subjects requiring immediate trauma recovery" };
-  }, [mode, user]);
+    if (theme === 'tekken') {
+      title = 'ROUND LOST';
+    }
+    return { bannerTitle: title, bannerSubtitle: subtitle };
+  }, [mode, user, theme]);
 
   return (
-    <PageReveal className="flex flex-col gap-6 pb-28 pt-4">
+    <PageReveal className="flex flex-col gap-6 pb-40 pt-4">
       <AppHeader />
 
       <section className="mt-2 space-y-2">
-        <p className="theme-kicker">total aggregate</p>
-        <RevealHeading className="flex items-baseline gap-2">
-          <span className="text-[5.2rem] font-bold leading-[0.82] tracking-tight text-primary">
+        <p className="theme-kicker">{theme === 'tekken' ? 'COMBAT SCORE' : 'total aggregate'}</p>
+        <RevealHeading className="flex flex-wrap items-baseline gap-2 sm:flex-nowrap">
+          <span className={`font-bold leading-[0.82] tracking-tight text-primary ${theme === 'tekken' ? 'text-[clamp(3.8rem,16vw,5.2rem)]' : 'text-[5.2rem]'}`}>
             {loading
               ? <ThemedNumberText value="0.0" />
               : <CountUp value={totalObtained} decimals={1} renderFormatted={(formatted) => <ThemedNumberText value={formatted} />} />}
           </span>
-          <span className="font-headline text-4xl font-bold text-on-surface-variant">
+          <span className={`font-headline font-bold text-on-surface-variant ${theme === 'tekken' ? 'text-[clamp(2rem,8vw,2.25rem)]' : 'text-4xl'}`}>
             / <ThemedNumberText value={`${totalMax || 0}`} />
           </span>
         </RevealHeading>
@@ -73,7 +81,7 @@ export default function MarksPage() {
         >
           <TrendingUp className="h-3.5 w-3.5 text-primary" />
           <span className="text-xs font-semibold text-on-surface">
-            {loading ? '0.0% live internal score' : <CountUp value={percentage} decimals={1} suffix="% live internal score" />}
+            {loading ? `0.0% ${theme === 'tekken' ? 'power level' : 'live internal score'}` : <CountUp value={percentage} decimals={1} suffix={`% ${theme === 'tekken' ? 'power level' : 'live internal score'}`} />}
           </span>
         </div>
       </section>
@@ -101,10 +109,10 @@ export default function MarksPage() {
               <div className="min-w-0 flex-1 text-left">
                 <h4 className="font-headline text-[1.65rem] font-bold lowercase leading-[0.96] text-on-surface">{weakestSubjectName}</h4>
                 <p className="mt-1 font-label text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">
-                  {weakest ? `${weakest.category} / INTERNAL: ${formatMarkValue(weakest.total.obtained)}/${formatMarkValue(weakest.total.maxMark)}` : 'live data / internals stable'}
+                  {weakest ? `${weakest.category} / ${theme === 'tekken' ? 'POWER LEVEL' : 'INTERNAL'}: ${formatMarkValue(weakest.total.obtained)}/${formatMarkValue(weakest.total.maxMark)}` : `live data / ${theme === 'tekken' ? 'POWER LEVEL STABLE' : 'internals stable'}`}
                 </p>
               </div>
-              <span className="shrink-0 self-start font-headline text-[3.4rem] font-bold leading-none tracking-tight text-error sm:self-auto sm:text-[3.8rem]">
+              <span className={`shrink-0 self-start font-headline font-bold leading-none tracking-tight text-error sm:self-auto sm:text-[3.8rem] ${theme === 'tekken' ? 'text-[clamp(2.6rem,11vw,3.4rem)]' : 'text-[3.4rem]'}`}>
                 {weakest && weakest.total.maxMark
                   ? (loading ? '0.0' : <CountUp value={(weakest.total.obtained / weakest.total.maxMark) * 100} decimals={1} />)
                   : '--'}

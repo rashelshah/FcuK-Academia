@@ -306,18 +306,26 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                     );
                   })
                 ) : (
-                  navItems.map((item) => (
-                    <NavItemButton
-                      key={item.href}
-                      href={item.href}
-                      icon={item.icon}
-                      isActive={resolvedPath === item.href}
-                      label={item.label}
-                      motionPreset={themeConfig.motion}
-                      mounted={mounted}
-                      onNavigate={onNavigate}
-                    />
-                  ))
+                  navItems.map((item) => {
+                    let displayLabel = item.label;
+                    if (themeConfig.id === 'tekken') {
+                      if (item.label === 'home') displayLabel = 'stage select';
+                      if (item.label === 'marks') displayLabel = 'combat score';
+                      if (item.label === 'attendance') displayLabel = 'stamina';
+                    }
+                    return (
+                      <NavItemButton
+                        key={item.href}
+                        href={item.href}
+                        icon={item.icon}
+                        isActive={resolvedPath === item.href}
+                        label={displayLabel}
+                        motionPreset={themeConfig.motion}
+                        mounted={mounted}
+                        onNavigate={onNavigate}
+                      />
+                    );
+                  })
                 )}
               </div>
             </div>

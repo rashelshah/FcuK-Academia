@@ -61,7 +61,9 @@ export type ThemeType =
   | 'lavender-violet'
   | 'purple-peach'
   | 'mint-gray'
-  | 'soft-pink-beige';
+  | 'soft-pink-beige'
+  | 'retro'
+  | 'tekken';
 
 export interface ThemeMotionPreset {
   id: string;
@@ -175,4 +177,11 @@ export interface ThemeDefinition {
     heroGradient: string;
   };
   motion: ThemeMotionPreset;
+  config?: {
+    animationIntensity?: 'low' | 'medium' | 'high';
+    backgroundOpacity?: number;
+    scanlineOpacity?: number;
+    effectsEnabled?: boolean;
+    [key: string]: any;
+  };
 }

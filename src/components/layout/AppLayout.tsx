@@ -20,6 +20,8 @@ import IntroOverlay from '@/components/ui/IntroOverlay';
 import CinematicIntroOverlay from '@/components/ui/CinematicIntroOverlay';
 import InstallGate from '@/components/system/InstallGate';
 import GlobalErrorBanner from '@/components/ui/GlobalErrorBanner';
+import TekkenBackground from '@/components/themes/TekkenBackground';
+import TekkenHitSparks from '@/components/themes/TekkenHitSparks';
 
 const HIDE_NAV_PATHS = ['/login'];
 const SWIPEABLE_PATHS = ['/', '/marks', '/attendance', '/timetable', '/calendar', '/settings'] as const;
@@ -112,7 +114,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <InstallGate>
-      <div className="relative mx-auto min-h-screen w-full max-w-[28rem] overflow-x-hidden sm:max-w-[34rem] lg:max-w-[44rem] xl:max-w-[52rem]">
+      <TekkenBackground />
+      <TekkenHitSparks />
+      <div className="relative z-10 mx-auto min-h-screen w-full max-w-[28rem] overflow-x-hidden sm:max-w-[34rem] lg:max-w-[44rem] xl:max-w-[52rem]">
+        {/* iOS-like status bar background padding */}
+        <div className="h-safe-top bg-surface" />
         <div className="sticky top-0 z-50">
           <GlobalErrorBanner />
         </div>
@@ -120,7 +126,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <CinematicIntroOverlay />
         <OnboardingOverlay />
 
-        <div className="app-shell transition-opacity duration-300">
+        <div className="app-shell z-10 transition-opacity duration-300">
           {isSwipeableRoute ? (
             <SwipeContainer
               activePath={swipeActivePath}
