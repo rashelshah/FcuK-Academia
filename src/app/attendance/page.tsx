@@ -14,6 +14,7 @@ import { useAppState } from '@/context/AppStateContext';
 import { useDashboardDataContext } from '@/context/DashboardDataContext';
 import { useAttendance } from '@/hooks/useAttendance';
 import { useUser } from '@/hooks/useUser';
+import { useTheme } from '@/context/ThemeContext';
 import type { Subject } from '@/lib/types';
 import { formatDayOrderNumber } from '@/lib/academia-ui';
 import { usePersonalityMode } from '@/context/PersonalityContext';
@@ -59,13 +60,18 @@ export default function AttendancePage() {
 
   const { user } = useUser();
   const { mode } = usePersonalityMode();
+  const { theme } = useTheme();
   const summaryTitle = useMemo(() => {
+    let title = hasRequiredClasses ? "you're cooked" : 'you survived (for now)';
     if (FEATURES.ENABLE_PERSONALITY_MODES) {
       const copy = getPersonalityCopy({ mode, user });
-      return hasRequiredClasses ? copy.attendance.bannerTitleBad : copy.attendance.bannerTitleGood;
+      title = hasRequiredClasses ? copy.attendance.bannerTitleBad : copy.attendance.bannerTitleGood;
     }
-    return hasRequiredClasses ? "you're cooked" : 'you survived (for now)';
-  }, [mode, user, hasRequiredClasses]);
+    if (theme === 'tekken') {
+      title = hasRequiredClasses ? 'LOW HEALTH' : 'ROUND CLEARED';
+    }
+    return title;
+  }, [mode, user, hasRequiredClasses, theme]);
   const summaryGlowColor = hasRequiredClasses ? 'error' : 'secondary';
   const summaryAccentColor = hasRequiredClasses ? 'var(--error)' : survivedBlue;
   const summaryBody = hasRequiredClasses
@@ -110,7 +116,7 @@ export default function AttendancePage() {
           <span className="font-headline text-[12rem] font-bold leading-none tracking-tight text-on-surface">{backgroundDayOrder}</span>
         </div>
         <RevealHeading className="relative z-10">
-          <p className="theme-kicker mb-2">overall attendance</p>
+          <p className="theme-kicker mb-2">{theme === 'tekken' ? 'SURVIVAL RATE' : 'overall attendance'}</p>
           <span className="text-[6.6rem] font-bold leading-[0.86] tracking-tight text-primary">
             {loading
               ? <ThemedNumberText value="0.0%" />
@@ -144,8 +150,12 @@ export default function AttendancePage() {
                 <span className="block font-headline text-5xl font-bold leading-none" style={{ color: summaryAccentColor }}>
                   {loading ? '0' : <CountUp value={summaryValue} />}
                 </span>
-                <span className="mt-1 block font-headline text-xl font-bold lowercase leading-none" style={{ color: summaryAccentColor }}>classes</span>
-                <span className="mt-2 block font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">{summaryMeta}</span>
+                <span className="mt-1 block font-headline text-xl font-bold lowercase leading-none" style={{ color: summaryAccentColor }}>
+                  {theme === 'tekken' ? 'HP' : 'classes'}
+                </span>
+                <span className="mt-2 block font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                  {theme === 'tekken' && hasRequiredClasses ? 'REQUIRED' : summaryMeta}
+                </span>
                 {summarySubject ? (
                   <span className="mt-3 block max-w-[8rem] text-[11px] leading-tight text-on-surface-variant">
                     {summarySubject}
@@ -174,7 +184,7 @@ export default function AttendancePage() {
               : "rounded-[var(--radius-pill)] bg-primary px-5 py-3 font-label text-[10px] font-bold uppercase tracking-widest text-[var(--text-inverse)] shadow-[var(--glow-primary)] transition-all active:scale-95"
             }
           >
-            {predictedAttendance ? <X size={14} /> : 'predict'}
+            {predictedAttendance ? <X size={14} /> : (theme === 'tekken' ? 'TRAINING MODE' : 'predict')}
           </button>
         </RevealText>
         <div className="grid grid-cols-1 gap-6">

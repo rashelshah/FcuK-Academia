@@ -117,6 +117,7 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
 
   const { theme } = useTheme();
   const isRetro = theme === 'retro';
+  const isTekken = theme === 'tekken';
   
   // Retro theme uses fonts (MS Sans Serif, Tahoma) that require more vertical space
   const baseDesktopHeight = isRetro ? 26.5 : 24.0;
@@ -184,7 +185,7 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
             style={{ minHeight: `${cardHeight}rem` }}
           >
             <GlowEdge glowColor={glowColor} />
-            <MarksCardBack subject={subject} chartData={chartData} lineColor={hexColor} />
+            <MarksCardBack subject={subject} chartData={chartData} lineColor={hexColor} isTekken={isTekken} />
           </div>
         </div>
       </motion.div>
@@ -351,10 +352,12 @@ function MarksCardBack({
   subject,
   chartData,
   lineColor,
+  isTekken,
 }: {
   subject: Subject;
   chartData: { exam: string; obtained: number; max: number; remaining: number }[];
   lineColor: string;
+  isTekken?: boolean;
 }) {
   const isCompact = chartData.length > 2;
 
@@ -362,7 +365,7 @@ function MarksCardBack({
     <div className="flex h-full flex-col">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="theme-kicker">marks trend</p>
+          <p className="theme-kicker">{isTekken ? 'DAMAGE TAKEN' : 'marks trend'}</p>
           <h3
             className={cn(
               'mt-1 line-clamp-2 font-headline font-bold lowercase leading-[0.85] text-on-surface',

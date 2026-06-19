@@ -12,6 +12,7 @@ import CountUp from '@/components/ui/CountUp';
 import TextType from '@/components/ui/TextType';
 import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
 import { useAppState } from '@/context/AppStateContext';
+import { useTheme } from '@/context/ThemeContext';
 import { formatDayOrderNumber, getClassesForDay, getClassWindow, getCurrentClassIndex, getDayOrders, getOverallAttendance, getScheduleSnapshot, getTotalMarks, getWeakestMark } from '@/lib/academia-ui';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
@@ -26,6 +27,7 @@ export default function HomePage() {
     availableDayOrders,
     setActiveDayOrder,
   } = useAppState();
+  const { theme } = useTheme();
   const { mode } = usePersonalityMode();
   const timetableDayOrders = useMemo(() => getDayOrders(timetable), [timetable]);
   const dayOrders = useMemo(
@@ -142,6 +144,13 @@ export default function HomePage() {
       .split(/\s+/)
       .reduce((longest, word) => Math.max(longest, word.length), 0);
 
+    if (theme === 'tekken') {
+      if (longestWord >= 12) return 'text-[clamp(2rem,11vw,3.2rem)]';
+      if (longestWord >= 10) return 'text-[clamp(2.2rem,12vw,3.5rem)]';
+      if (longestWord >= 8) return 'text-[clamp(2.4rem,13vw,3.8rem)]';
+      return 'text-[clamp(2.7rem,15vw,4.2rem)]';
+    }
+
     if (longestWord >= 12) {
       return 'text-[clamp(2.35rem,13.8vw,3.8rem)]';
     }
@@ -155,7 +164,7 @@ export default function HomePage() {
     }
 
     return 'text-[clamp(3.2rem,18vw,5rem)]';
-  }, [featuredTitle]);
+  }, [featuredTitle, theme]);
   const courseTitleMap = useMemo(
     () => new Map(attendance.map((item) => [item.courseCode, item.courseTitle])),
     [attendance],
@@ -265,7 +274,7 @@ export default function HomePage() {
 
         <div className="theme-card p-6">
           <span className="block font-label text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">total marks</span>
-          <div className="mt-3 font-headline text-[clamp(2.15rem,10vw,2.85rem)] font-bold leading-none tracking-tight text-on-surface">
+          <div className={`mt-3 font-headline font-bold leading-none tracking-tight text-on-surface ${theme === 'tekken' ? 'text-[clamp(1.6rem,8vw,2.2rem)]' : 'text-[clamp(2.15rem,10vw,2.85rem)]'}`}>
             {loading ? '0.00' : <CountUp value={totalMarks} decimals={2} />}
           </div>
           <div className="mt-3 font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">live internal total</div>
@@ -373,12 +382,12 @@ export default function HomePage() {
 
 function MarkItem({ dotColor, title, score }: { dotColor: string; title: string; score: string }) {
   return (
-    <div className="theme-card flex items-center justify-between p-5">
-      <div className="flex min-w-0 items-center gap-4 pr-4">
-        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: dotColor, boxShadow: `0 0 12px ${dotColor}` }} />
-        <span className="font-headline text-lg font-bold leading-tight text-on-surface">{title}</span>
+    <div className="theme-card flex items-center justify-between gap-3 p-5">
+      <div className="flex min-w-0 flex-1 items-start gap-3 pr-2">
+        <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: dotColor, boxShadow: `0 0 12px ${dotColor}` }} />
+        <span className="line-clamp-2 font-headline text-[clamp(0.9rem,3.5vw,1.125rem)] font-bold leading-tight text-on-surface [word-break:break-word]">{title}</span>
       </div>
-      <span className="font-headline text-xl font-bold tracking-tight text-on-surface">{score}</span>
+      <span className="shrink-0 text-right font-headline text-[clamp(1rem,4vw,1.25rem)] font-bold tracking-tight text-on-surface">{score}</span>
     </div>
   );
 }

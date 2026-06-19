@@ -62,7 +62,8 @@ export type ThemeType =
   | 'purple-peach'
   | 'mint-gray'
   | 'soft-pink-beige'
-  | 'retro';
+  | 'retro'
+  | 'tekken';
 
 export interface ThemeMotionPreset {
   id: string;

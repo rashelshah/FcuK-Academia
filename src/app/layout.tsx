@@ -94,6 +94,9 @@ export default async function RootLayout({
       style={{ ...htmlStyle, colorScheme: initialThemeConfig.mode }}
       suppressHydrationWarning
     >
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      </head>
       <body
         suppressHydrationWarning
         className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}
