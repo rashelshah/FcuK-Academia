@@ -991,7 +991,8 @@ html[data-theme='retro'] ::-webkit-scrollbar-button:active {
 
 /* ─── TEKKEN MODE OVERRIDES ──────────────────────────────────────────────── */
 html[data-theme='tekken'] body {
-  font-family: "Rajdhani", sans-serif;
+  background-color: transparent !important;
+  font-family: var(--font-body), "Rajdhani", sans-serif;
   letter-spacing: 0.02em;
 }
 
@@ -1000,48 +1001,110 @@ html[data-theme='tekken'] h2,
 html[data-theme='tekken'] h3, 
 html[data-theme='tekken'] h4, 
 html[data-theme='tekken'] .font-headline {
-  font-family: "Orbitron", "Eurostile", sans-serif;
+  font-family: "Teko", sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-weight: 700;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(0, 217, 255, 0.2);
+}
+
+html[data-theme='tekken'] .theme-number-font,
+html[data-theme='tekken'] .theme-badge,
+html[data-theme='tekken'] .theme-kicker {
+  font-family: "Orbitron", sans-serif;
+  text-transform: uppercase;
 }
 
 html[data-theme='tekken'] .theme-number-font {
-  font-family: "Orbitron", "Eurostile", sans-serif;
   font-weight: 700 !important;
 }
 
-/* CRT Scanlines & Noise Background */
-html[data-theme='tekken'] body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  background: 
-    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-    linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  background-size: 100% 2px, 3px 100%;
-  pointer-events: none;
+html[data-theme='tekken'] .theme-kicker {
+  color: var(--primary) !important;
+  letter-spacing: 0.15em !important;
+  font-weight: 700;
 }
 
-html[data-theme='tekken'] body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  pointer-events: none;
-}
-
-/* Metallic Cards */
-html[data-theme='tekken'] .theme-card,
-html[data-theme='tekken'] .theme-panel {
-  border-radius: 4px;
-  background: linear-gradient(180deg, #232833 0%, #171b22 100%);
-  border: 1px solid #3b4250;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.5);
+/* HUD Minimalist Cards */
+html[data-theme='tekken'] .theme-card {
   position: relative;
+  background: rgba(10, 13, 18, 0.1); /* Very minimal background */
+  border: 1px solid rgba(0, 217, 255, 0.1);
+  box-shadow: none;
+  backdrop-filter: blur(2px);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Dynamic Gradient Border for Cards (Kept for HUD flair but subtle) */
+html[data-theme='tekken'] .theme-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 50%; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  animation: tekkenBorderFlow 4s linear infinite;
+  opacity: 0.4;
+}
+
+@keyframes tekkenBorderFlow {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+html[data-theme='tekken'] .theme-card:hover {
+  border-color: rgba(0, 217, 255, 0.4);
+  background: rgba(10, 13, 18, 0.2);
+}
+
+/* Floating Text Readability */
+html[data-theme='tekken'] .theme-card * {
+  text-shadow: 0 0 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.9);
+}
+
+/* Kicker and Highlight Glows */
+html[data-theme='tekken'] .font-headline {
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.5), 0 0 20px rgba(0, 0, 0, 0.9), 2px 2px 4px rgba(0, 0, 0, 1) !important;
+}
+
+/* Glitch Text Effect */
+html[data-theme='tekken'] .glitch-text {
+  position: relative;
+  display: inline-block;
+}
+
+html[data-theme='tekken'] .glitch-text::before,
+html[data-theme='tekken'] .glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
+}
+
+html[data-theme='tekken'] .glitch-text::before {
+  left: 2px;
+  text-shadow: -1px 0 red;
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+  animation: glitch-anim 2.5s infinite linear alternate-reverse;
+}
+
+html[data-theme='tekken'] .glitch-text::after {
+  left: -2px;
+  text-shadow: -1px 0 cyan;
+  clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+  animation: glitch-anim 3s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+  0% { clip-path: inset(20% 0 80% 0); transform: translate(0); }
+  20% { clip-path: inset(60% 0 10% 0); transform: translate(-2px, 2px); }
+  40% { clip-path: inset(40% 0 50% 0); transform: translate(2px, -2px); }
+  60% { clip-path: inset(80% 0 5% 0); transform: translate(2px, 2px); }
+  80% { clip-path: inset(10% 0 70% 0); transform: translate(-2px, -2px); }
+  100% { clip-path: inset(30% 0 50% 0); transform: translate(0); }
 }
 
 html[data-theme='tekken'] .theme-card::after,
@@ -1050,29 +1113,35 @@ html[data-theme='tekken'] .theme-panel::after {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   border-radius: inherit;
-  box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.15);
   pointer-events: none;
 }
 
 /* Navigation Bar */
 html[data-theme='tekken'] .liquid-nav {
-  background: linear-gradient(180deg, #1a1f28 0%, #0a0d12 100%) !important;
-  border-top: 2px solid #3b4250;
-  box-shadow: 0 -4px 16px rgba(0,0,0,0.75);
+  background: linear-gradient(180deg, #1a1f2b 0%, #050608 100%) !important;
+  border-top: 2px solid #3a455b;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.1);
   border-radius: 0;
+}
+
+html[data-theme='tekken'] .liquid-nav-item {
+  font-family: "Orbitron", sans-serif;
+  text-transform: uppercase;
 }
 
 html[data-theme='tekken'] .liquid-nav-item.active {
   border-top: 3px solid var(--primary);
+  background: radial-gradient(circle at top, rgba(0, 217, 255, 0.15) 0%, transparent 70%);
 }
 
 /* Tekken Primary Button Glow */
 html[data-theme='tekken'] .glow-primary {
-  background: linear-gradient(90deg, #d61c28 0%, #ff7a00 100%) !important;
-  border: 2px solid #ffcf33 !important;
-  box-shadow: 0 0 15px rgba(214, 28, 40, 0.5) !important;
+  background: linear-gradient(90deg, #1a1f2b 0%, #050608 100%) !important;
+  border: 1px solid #00d9ff !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 0 15px rgba(0, 217, 255, 0.3) !important;
   border-radius: 4px !important;
-  color: #fff !important;
+  color: #00d9ff !important;
   text-transform: uppercase;
   font-family: "Orbitron", sans-serif;
   font-weight: 700;
@@ -1080,50 +1149,44 @@ html[data-theme='tekken'] .glow-primary {
 }
 
 html[data-theme='tekken'] .glow-primary:hover {
-  box-shadow: 0 0 25px rgba(0, 216, 255, 0.8) !important;
+  box-shadow: 0 0 25px rgba(0, 217, 255, 0.6) !important;
+  background: linear-gradient(90deg, #1a1f2b 0%, #1a1f2b 100%) !important;
   filter: brightness(1.2);
 }
 
 html[data-theme='tekken'] .glow-primary:active {
-  box-shadow: inset 0 4px 8px rgba(0,0,0,0.5), 0 0 10px rgba(0, 216, 255, 0.5) !important;
+  box-shadow: inset 0 4px 8px rgba(0,0,0,0.5), 0 0 10px rgba(0, 217, 255, 0.5) !important;
   transform: translateY(2px);
 }
 
-/* Theme Icon Buttons */
+/* Standard & Icon Buttons */
+html[data-theme='tekken'] .theme-outline-button,
 html[data-theme='tekken'] .theme-icon-button {
   border-radius: 4px;
-  background: linear-gradient(180deg, #343d4c 0%, #232833 100%);
-  border: 2px solid #5e6678;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 4px 8px rgba(0,0,0,0.5);
-  transition: all 0.15s ease-out;
-}
-
-html[data-theme='tekken'] .theme-icon-button:hover {
-  border-color: #00d8ff;
-  box-shadow: 0 0 15px rgba(0, 216, 255, 0.5);
-  color: #00d8ff;
-}
-
-/* Standard Buttons */
-html[data-theme='tekken'] .theme-outline-button {
-  border-radius: 4px;
-  background: linear-gradient(180deg, #343d4c 0%, #232833 100%);
-  border: 2px solid #5e6678;
+  background: linear-gradient(180deg, #1a1f2b 0%, #050608 100%);
+  border: 1px solid #3a455b;
   text-transform: uppercase;
   font-family: "Orbitron", sans-serif;
   font-weight: 600;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 4px 8px rgba(0,0,0,0.5);
+  transition: all 0.15s ease-out;
 }
 
-html[data-theme='tekken'] .theme-outline-button:hover {
-  border-color: #00d8ff;
-  box-shadow: 0 0 15px rgba(0, 216, 255, 0.5);
-  color: #00d8ff;
+html[data-theme='tekken'] .theme-outline-button:hover,
+html[data-theme='tekken'] .theme-icon-button:hover {
+  border-color: #00d9ff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 0 15px rgba(0, 217, 255, 0.4);
+  color: #00d9ff;
 }
 
-html[data-theme='tekken'] .theme-kicker {
-  color: var(--primary) !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.15em !important;
-  font-weight: 700;
+html[data-theme='tekken'] .theme-outline-button:active,
+html[data-theme='tekken'] .theme-icon-button:active {
+  box-shadow: inset 0 4px 8px rgba(0,0,0,0.6);
+  transform: translateY(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme='tekken'] .tekken-background {
+    animation: none;
+  }
 }

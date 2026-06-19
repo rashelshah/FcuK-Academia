@@ -95,7 +95,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Rajdhani:wght@400;500;600;700&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body
         suppressHydrationWarning

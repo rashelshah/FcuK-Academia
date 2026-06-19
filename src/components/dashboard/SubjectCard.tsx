@@ -27,6 +27,9 @@ interface SubjectCardProps {
 
 function SubjectCard({ subject, type }: SubjectCardProps) {
   const isAttendance = type === 'attendance';
+  const { theme } = useTheme();
+  const isRetro = theme === 'retro';
+  const isTekken = theme === 'tekken';
   const [flipped, setFlipped] = useState(false);
   const attPct = subject.attendance.percentage;
   const marksPct = subject.marks.totalInternal > 0
@@ -103,6 +106,7 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
           attendancePillClass={attendancePillClass}
           colorClass={colorClass}
           hexColor={hexColor}
+          isTekken={isTekken}
         />
       </div>
     );
@@ -114,10 +118,6 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
   // Account for long titles wrapping (approx 18-20 chars per line at 62% width)
   const estimatedTitleLines = Math.ceil(subject.name.length / 18);
   const titleBuffer = Math.max(0, estimatedTitleLines - 2) * 1.6;
-
-  const { theme } = useTheme();
-  const isRetro = theme === 'retro';
-  const isTekken = theme === 'tekken';
   
   // Retro theme uses fonts (MS Sans Serif, Tahoma) that require more vertical space
   const baseDesktopHeight = isRetro ? 26.5 : 24.0;
@@ -142,7 +142,8 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
       aria-pressed={flipped}
     >
       <motion.div
-        whileTap={{ scale: 0.985 }}
+        whileHover={isTekken ? { scale: 1.02, rotateX: 2, rotateY: -2 } : {}}
+        whileTap={isTekken ? { scale: 0.94, boxShadow: '0 0 50px 15px rgba(0, 217, 255, 0.7)' } : { scale: 0.96 }}
         transition={{ duration: 0.4, ease: EASE_OUT }}
         animate={{ rotateY: flipped ? 180 : 0 }}
         className="relative cursor-pointer [transform-style:preserve-3d]"
@@ -168,7 +169,7 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
               }
             `}</style>
             <GlowEdge glowColor={glowColor} />
-            <MarksCardFront subject={subject} examBoxes={examBoxes} hexColor={hexColor} marksPct={marksPct} />
+            <MarksCardFront subject={subject} examBoxes={examBoxes} hexColor={hexColor} marksPct={marksPct} isTekken={isTekken} />
           </div>
         </div>
 
@@ -214,18 +215,24 @@ function AttendanceCardBody({
   attendancePillClass,
   colorClass,
   hexColor,
+  isTekken,
 }: {
   subject: Subject;
   attPct: number;
   attendancePillClass: string;
   colorClass: string;
   hexColor: string;
+  isTekken: boolean;
 }) {
   const attendanceMargin = Math.floor((subject.attendance.attended / 0.75) - subject.attendance.total);
   const attendanceRequired = Math.ceil((0.75 * subject.attendance.total - subject.attendance.attended) / 0.25);
   
   const marginValue = attPct < 75 ? Math.max(0, attendanceRequired) : Math.max(0, attendanceMargin);
-  const marginLabel = attPct < 75 ? 'required' : 'margin';
+  let marginLabel = attPct < 75 ? 'required' : 'margin';
+  
+  if (isTekken) {
+    marginLabel = attPct < 75 ? 'danger zone' : 'safe zone';
+  }
 
   return (
     <>
@@ -234,7 +241,7 @@ function AttendanceCardBody({
           <h3 className="font-headline text-xl font-bold lowercase leading-[1.1] text-on-surface break-words">{subject.name}</h3>
           <div className="mt-1.5 flex items-center gap-2">
             <p className="font-label text-[10px] tracking-[0.14em] text-on-surface-variant uppercase">
-              {subject.attendance.attended}/{subject.attendance.total} sessions
+              {subject.attendance.attended}/{subject.attendance.total} {isTekken ? 'stamina' : 'sessions'}
             </p>
             <span
               className={cn('inline-flex rounded-md border px-3 py-0.5 font-label text-[9px] font-bold tracking-tight', colorClass)}
@@ -266,11 +273,13 @@ function MarksCardFront({
   examBoxes,
   hexColor,
   marksPct,
+  isTekken,
 }: {
   subject: Subject;
   examBoxes: { exam: string; obtained: number | null; maxMark: number | null }[];
   hexColor: string;
   marksPct: number;
+  isTekken: boolean;
 }) {
   return (
     <div className="flex h-full flex-col">
@@ -283,7 +292,7 @@ function MarksCardFront({
             border: '1px solid color-mix(in srgb, var(--secondary) 24%, transparent)',
           }}
         >
-          {subject.credits} CREDITS
+          {subject.credits} {isTekken ? 'POWER LEVEL' : 'CREDITS'}
         </div>
       </div>
       <div className={cn(

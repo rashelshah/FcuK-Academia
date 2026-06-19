@@ -262,18 +262,18 @@ export default function HomePage() {
         <div className="theme-card p-6">
           <div className="space-y-0.5">
             <span className="block font-label text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">overall</span>
-            <span className="block font-label text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">attendance</span>
+            <span className="block font-label text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">{theme === 'tekken' ? 'stamina' : 'attendance'}</span>
           </div>
           <div className="mt-2 font-headline text-[2.6rem] font-bold leading-none tracking-tight text-primary">
             {loading ? '0.0%' : <CountUp value={overallAttendance} decimals={1} suffix="%" />}
           </div>
           <div className="mt-3 font-label text-[10px] font-bold uppercase tracking-widest text-secondary">
-            {overallAttendance >= 75 ? "you're safe" : 'recovery mode'}
+            {overallAttendance >= 75 ? (theme === 'tekken' ? "ready to fight" : "you're safe") : (theme === 'tekken' ? 'danger zone' : 'recovery mode')}
           </div>
         </div>
 
         <div className="theme-card p-6">
-          <span className="block font-label text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">total marks</span>
+          <span className="block font-label text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">{theme === 'tekken' ? 'combat score' : 'total marks'}</span>
           <div className={`mt-3 font-headline font-bold leading-none tracking-tight text-on-surface ${theme === 'tekken' ? 'text-[clamp(1.6rem,8vw,2.2rem)]' : 'text-[clamp(2.15rem,10vw,2.85rem)]'}`}>
             {loading ? '0.00' : <CountUp value={totalMarks} decimals={2} />}
           </div>
@@ -301,7 +301,12 @@ export default function HomePage() {
 
       <section className="space-y-5">
         <RevealText className="flex items-center justify-between">
-          <h3 className="font-headline text-2xl font-bold lowercase text-on-surface">recent marks</h3>
+          <h3 
+            className={`font-headline text-2xl font-bold lowercase text-on-surface ${theme === 'tekken' ? 'glitch-text' : ''}`}
+            data-text={theme === 'tekken' ? 'recent combat scores' : 'recent marks'}
+          >
+            {theme === 'tekken' ? 'recent combat scores' : 'recent marks'}
+          </h3>
           <Link href="/marks" className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
             view all
           </Link>

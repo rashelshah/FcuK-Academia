@@ -177,4 +177,11 @@ export interface ThemeDefinition {
     heroGradient: string;
   };
   motion: ThemeMotionPreset;
+  config?: {
+    animationIntensity?: 'low' | 'medium' | 'high';
+    backgroundOpacity?: number;
+    scanlineOpacity?: number;
+    effectsEnabled?: boolean;
+    [key: string]: any;
+  };
 }
