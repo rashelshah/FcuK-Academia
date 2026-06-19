@@ -16,6 +16,7 @@ import {
 import ProgressBar from '../ui/ProgressBar';
 import { Subject } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/context/ThemeContext';
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
@@ -114,8 +115,15 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
   const estimatedTitleLines = Math.ceil(subject.name.length / 18);
   const titleBuffer = Math.max(0, estimatedTitleLines - 2) * 1.6;
 
-  const cardHeight = 22.5 + Math.max(0, numRows - 1) * 4.75 + titleBuffer;
-  const mobileCardHeight = 21.75 + Math.max(0, numRows - 1) * 4.75 + titleBuffer;
+  const { theme } = useTheme();
+  const isRetro = theme === 'retro';
+  
+  // Retro theme uses fonts (MS Sans Serif, Tahoma) that require more vertical space
+  const baseDesktopHeight = isRetro ? 26.5 : 24.0;
+  const baseMobileHeight = isRetro ? 26.0 : 23.5;
+
+  const cardHeight = baseDesktopHeight + Math.max(0, numRows - 1) * 4.75 + titleBuffer;
+  const mobileCardHeight = baseMobileHeight + Math.max(0, numRows - 1) * 4.75 + titleBuffer;
 
   return (
     <div

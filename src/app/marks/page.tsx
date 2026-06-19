@@ -49,7 +49,7 @@ export default function MarksPage() {
   }, [mode, user]);
 
   return (
-    <PageReveal className="flex flex-col gap-6 pb-28 pt-4">
+    <PageReveal className="flex flex-col gap-6 pb-40 pt-4">
       <AppHeader />
 
       <section className="mt-2 space-y-2">

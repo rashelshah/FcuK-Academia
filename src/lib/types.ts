@@ -61,7 +61,8 @@ export type ThemeType =
   | 'lavender-violet'
   | 'purple-peach'
   | 'mint-gray'
-  | 'soft-pink-beige';
+  | 'soft-pink-beige'
+  | 'retro';
 
 export interface ThemeMotionPreset {
   id: string;

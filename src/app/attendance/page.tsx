@@ -102,7 +102,7 @@ export default function AttendancePage() {
   const backgroundDayOrder = formatDayOrderNumber(activeDayOrder);
 
   return (
-    <PageReveal className="flex flex-col gap-8 pb-32 pt-4">
+    <PageReveal className="flex flex-col gap-8 pb-48 pt-4">
       <AppHeader />
 
       <section className="relative mt-6">
