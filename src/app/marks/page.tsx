@@ -61,14 +61,20 @@ export default function MarksPage() {
       <AppHeader />
 
       <section className="mt-2 space-y-2">
-        <p className="theme-kicker">{theme === 'tekken' ? 'COMBAT SCORE' : 'total aggregate'}</p>
+        <p className="theme-kicker" style={{ fontFamily: theme === 'arcade' ? '"Press Start 2P"' : undefined, fontSize: theme === 'arcade' ? '9px' : undefined }}>{theme === 'tekken' ? 'COMBAT SCORE' : theme === 'arcade' ? 'TOTAL AGGREGATE' : 'total aggregate'}</p>
         <RevealHeading className="flex flex-wrap items-baseline gap-2 sm:flex-nowrap">
-          <span className={`font-bold leading-[0.82] tracking-tight text-primary ${theme === 'tekken' ? 'text-[clamp(3.8rem,16vw,5.2rem)]' : 'text-[5.2rem]'}`}>
+          <span 
+            className={`font-bold leading-[0.82] tracking-tight text-primary ${theme === 'tekken' ? 'text-[clamp(3.8rem,16vw,5.2rem)]' : theme === 'arcade' ? 'text-[4rem]' : 'text-[5.2rem]'}`}
+            style={{ fontFamily: theme === 'arcade' ? '"VT323", monospace' : undefined }}
+          >
             {loading
               ? <ThemedNumberText value="0.0" />
               : <CountUp value={totalObtained} decimals={1} renderFormatted={(formatted) => <ThemedNumberText value={formatted} />} />}
           </span>
-          <span className={`font-headline font-bold text-on-surface-variant ${theme === 'tekken' ? 'text-[clamp(2rem,8vw,2.25rem)]' : 'text-4xl'}`}>
+          <span 
+            className={`font-headline font-bold text-on-surface-variant ${theme === 'tekken' ? 'text-[clamp(2rem,8vw,2.25rem)]' : theme === 'arcade' ? 'text-3xl' : 'text-4xl'}`}
+            style={{ fontFamily: theme === 'arcade' ? '"VT323", monospace' : undefined }}
+          >
             / <ThemedNumberText value={`${totalMax || 0}`} />
           </span>
         </RevealHeading>

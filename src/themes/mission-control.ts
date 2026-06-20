@@ -4,7 +4,8 @@ import { motionPresets } from '@/lib/motion';
 export const missionControlTheme: ThemeDefinition = {
   id: 'mission-control',
   label: 'mission control',
-  shortLabel: 'mission',
+  shortLabel: 'control',
+  isNew: true,
   description: 'premium spacecraft telemetry with holographic control panels.',
   fontFamily: '"Space Grotesk", "Orbitron", "Inter", sans-serif',
   mode: 'dark',

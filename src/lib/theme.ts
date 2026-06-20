@@ -3,6 +3,7 @@ import { ThemeDefinition, ThemeType } from '@/lib/types';
 import { retroTheme } from '@/themes/retro';
 import { tekkenTheme } from '@/themes/tekken';
 import { missionControlTheme } from '@/themes/mission-control';
+import { arcadeTheme } from '@/themes/arcade';
 
 export const defaultTheme: ThemeType = 'neon-lime';
 export const THEME_STORAGE_KEY = 'fcuk-academia-theme';
@@ -10,6 +11,10 @@ export const THEME_COOKIE_KEY = 'fcuk-academia-theme';
 export const INTRO_STORAGE_KEY = 'fcuk-academia-intro-seen';
 
 export const themeOrder: ThemeType[] = [
+  'arcade',
+  'tekken',
+  'retro',
+  'mission-control',
   'neon-lime',
   'cyan-navy',
   'electric-blue',
@@ -25,9 +30,6 @@ export const themeOrder: ThemeType[] = [
   'purple-peach',
   'mint-gray',
   'soft-pink-beige',
-  'retro',
-  'tekken',
-  'mission-control',
 ];
 
 export const themeFontMap: Record<ThemeType, string> = {
@@ -49,6 +51,7 @@ export const themeFontMap: Record<ThemeType, string> = {
   retro: '"MS Sans Serif", "Tahoma", "Verdana", sans-serif',
   tekken: '"ThemeNumberTekken", "Orbitron", "Eurostile", sans-serif',
   'mission-control': '"Space Grotesk", "Orbitron", "Inter", sans-serif',
+  arcade: '"Pixelify Sans", "Press Start 2P", "Orbitron", sans-serif',
 };
 
 export const themes: Record<ThemeType, ThemeDefinition> = {
@@ -568,6 +571,7 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     motion: motionPresets.darkSmooth,
   },
   'mission-control': missionControlTheme,
+  arcade: arcadeTheme,
   'neo-brutal-pop': {
     id: 'neo-brutal-pop',
     label: 'neo brutal pop',

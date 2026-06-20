@@ -98,7 +98,7 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
 
   if (isAttendance) {
     return (
-      <div className="theme-card relative flex flex-col gap-2 p-4 md:p-5">
+      <div className="theme-card relative flex flex-col gap-2 p-4 md:p-5" style={{ '--card-edge-color': hexColor } as React.CSSProperties}>
         <GlowEdge glowColor={glowColor} />
         <AttendanceCardBody
           subject={subject}
@@ -161,7 +161,7 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
         >
           <div
             className="theme-card relative h-full px-5 pb-8 pt-5 md:px-6 md:pb-9 md:pt-6"
-            style={{ minHeight: `${cardHeight}rem` }}
+            style={{ minHeight: `${cardHeight}rem`, '--card-edge-color': hexColor } as React.CSSProperties}
           >
             <style jsx>{`
               @media (max-width: 380px) {
@@ -183,7 +183,7 @@ function SubjectCard({ subject, type }: SubjectCardProps) {
         >
           <div
             className="theme-card relative flex h-full flex-col px-4 pb-6 pt-4 md:px-5 md:pb-7 md:pt-5"
-            style={{ minHeight: `${cardHeight}rem` }}
+            style={{ minHeight: `${cardHeight}rem`, '--card-edge-color': hexColor } as React.CSSProperties}
           >
             <GlowEdge glowColor={glowColor} />
             <MarksCardBack subject={subject} chartData={chartData} lineColor={hexColor} isTekken={isTekken} />

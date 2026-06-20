@@ -106,7 +106,7 @@ export default function SettingsPage() {
         </h1>
       </section>
 
-      <GlassCard className="p-5">
+      <GlassCard className="p-5" style={{ '--card-edge-color': 'var(--primary)' } as React.CSSProperties}>
         <div className="flex items-start gap-4">
           <div className="rounded-[24px] p-1.5" style={{ background: 'color-mix(in srgb, var(--surface-card-elevated) 92%, transparent)' }}>
             <UserAvatar size={72} />
@@ -123,10 +123,10 @@ export default function SettingsPage() {
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatTile label="theme" value={themeConfig.label} />
-          <StatTile label="sync" value={syncLabel} />
-          <StatTile label="course" value={compactCourse} />
-          <StatTile label="day order" value={activeDayOrder ? `day ${activeDayOrder}` : 'not set'} />
+          <StatTile label="theme" value={themeConfig.label} color="var(--primary)" />
+          <StatTile label="sync" value={syncLabel} color="var(--secondary)" />
+          <StatTile label="course" value={compactCourse} color="var(--error)" />
+          <StatTile label="day order" value={activeDayOrder ? `day ${activeDayOrder}` : 'not set'} color="var(--primary)" />
         </div>
       </GlassCard>
 
@@ -138,7 +138,7 @@ export default function SettingsPage() {
           title="theme system"
         />
 
-        <GlassCard className="space-y-6 px-4 py-5">
+        <GlassCard className="space-y-6 px-4 py-5" style={{ '--card-edge-color': 'var(--secondary)' } as React.CSSProperties}>
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-1">
               <p className="theme-kicker">active theme</p>
@@ -161,6 +161,7 @@ export default function SettingsPage() {
               whileTap={motionProps.whileTap}
               transition={motionProps.transition}
               className="theme-panel flex items-center justify-between gap-4 p-4"
+              style={{ '--card-edge-color': 'var(--primary)' } as React.CSSProperties}
             >
               <div>
                 <h4 className="font-headline text-xl font-bold text-on-surface">select theme</h4>
@@ -177,7 +178,7 @@ export default function SettingsPage() {
           title="daily controls"
         />
 
-        <GlassCard className="p-5">
+        <GlassCard className="p-5" style={{ '--card-edge-color': 'var(--error)' } as React.CSSProperties}>
           <div className="flex flex-col gap-6">
             <ToggleRow
               icon={Bell}
@@ -341,9 +342,9 @@ function SectionHeading({
   );
 }
 
-function StatTile({ label, value }: { label: string; value: string }) {
+function StatTile({ label, value, color = 'var(--primary)' }: { label: string; value: string; color?: string }) {
   return (
-    <div className="theme-panel min-h-[88px] px-4 py-3.5">
+    <div className="theme-panel min-h-[88px] px-4 py-3.5" style={{ '--card-edge-color': color } as React.CSSProperties}>
       <p className="theme-kicker">{label}</p>
       <p className="mt-2 text-sm font-semibold capitalize leading-5 text-on-surface">
         {value}

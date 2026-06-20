@@ -64,7 +64,8 @@ export type ThemeType =
   | 'soft-pink-beige'
   | 'retro'
   | 'tekken'
-  | 'mission-control';
+  | 'mission-control'
+  | 'arcade';
 
 export interface ThemeDictionary {
   dashboard?: string;
@@ -161,6 +162,7 @@ export interface ThemeDefinition {
   category: 'dark' | 'light' | 'soft';
   preview: string[];
   isFemaleFocused?: boolean;
+  isNew?: boolean;
   colors: {
     background: string;
     backgroundAlt: string;

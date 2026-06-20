@@ -220,9 +220,13 @@ export default function HomePage() {
           <RevealHeading>
             <h1 
               className="font-headline text-[3.6rem] font-bold leading-[0.84] tracking-tight text-on-surface"
-              style={{ textShadow: theme === 'mission-control' ? '0 0 15px rgba(0, 229, 255, 0.4)' : undefined }}
+              style={{ 
+                textShadow: theme === 'mission-control' ? '0 0 15px rgba(0, 229, 255, 0.4)' : undefined,
+                fontFamily: theme === 'arcade' ? '"VT323", monospace' : undefined,
+                letterSpacing: theme === 'arcade' ? '0.05em' : undefined
+              }}
             >
-              <TextType text={loading ? 'loading' : greeting} typingSpeed={34} startDelay={40} />
+              <TextType text={loading ? 'loading' : (theme === 'arcade' ? 'PLAYER ONE READY' : greeting)} typingSpeed={34} startDelay={40} />
             </h1>
           </RevealHeading>
         </section>
@@ -269,14 +273,32 @@ export default function HomePage() {
       </RevealItem>
 
       <RevealItem className="grid grid-cols-2 gap-3">
-        <div className="theme-card p-6">
+        <div className="theme-card p-6" style={theme === 'arcade' ? { '--card-edge-color': '#00E676' } as React.CSSProperties : undefined}>
           <div className="space-y-0.5">
             <span className="block font-label text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">overall</span>
             <span className="block font-label text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">{getTerm('attendance') || (theme === 'tekken' ? 'stamina' : 'attendance')}</span>
           </div>
-          <ValuePulse value={overallAttendance} className="mt-2 font-headline text-[2.6rem] font-bold leading-none tracking-tight text-primary" style={{ filter: theme === 'mission-control' ? 'drop-shadow(0 0 10px rgba(0, 229, 255, 0.4))' : undefined }}>
-            {loading ? '0.0%' : <CountUp value={overallAttendance} decimals={1} suffix="%" />}
-          </ValuePulse>
+          {theme === 'arcade' ? (
+            <div className="mt-4">
+              <div className="h-6 w-full bg-[#111] border-[3px] border-[#333] p-0.5">
+                <div 
+                  className="h-full transition-all duration-500" 
+                  style={{ 
+                    width: `${loading ? 0 : overallAttendance}%`,
+                    backgroundColor: overallAttendance >= 75 ? '#00E676' : overallAttendance >= 50 ? '#FFD600' : '#FF2E43',
+                    boxShadow: `0 0 10px ${overallAttendance >= 75 ? '#00E676' : overallAttendance >= 50 ? '#FFD600' : '#FF2E43'}`
+                  }}
+                />
+              </div>
+              <div className="mt-2 text-right font-headline text-xl" style={{ fontFamily: '"VT323", monospace', color: overallAttendance >= 75 ? '#00E676' : overallAttendance >= 50 ? '#FFD600' : '#FF2E43' }}>
+                {loading ? '0.0%' : <CountUp value={overallAttendance} decimals={1} suffix="%" />}
+              </div>
+            </div>
+          ) : (
+            <ValuePulse value={overallAttendance} className="mt-2 font-headline text-[2.6rem] font-bold leading-none tracking-tight text-primary" style={{ filter: theme === 'mission-control' ? 'drop-shadow(0 0 10px rgba(0, 229, 255, 0.4))' : undefined }}>
+              {loading ? '0.0%' : <CountUp value={overallAttendance} decimals={1} suffix="%" />}
+            </ValuePulse>
+          )}
           <div className="mt-3 font-label text-[10px] font-bold uppercase tracking-widest text-secondary">
             {overallAttendance >= 75 
               ? getCopy('attendance', 'safe', theme === 'tekken' ? "ready to fight" : "you're safe")
@@ -285,9 +307,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="theme-card p-6">
+        <div className="theme-card p-6" style={theme === 'arcade' ? { '--card-edge-color': '#00A8FF' } as React.CSSProperties : undefined}>
           <span className="block font-label text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">{getTerm('marks') || (theme === 'tekken' ? 'combat score' : 'total marks')}</span>
-          <ValuePulse value={totalMarks} className={`mt-3 font-headline font-bold leading-none tracking-tight text-on-surface ${theme === 'tekken' ? 'text-[clamp(1.6rem,8vw,2.2rem)]' : 'text-[clamp(2.15rem,10vw,2.85rem)]'}`} style={{ filter: theme === 'mission-control' ? 'drop-shadow(0 0 10px rgba(0, 229, 255, 0.4))' : undefined }}>
+          <ValuePulse value={totalMarks} className={`mt-3 font-headline font-bold leading-none tracking-tight text-on-surface ${theme === 'tekken' ? 'text-[clamp(1.6rem,8vw,2.2rem)]' : theme === 'arcade' ? 'text-[2.6rem]' : 'text-[clamp(2.15rem,10vw,2.85rem)]'}`} style={{ filter: theme === 'mission-control' ? 'drop-shadow(0 0 10px rgba(0, 229, 255, 0.4))' : undefined, fontFamily: theme === 'arcade' ? '"VT323", monospace' : undefined, color: theme === 'arcade' ? '#00A8FF' : undefined }}>
             {loading ? '0.00' : <CountUp value={totalMarks} decimals={2} />}
           </ValuePulse>
           <div className="mt-3 font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">live internal total</div>
@@ -300,7 +322,8 @@ export default function HomePage() {
           style={{
             background: 'linear-gradient(180deg, color-mix(in srgb, var(--error) 10%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 100%)',
             borderColor: 'color-mix(in srgb, var(--error) 18%, var(--border))',
-          }}
+            '--card-edge-color': 'var(--error)',
+          } as React.CSSProperties}
         >
           <AlertTriangle className="absolute right-7 top-7 h-7 w-7 text-error" />
           <h3 className="pr-10 font-headline text-2xl font-bold lowercase leading-tight text-on-surface">
@@ -328,6 +351,7 @@ export default function HomePage() {
           {recentMarks.length ? recentMarks.map((item, index) => (
             <RevealItem key={`${item.course}-${index}`}>
               <MarkItem
+                theme={theme}
                 dotColor={index === 0 ? 'var(--secondary)' : index === 1 ? 'var(--primary)' : 'var(--accent)'}
                 title={item.displayTitle}
                 score={`${item.total.obtained.toFixed(2)}/${(item.total.maxMark || 0).toFixed(2)}`}
@@ -335,7 +359,7 @@ export default function HomePage() {
             </RevealItem>
           )) : (
             <RevealItem>
-              <MarkItem dotColor="var(--secondary)" title={loading ? 'loading' : 'no marks yet'} score="--" />
+              <MarkItem theme={theme} dotColor="var(--secondary)" title={loading ? 'loading' : 'no marks yet'} score="--" />
             </RevealItem>
           )}
         </div>
@@ -349,7 +373,8 @@ export default function HomePage() {
               background:
                 'linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 100%)',
               borderColor: 'color-mix(in srgb, var(--primary) 22%, var(--border))',
-            }}
+              '--card-edge-color': 'var(--primary)',
+            } as React.CSSProperties}
           >
             {/* Glow shimmer */}
             <div
@@ -398,7 +423,22 @@ export default function HomePage() {
 }
 
 
-function MarkItem({ dotColor, title, score }: { dotColor: string; title: string; score: string }) {
+function MarkItem({ theme, dotColor, title, score }: { theme?: string; dotColor: string; title: string; score: string }) {
+  if (theme === 'arcade') {
+    return (
+      <div className="theme-card flex items-center justify-between gap-3 p-5" style={{ '--card-edge-color': dotColor } as React.CSSProperties}>
+        <div className="flex min-w-0 flex-1 flex-col gap-1 pr-2">
+          <span className="font-label text-[8px] uppercase tracking-widest text-white/50" style={{ fontFamily: '"Press Start 2P"' }}>LEVEL SELECT</span>
+          <span className="line-clamp-2 font-headline text-[1rem] uppercase leading-tight text-on-surface [word-break:break-word]" style={{ fontFamily: '"VT323", monospace' }}>{title}</span>
+        </div>
+        <div className="flex flex-col items-end gap-1">
+          <span className="font-label text-[8px] uppercase tracking-widest text-white/50" style={{ fontFamily: '"Press Start 2P"' }}>SCORE</span>
+          <span className="shrink-0 text-right font-headline text-[1.4rem] tracking-tight text-on-surface" style={{ fontFamily: '"VT323", monospace', color: dotColor }}>{score}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="theme-card flex items-center justify-between gap-3 p-5">
       <div className="flex min-w-0 flex-1 items-start gap-3 pr-2">

@@ -99,7 +99,7 @@ export default function PersonalityModeSelector() {
           </div>
         </div>
 
-        <GlassCard className="space-y-6 px-4 py-5">
+        <GlassCard className="space-y-6 px-4 py-5" style={{ '--card-edge-color': 'var(--primary)' } as React.CSSProperties}>
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-1">
               <p className="theme-kicker">active mode</p>
@@ -128,6 +128,7 @@ export default function PersonalityModeSelector() {
               whileTap={motionProps.whileTap}
               transition={motionProps.transition}
               className="theme-panel flex w-full items-center justify-between gap-4 p-4 text-left"
+              style={{ '--card-edge-color': 'var(--secondary)' } as React.CSSProperties}
             >
               <div>
                 <h4 className="font-headline text-xl font-bold text-on-surface">select mode</h4>

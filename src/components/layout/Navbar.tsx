@@ -58,7 +58,22 @@ const NavItemButton = memo(function NavItemButton({
   onNavigate,
 }: NavItemButtonProps) {
   const motionProps = getInteractiveMotion(motionPreset);
-  const content = (
+  const content = themeId === 'arcade' ? (
+    <div className="relative flex flex-col items-center justify-center w-full h-full pb-1">
+      <div 
+        className={cn(
+          "relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-150 active:translate-y-1 active:shadow-[inset_0_4px_0_rgba(255,255,255,0.2),0_0_15px_rgba(255,46,67,0.6)]",
+          isActive ? "bg-[#FF2E43] translate-y-1" : "bg-[#222]"
+        )}
+        style={{ 
+          boxShadow: isActive ? 'inset 0 4px 0 rgba(255,255,255,0.2), 0 0 15px rgba(255, 46, 67, 0.6)' : 'inset 0 4px 0 rgba(255,255,255,0.1), 0 4px 0 #000',
+          border: '2px solid #000'
+        }}
+      >
+        <Icon size={16} strokeWidth={isActive ? 3 : 2.5} className={isActive ? "text-white drop-shadow-md" : "text-[#777]"} />
+      </div>
+    </div>
+  ) : (
     <div
       className={cn(
         'relative z-10 flex h-full w-full items-center justify-center rounded-full transition-colors duration-300',
@@ -132,7 +147,12 @@ const NavItemButton = memo(function NavItemButton({
         type="button"
         aria-label={label}
         aria-current={isActive ? 'page' : undefined}
-        onClick={() => onNavigate(href)}
+        onClick={() => {
+          if (themeId === 'arcade' && typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate([10, 30, 10]);
+          }
+          onNavigate(href);
+        }}
         className="relative flex h-full min-w-0 items-center justify-center bg-transparent outline-none"
         style={{
           WebkitTapHighlightColor: 'transparent',
@@ -150,6 +170,11 @@ const NavItemButton = memo(function NavItemButton({
       href={href}
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}
+      onClick={() => {
+        if (themeId === 'arcade' && typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate([10, 30, 10]);
+        }
+      }}
       className="relative flex h-full min-w-0 items-center justify-center"
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >
@@ -349,6 +374,9 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
           <button 
             type="button"
             onClick={() => {
+              if (themeConfig.id === 'arcade' && typeof navigator !== 'undefined' && navigator.vibrate) {
+                navigator.vibrate([15, 40, 15]);
+              }
               const nextIsRmf = !optimisticRmfRoute;
               
               // 1. Immediate state update for snappy UI feedback

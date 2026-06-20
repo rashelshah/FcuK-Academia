@@ -59,14 +59,15 @@ export default function TimetablePage() {
           ) : classes.length ? (
             classes.map((item, index) => {
               const isPrimary = index === highlightedClassIndex;
-              const glow = index % 2 === 0 ? 'primary' : 'secondary';
+              const glowColors: ('primary' | 'secondary' | 'error')[] = ['primary', 'secondary', 'error'];
+              const glow = glowColors[index % glowColors.length];
 
               return (
                 <RevealItem key={`${item.slot}-${item.time}-${index}`} className="relative flex gap-6">
                   <div className="relative mt-6">
                     <div
-                      className={cn('relative z-10 h-2.5 w-2.5 rounded-full', glow === 'primary' ? 'bg-primary' : 'bg-secondary')}
-                      style={{ boxShadow: glow === 'primary' ? 'var(--glow-primary)' : 'var(--glow-secondary)' }}
+                      className={cn('relative z-10 h-2.5 w-2.5 rounded-full', glow === 'primary' ? 'bg-primary' : glow === 'secondary' ? 'bg-secondary' : 'bg-error')}
+                      style={{ boxShadow: glow === 'primary' ? 'var(--glow-primary)' : glow === 'secondary' ? 'var(--glow-secondary)' : 'var(--glow-error)' }}
                     />
                   </div>
                   {isPrimary ? (
@@ -75,7 +76,8 @@ export default function TimetablePage() {
                       style={{
                         background: 'linear-gradient(180deg, color-mix(in srgb, var(--primary) 9%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 100%)',
                         borderColor: 'color-mix(in srgb, var(--primary) 20%, var(--border))',
-                      }}
+                        '--card-edge-color': `var(--${glow})`,
+                      } as React.CSSProperties}
                     >
                       <div
                         className="mb-2 inline-block rounded-full px-3 py-1 font-headline text-[14px] font-bold tracking-widest"
@@ -95,8 +97,8 @@ export default function TimetablePage() {
                       </div>
                     </div>
                   ) : (
-                    <GlowCard glowColor={glow} className="flex-1 border-l-2 bg-transparent">
-                      <div className="mb-2 font-headline text-[14px] font-bold tracking-widest text-secondary">{item.time}</div>
+                    <GlowCard glowColor={glow} className="flex-1 border-l-2 bg-transparent" style={{ '--card-edge-color': `var(--${glow})` } as React.CSSProperties}>
+                      <div className={cn("mb-2 font-headline text-[14px] font-bold tracking-widest", glow === 'primary' ? 'text-primary' : glow === 'secondary' ? 'text-secondary' : 'text-error')}>{item.time}</div>
                       <h3 className="mb-6 pr-4 font-headline text-[26px] font-bold lowercase leading-[1.1] text-on-surface">
                         {item.courseTitle?.toLowerCase()}
                       </h3>

@@ -4,6 +4,7 @@ export const tekkenTheme: ThemeDefinition = {
   id: 'tekken',
   label: "tekken '90s",
   shortLabel: 'tekken',
+  isNew: true,
   description: 'industrial, metallic arcade experience. your semester is a tournament.',
   fontFamily: '"Teko", "Orbitron", sans-serif',
   mode: 'dark',

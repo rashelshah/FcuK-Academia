@@ -158,7 +158,7 @@ function ThemeGroup({
                 onClick={() => onSelect(option.id)}
                 disabled={isExiting}
                 className={cn(
-                  'flex w-full items-center gap-4 rounded-[999px] border px-4 py-4 text-left transition-all duration-300',
+                  'flex w-full items-center gap-3 rounded-[999px] border px-3 py-2.5 text-left transition-all duration-300',
                   active ? 'shadow-[var(--glow-primary)]' : '',
                 )}
                 style={{
@@ -166,11 +166,11 @@ function ThemeGroup({
                   background: active ? 'var(--surface-card-elevated)' : 'var(--surface-card)',
                 }}
               >
-                <div className="flex gap-2">
+                <div className="flex -space-x-1.5 pl-1">
                   {option.preview.map((color) => (
                     <span
                       key={color}
-                      className="h-4 w-4 rounded-full border border-white/10"
+                      className="h-3.5 w-3.5 rounded-full border border-black/20"
                       style={{ backgroundColor: color }}
                     />
                   ))}
@@ -178,10 +178,15 @@ function ThemeGroup({
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-headline text-lg font-bold text-on-surface">{option.label}</p>
-                    {option.isFemaleFocused ? <Sparkles size={14} className="text-secondary" /> : null}
+                    <p className="font-headline text-base font-bold text-on-surface truncate">{option.label}</p>
+                    {option.isFemaleFocused ? <Sparkles size={12} className="text-secondary shrink-0" /> : null}
+                    {option.isNew && (
+                      <span className="shrink-0 rounded-[var(--radius-pill)] bg-secondary/10 px-1.5 py-0.5 font-label text-[9px] font-bold uppercase tracking-widest text-secondary">
+                        new
+                      </span>
+                    )}
                   </div>
-                  <p className="mt-1 text-sm leading-6 text-on-surface-variant">{option.description}</p>
+                  <p className="text-[12px] leading-snug text-on-surface-variant truncate">{option.description}</p>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -192,7 +197,7 @@ function ThemeGroup({
                     {option.category}
                   </span>
                   <span
-                    className="flex h-8 w-8 items-center justify-center rounded-full"
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
                     style={{
                       background: active
                         ? 'color-mix(in srgb, var(--primary) 18%, transparent)'
@@ -200,7 +205,7 @@ function ThemeGroup({
                       color: active ? 'var(--primary)' : 'var(--text-subtle)',
                     }}
                   >
-                    <Check size={16} />
+                    <Check size={14} />
                   </span>
                 </div>
               </motion.button>

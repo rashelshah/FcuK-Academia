@@ -20,6 +20,7 @@ import { formatDayOrderNumber } from '@/lib/academia-ui';
 import { usePersonalityMode } from '@/context/PersonalityContext';
 import { getPersonalityCopy } from '@/lib/personalization';
 import { FEATURES } from '@/lib/features';
+import { cn } from '@/lib/utils';
 
 export default function AttendancePage() {
   const { attendance, attendanceList, loading, error } = useAttendance();
@@ -117,7 +118,7 @@ export default function AttendancePage() {
         </div>
         <RevealHeading className="relative z-10">
           <p className="theme-kicker mb-2">{theme === 'tekken' ? 'SURVIVAL RATE' : 'overall attendance'}</p>
-          <span className="text-[6.6rem] font-bold leading-[0.86] tracking-tight text-primary">
+          <span className={cn("font-bold leading-[0.86] tracking-tight text-primary", theme === 'arcade' ? 'text-[5rem]' : 'text-[6.6rem]')}>
             {loading
               ? <ThemedNumberText value="0.0%" />
               : <CountUp value={overallAtt} decimals={1} suffix="%" renderFormatted={(formatted) => <ThemedNumberText value={formatted} />} />}

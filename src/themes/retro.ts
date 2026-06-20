@@ -4,6 +4,7 @@ export const retroTheme: ThemeDefinition = {
   id: 'retro',
   label: "retro '90s",
   shortLabel: 'retro',
+  isNew: true,
   description: 'authentic windows 95 desktop experience with classic system colors.',
   fontFamily: '"MS Sans Serif", "Tahoma", "Verdana", sans-serif',
   mode: 'light',

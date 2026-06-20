@@ -1190,3 +1190,34 @@ html[data-theme='tekken'] .theme-icon-button:active {
     animation: none;
   }
 }
+
+/* ─── ARCADE MODE OVERRIDES ──────────────────────────────────────────────── */
+html[data-theme='arcade'] .theme-card,
+html[data-theme='arcade'] .theme-panel {
+  background: #0A0A0A !important;
+  border: 4px solid #333 !important;
+  border-left: 8px solid var(--card-edge-color, var(--primary)) !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 #000 !important;
+  transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out, background 0.1s ease-in-out, border-color 0.1s ease-in-out !important;
+  cursor: pointer;
+}
+
+html[data-theme='arcade'] .theme-card::before,
+html[data-theme='arcade'] .theme-panel::before {
+  display: none !important; /* Remove gradients inside cards */
+}
+
+/* Hide the GlowEdge component inside SubjectCards for the Arcade theme */
+html[data-theme='arcade'] .theme-card > div.w-1.absolute.left-0,
+html[data-theme='arcade'] .theme-panel > div.w-1.absolute.left-0 {
+  display: none !important;
+}
+
+html[data-theme='arcade'] .theme-card:active,
+html[data-theme='arcade'] .theme-panel:active {
+  background: #1A1A1A !important;
+  border-left-color: #FFFFFF !important;
+  transform: translate(4px, 4px) !important;
+  box-shadow: 0 0 0 #000 !important;
+}
