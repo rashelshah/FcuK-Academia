@@ -307,7 +307,7 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                   })
                 ) : (
                   navItems.map((item) => {
-                    let displayLabel = item.label;
+                    let displayLabel: string = item.label;
                     if (themeConfig.id === 'tekken') {
                       if (item.label === 'home') displayLabel = 'stage select';
                       if (item.label === 'marks') displayLabel = 'combat score';
