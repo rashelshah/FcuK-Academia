@@ -278,7 +278,10 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
               
               <motion.div
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-[5px] top-[5px] flex items-center justify-center z-0"
+                className={cn(
+                  "pointer-events-none absolute bottom-[5px] top-[5px] items-center justify-center z-0",
+                  themeConfig.id === 'arcade' ? "hidden" : "flex"
+                )}
                 animate={{ left: currentIndicatorLeft }}
                 initial={false}
                 transition={{

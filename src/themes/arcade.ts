@@ -3,7 +3,7 @@ import { motionPresets } from '@/lib/motion';
 
 export const arcadeTheme: ThemeDefinition = {
   id: 'arcade',
-  label: 'arcade',
+  label: 'arcade royal',
   shortLabel: 'arcade',
   isNew: true,
   description: 'neon-lit arcade cabinet with glowing machines and retro pixel art.',
