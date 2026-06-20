@@ -2,6 +2,7 @@ import { motionPresets } from '@/lib/motion';
 import { ThemeDefinition, ThemeType } from '@/lib/types';
 import { retroTheme } from '@/themes/retro';
 import { tekkenTheme } from '@/themes/tekken';
+import { missionControlTheme } from '@/themes/mission-control';
 
 export const defaultTheme: ThemeType = 'neon-lime';
 export const THEME_STORAGE_KEY = 'fcuk-academia-theme';
@@ -26,6 +27,7 @@ export const themeOrder: ThemeType[] = [
   'soft-pink-beige',
   'retro',
   'tekken',
+  'mission-control',
 ];
 
 export const themeFontMap: Record<ThemeType, string> = {
@@ -46,6 +48,7 @@ export const themeFontMap: Record<ThemeType, string> = {
   'royal-amethyst': '"ThemeNumberRoyalAmethyst", serif',
   retro: '"MS Sans Serif", "Tahoma", "Verdana", sans-serif',
   tekken: '"ThemeNumberTekken", "Orbitron", "Eurostile", sans-serif',
+  'mission-control': '"Space Grotesk", "Orbitron", "Inter", sans-serif',
 };
 
 export const themes: Record<ThemeType, ThemeDefinition> = {
@@ -564,6 +567,7 @@ export const themes: Record<ThemeType, ThemeDefinition> = {
     },
     motion: motionPresets.darkSmooth,
   },
+  'mission-control': missionControlTheme,
   'neo-brutal-pop': {
     id: 'neo-brutal-pop',
     label: 'neo brutal pop',

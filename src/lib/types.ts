@@ -63,7 +63,38 @@ export type ThemeType =
   | 'mint-gray'
   | 'soft-pink-beige'
   | 'retro'
-  | 'tekken';
+  | 'tekken'
+  | 'mission-control';
+
+export interface ThemeDictionary {
+  dashboard?: string;
+  attendance?: string;
+  marks?: string;
+  timetable?: string;
+  assignments?: string;
+  settings?: string;
+  notifications?: string;
+  refresh?: string;
+  login?: string;
+  sessionExpired?: string;
+  [key: string]: string | undefined;
+}
+
+export interface ThemeCopy {
+  attendance?: {
+    safe: string[];
+    warning: string[];
+  };
+  marks?: {
+    high: string[];
+    low: string[];
+  };
+  holiday?: string[];
+  session?: {
+    expired: string;
+    reconnect: string;
+  };
+}
 
 export interface ThemeMotionPreset {
   id: string;
@@ -177,6 +208,8 @@ export interface ThemeDefinition {
     heroGradient: string;
   };
   motion: ThemeMotionPreset;
+  dictionary?: ThemeDictionary;
+  copy?: ThemeCopy;
   config?: {
     animationIntensity?: 'low' | 'medium' | 'high';
     backgroundOpacity?: number;

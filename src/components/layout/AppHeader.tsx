@@ -10,8 +10,10 @@ import ProfileCardDialog from '@/components/ui/ProfileCardDialog';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { useDashboardDataContext } from '@/context/DashboardDataContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useThemeDictionary } from '@/hooks/useThemeDictionary';
 import { getInteractiveMotion } from '@/lib/motion';
 import { useUser } from '@/hooks/useUser';
+import { AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface AppHeaderProps {
@@ -22,18 +24,32 @@ interface AppHeaderProps {
 }
 
 export default function AppHeader({
-  title = <span className="font-headline text-[1.65rem] font-bold normal-case tracking-tight text-primary" style={{ fontFamily: 'Qelandsaightrial', paddingTop: '4px' }}>FcuK Academia</span>,
+  title,
   backHref,
   showBell = true,
   className,
 }: AppHeaderProps) {
   const pathname = usePathname();
   const { themeConfig } = useTheme();
+  const { getTerm, getCopy } = useThemeDictionary();
   const { user } = useUser();
   const { loading, refreshing, isStale, refreshDashboard } = useDashboardDataContext();
   const motionProps = getInteractiveMotion(themeConfig.motion);
   const [profileOpen, setProfileOpen] = useState(false);
   const isSyncing = loading || refreshing;
+
+  const defaultTitle = getTerm('dashboard') || 'FcuK Academia';
+  const displayTitle = title ?? (
+    <span 
+      className="font-headline text-[1.65rem] font-bold tracking-tight text-primary" 
+      style={{ 
+        fontFamily: 'Qelandsaightrial', 
+        paddingTop: '4px',
+      }}
+    >
+      {defaultTitle}
+    </span>
+  );
 
   useEffect(() => {
     setProfileOpen(false);
@@ -86,10 +102,10 @@ export default function AppHeader({
           {leading}
         </div>
         <div className="min-w-0 flex-1 text-center">
-          {typeof title === 'string' ? (
-            <span className="font-headline text-[1.65rem] font-bold normal-case tracking-tight text-primary" style={{ fontFamily: 'Qelandsaightrial' }}>{title}</span>
+          {typeof displayTitle === 'string' ? (
+            <span className="font-headline text-[1.65rem] font-bold normal-case tracking-tight text-primary" style={{ fontFamily: 'Qelandsaightrial' }}>{displayTitle}</span>
           ) : (
-            title
+            displayTitle
           )}
         </div>
         <div className="flex h-11 w-11 shrink-0 items-center justify-center">
@@ -102,10 +118,31 @@ export default function AppHeader({
               whileHover={motionProps.whileHover}
               whileTap={motionProps.whileTap}
               transition={motionProps.transition}
-              className="theme-icon-button flex items-center justify-center"
-              aria-label={isStale ? 'Reconnect to refresh' : isSyncing ? 'Syncing data' : 'Sync data'}
+              className="theme-icon-button flex items-center justify-center relative"
+              aria-label={isStale ? (getTerm('refresh') || 'Reconnect to refresh') : isSyncing ? 'Syncing data' : 'Sync data'}
               disabled={isSyncing}
             >
+              <AnimatePresence>
+                {isSyncing && themeConfig.id === 'mission-control' && (
+                  <>
+                    {[...Array(8)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        className="absolute w-1.5 h-1.5 rounded-full bg-[#00E5FF]"
+                        initial={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+                        animate={{ 
+                          opacity: 0, 
+                          scale: 0, 
+                          x: (Math.random() - 0.5) * 60, 
+                          y: (Math.random() - 0.5) * 60 
+                        }}
+                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                        style={{ filter: 'blur(1px)' }}
+                      />
+                    ))}
+                  </>
+                )}
+              </AnimatePresence>
               <motion.span
                 animate={isSyncing ? { rotate: 360 } : { rotate: 0 }}
                 transition={isSyncing ? { duration: 0.9, repeat: Infinity, ease: 'linear' } : { duration: 0.2 }}
@@ -133,7 +170,7 @@ export default function AppHeader({
           >
             <div className="h-1.5 w-1.5 rounded-full bg-error animate-pulse" />
             <span className="font-label text-[10px] font-bold uppercase tracking-wider text-error">
-              Live data unavailable — reconnect to refresh
+              {getCopy('session', 'reconnect', 'Live data unavailable — reconnect to refresh')}
             </span>
           </div>
         </motion.div>

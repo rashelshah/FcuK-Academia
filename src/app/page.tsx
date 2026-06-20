@@ -10,6 +10,7 @@ import HomeFooter from '@/components/layout/HomeFooter';
 import DayOrderPills from '@/components/ui/DayOrderPills';
 import CountUp from '@/components/ui/CountUp';
 import TextType from '@/components/ui/TextType';
+import ValuePulse from '@/components/ui/ValuePulse';
 import { PageReveal, RevealHeading, RevealItem, RevealText } from '@/components/ui/PageReveal';
 import { useAppState } from '@/context/AppStateContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -17,6 +18,7 @@ import { formatDayOrderNumber, getClassesForDay, getClassWindow, getCurrentClass
 import { useDashboard } from '@/hooks/useDashboard';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { usePersonalityMode } from '@/context/PersonalityContext';
+import { useThemeDictionary } from '@/hooks/useThemeDictionary';
 import { getPersonalityCopy } from '@/lib/personalization';
 import { FEATURES } from '@/lib/features';
 
@@ -28,6 +30,7 @@ export default function HomePage() {
     setActiveDayOrder,
   } = useAppState();
   const { theme } = useTheme();
+  const { getTerm, getCopy } = useThemeDictionary();
   const { mode } = usePersonalityMode();
   const timetableDayOrders = useMemo(() => getDayOrders(timetable), [timetable]);
   const dayOrders = useMemo(
@@ -83,10 +86,11 @@ export default function HomePage() {
   }, [currentTime, dayOrder, timetable]);
   const schedule = manualDaySelection ? manualSchedule : autoSchedule;
   const featuredClass = schedule.classItem;
+  const holidayCopy = getCopy('holiday', undefined, 'holiday detected. brain shutting down…');
   const featuredTitle = loading
     ? 'loading'
     : schedule.status === 'holiday'
-      ? 'holiday detected. brain shutting down…'
+      ? holidayCopy
       : featuredClass?.courseTitle?.toLowerCase() || 'no class';
   const isHolidayState = !manualDaySelection && schedule.status === 'holiday';
   const displayedDayOrder = isHolidayState ? null : (schedule.displayDayOrder ?? dayOrder);
@@ -214,7 +218,10 @@ export default function HomePage() {
             <p className="theme-kicker">{user?.department || 'ready for the grind?'}</p>
           </RevealText>
           <RevealHeading>
-            <h1 className="font-headline text-[3.6rem] font-bold leading-[0.84] tracking-tight text-on-surface">
+            <h1 
+              className="font-headline text-[3.6rem] font-bold leading-[0.84] tracking-tight text-on-surface"
+              style={{ textShadow: theme === 'mission-control' ? '0 0 15px rgba(0, 229, 255, 0.4)' : undefined }}
+            >
               <TextType text={loading ? 'loading' : greeting} typingSpeed={34} startDelay={40} />
             </h1>
           </RevealHeading>
@@ -246,7 +253,10 @@ export default function HomePage() {
           <span className="font-label text-[9px] font-bold uppercase tracking-widest text-secondary">{scheduleHeading}</span>
         </div>
 
-        <h2 className={`mt-6 max-w-full pr-2 whitespace-normal break-normal font-headline font-bold leading-[0.92] tracking-tight text-primary [overflow-wrap:break-word] [word-break:normal] [hyphens:none] ${featuredTitleSizeClass}`}>
+        <h2 
+          className={`mt-6 max-w-full pr-2 whitespace-normal break-normal font-headline font-bold leading-[0.92] tracking-tight text-primary [overflow-wrap:break-word] [word-break:normal] [hyphens:none] ${featuredTitleSizeClass}`}
+          style={{ textShadow: theme === 'mission-control' ? '0 0 20px rgba(0, 229, 255, 0.6)' : undefined }}
+        >
           <TextType
             text={featuredTitle}
             typingSpeed={32}
@@ -262,21 +272,24 @@ export default function HomePage() {
         <div className="theme-card p-6">
           <div className="space-y-0.5">
             <span className="block font-label text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">overall</span>
-            <span className="block font-label text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">{theme === 'tekken' ? 'stamina' : 'attendance'}</span>
+            <span className="block font-label text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">{getTerm('attendance') || (theme === 'tekken' ? 'stamina' : 'attendance')}</span>
           </div>
-          <div className="mt-2 font-headline text-[2.6rem] font-bold leading-none tracking-tight text-primary">
+          <ValuePulse value={overallAttendance} className="mt-2 font-headline text-[2.6rem] font-bold leading-none tracking-tight text-primary" style={{ filter: theme === 'mission-control' ? 'drop-shadow(0 0 10px rgba(0, 229, 255, 0.4))' : undefined }}>
             {loading ? '0.0%' : <CountUp value={overallAttendance} decimals={1} suffix="%" />}
-          </div>
+          </ValuePulse>
           <div className="mt-3 font-label text-[10px] font-bold uppercase tracking-widest text-secondary">
-            {overallAttendance >= 75 ? (theme === 'tekken' ? "ready to fight" : "you're safe") : (theme === 'tekken' ? 'danger zone' : 'recovery mode')}
+            {overallAttendance >= 75 
+              ? getCopy('attendance', 'safe', theme === 'tekken' ? "ready to fight" : "you're safe")
+              : getCopy('attendance', 'warning', theme === 'tekken' ? 'danger zone' : 'recovery mode')
+            }
           </div>
         </div>
 
         <div className="theme-card p-6">
-          <span className="block font-label text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">{theme === 'tekken' ? 'combat score' : 'total marks'}</span>
-          <div className={`mt-3 font-headline font-bold leading-none tracking-tight text-on-surface ${theme === 'tekken' ? 'text-[clamp(1.6rem,8vw,2.2rem)]' : 'text-[clamp(2.15rem,10vw,2.85rem)]'}`}>
+          <span className="block font-label text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">{getTerm('marks') || (theme === 'tekken' ? 'combat score' : 'total marks')}</span>
+          <ValuePulse value={totalMarks} className={`mt-3 font-headline font-bold leading-none tracking-tight text-on-surface ${theme === 'tekken' ? 'text-[clamp(1.6rem,8vw,2.2rem)]' : 'text-[clamp(2.15rem,10vw,2.85rem)]'}`} style={{ filter: theme === 'mission-control' ? 'drop-shadow(0 0 10px rgba(0, 229, 255, 0.4))' : undefined }}>
             {loading ? '0.00' : <CountUp value={totalMarks} decimals={2} />}
-          </div>
+          </ValuePulse>
           <div className="mt-3 font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">live internal total</div>
         </div>
       </RevealItem>
@@ -303,9 +316,9 @@ export default function HomePage() {
         <RevealText className="flex items-center justify-between">
           <h3 
             className={`font-headline text-2xl font-bold lowercase text-on-surface ${theme === 'tekken' ? 'glitch-text' : ''}`}
-            data-text={theme === 'tekken' ? 'recent combat scores' : 'recent marks'}
+            data-text={getTerm('marks') ? `recent ${getTerm('marks')}` : (theme === 'tekken' ? 'recent combat scores' : 'recent marks')}
           >
-            {theme === 'tekken' ? 'recent combat scores' : 'recent marks'}
+            {getTerm('marks') ? `recent ${getTerm('marks')}` : (theme === 'tekken' ? 'recent combat scores' : 'recent marks')}
           </h3>
           <Link href="/marks" className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
             view all

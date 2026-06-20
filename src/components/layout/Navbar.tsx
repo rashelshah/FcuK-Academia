@@ -8,6 +8,7 @@ import { BarChart2, Calendar, CheckSquare, Clock, Home, Settings, type LucideIco
 
 import { useTheme } from '@/context/ThemeContext';
 import { useAppState } from '@/context/AppStateContext';
+import { useThemeDictionary } from '@/hooks/useThemeDictionary';
 import { getInteractiveMotion } from '@/lib/motion';
 import type { ThemeMotionPreset } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -41,6 +42,7 @@ interface NavItemButtonProps {
   isActive: boolean;
   label: string;
   motionPreset: ThemeMotionPreset;
+  themeId?: string;
   mounted: boolean;
   onNavigate?: (href: string) => void;
 }
@@ -51,6 +53,7 @@ const NavItemButton = memo(function NavItemButton({
   isActive,
   label,
   motionPreset,
+  themeId,
   mounted,
   onNavigate,
 }: NavItemButtonProps) {
@@ -76,6 +79,17 @@ const NavItemButton = memo(function NavItemButton({
           background: 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 42%, rgba(255,255,255,0) 100%)',
         }}
       />
+      <AnimatePresence>
+        {isActive && themeId === 'mission-control' && (
+          <motion.div
+            initial={{ opacity: 0.8, scaleY: 0.5, y: 0 }}
+            animate={{ opacity: 0, scaleY: 2.5, y: 20 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="absolute bottom-1 w-3 h-3 rounded-full bg-gradient-to-b from-[#00E5FF] to-transparent pointer-events-none"
+            style={{ filter: 'blur(3px)', transformOrigin: 'top center' }}
+          />
+        )}
+      </AnimatePresence>
       <motion.div
         animate={{ scale: isActive ? 1.15 : 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -149,6 +163,7 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const { themeConfig } = useTheme();
+  const { getTerm } = useThemeDictionary();
   const { isAnnouncementActive } = useAppState();
   const [mounted, setMounted] = useState(false);
   const resolvedPath = activePath ?? (pathname.startsWith('/settings') ? '/settings' : pathname);
@@ -307,12 +322,7 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                   })
                 ) : (
                   navItems.map((item) => {
-                    let displayLabel: string = item.label;
-                    if (themeConfig.id === 'tekken') {
-                      if (item.label === 'home') displayLabel = 'stage select';
-                      if (item.label === 'marks') displayLabel = 'combat score';
-                      if (item.label === 'attendance') displayLabel = 'stamina';
-                    }
+                    const displayLabel = getTerm(item.label) || item.label;
                     return (
                       <NavItemButton
                         key={item.href}
@@ -321,6 +331,7 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
                         isActive={resolvedPath === item.href}
                         label={displayLabel}
                         motionPreset={themeConfig.motion}
+                        themeId={themeConfig.id}
                         mounted={mounted}
                         onNavigate={onNavigate}
                       />

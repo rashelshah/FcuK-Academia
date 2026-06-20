@@ -20,8 +20,8 @@ import IntroOverlay from '@/components/ui/IntroOverlay';
 import CinematicIntroOverlay from '@/components/ui/CinematicIntroOverlay';
 import InstallGate from '@/components/system/InstallGate';
 import GlobalErrorBanner from '@/components/ui/GlobalErrorBanner';
-import TekkenBackground from '@/components/themes/TekkenBackground';
-import TekkenHitSparks from '@/components/themes/TekkenHitSparks';
+import ThemeBackground from '@/components/themes/ThemeBackground';
+import { useTheme } from '@/context/ThemeContext';
 
 const HIDE_NAV_PATHS = ['/login'];
 const SWIPEABLE_PATHS = ['/', '/marks', '/attendance', '/timetable', '/calendar', '/settings'] as const;
@@ -41,6 +41,7 @@ const TAB_SCREENS = [
 ] as const;
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { themeConfig } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
   const activeTabPath = useActiveTabPath();
@@ -114,8 +115,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <InstallGate>
-      <TekkenBackground />
-      <TekkenHitSparks />
+      <ThemeBackground theme={themeConfig.id} />
       <div className="relative z-10 mx-auto min-h-screen w-full max-w-[28rem] overflow-x-hidden sm:max-w-[34rem] lg:max-w-[44rem] xl:max-w-[52rem]">
         {/* iOS-like status bar background padding */}
         <div className="h-safe-top bg-surface" />

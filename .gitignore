@@ -53,3 +53,5 @@ MyNotes/
 scripts/pyq-scraper/
 
 credentials.json
+
+public/assets/videos/*.mp4
