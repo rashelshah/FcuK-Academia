@@ -12,52 +12,57 @@ const EXIT_EASING = [0.22, 1, 0.36, 1] as const;
  * Handles the video logo splash only.
  * Cinematic is now triggered by CommunityPopup close → queueCinematic().
  *
- * iOS Safari compatibility strategy:
- * - We do NOT use the `autoPlay` attribute. Instead we call `video.play()`
- *   manually inside the `onCanPlay` React handler. This guarantees play() is
- *   called only after the browser has buffered the first frame (critical on iOS).
- * - `muted` + `playsInline` + no audio track = iOS autoplay allowed.
- * - The video uses `opacity-0 → opacity-100` so the black background is never
- *   visible while the video is buffering.
- * - The video file has been processed with `-movflags faststart` so iOS can
- *   begin playback before the full file is downloaded.
+ * iOS video compatibility requirements met by splash-ios-final.mp4:
+ *  - H.264 Constrained Baseline profile, Level 3.1  ← required for all iOS versions
+ *  - 30 fps                                          ← required (60fps rejected on iOS)
+ *  - No audio track                                  ← required for autoplay
+ *  - moov atom at start (faststart)                  ← required for streaming
+ *  - yuv420p pixel format                            ← required
  */
 export default function IntroOverlay() {
   const { showIntro, dismissIntro, queueCinematic, communityPopupDone } = useTheme();
   const { loading } = useDashboard();
-  const [videoVisible, setVideoVisible] = useState(false);
   const hasDismissedRef = useRef(false);
   const startTimeRef = useRef(Date.now());
   const animationCompleteRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [mounted, setMounted] = useState(false);
 
-  // Called by the React onCanPlay handler — the safest, earliest point to play on iOS
-  const handleCanPlay = () => {
+  // Small mount delay so the video element gets a fully-painted DOM before play()
+  useEffect(() => {
+    if (!showIntro) return;
+    const t = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(t);
+  }, [showIntro]);
+
+  // As soon as the video element is in the DOM, try to play
+  useEffect(() => {
+    if (!mounted || !videoRef.current) return;
+
     const video = videoRef.current;
-    if (!video) return;
 
-    // Must be set programmatically (not just via attribute) for iOS to trust it
+    // These must be set programmatically for iOS to trust the muted state
     video.muted = true;
     (video as any).defaultMuted = true;
 
-    const promise = video.play();
-    if (promise !== undefined) {
-      promise
-        .then(() => {
-          // Video is actually playing — show it
-          setVideoVisible(true);
-        })
-        .catch((err) => {
-          console.warn('[IntroOverlay] play() rejected:', err);
-          // Still show the video element (it may show a poster/first frame)
-          setVideoVisible(true);
-          // Do NOT call handleFinish here — let the timeout dismiss gracefully
+    // Directly attempt play — video element already has muted + playsInline + no audio
+    const tryPlay = () => {
+      const p = video.play();
+      if (p) {
+        p.catch(() => {
+          // Autoplay fully blocked (e.g. strict browser policy) — dismiss after a short pause
+          setTimeout(() => { animationCompleteRef.current = true; }, 500);
         });
+      }
+    };
+
+    if (video.readyState >= 2) {
+      tryPlay();
     } else {
-      // Older browsers — play() returned undefined (synchronous, already playing)
-      setVideoVisible(true);
+      video.addEventListener('loadeddata', tryPlay, { once: true });
+      return () => video.removeEventListener('loadeddata', tryPlay);
     }
-  };
+  }, [mounted]);
 
   // Synchronize dismissal with data loading
   useEffect(() => {
@@ -67,10 +72,8 @@ export default function IntroOverlay() {
       if (hasDismissedRef.current) return;
 
       const elapsed = Date.now() - startTimeRef.current;
-      // Wait for the video to finish playing naturally (fallback after 10s)
       const animationDone = animationCompleteRef.current || elapsed >= 10000;
       const dataReady = !loading;
-      // Hard timeout — user is never stuck
       const timedOut = elapsed >= 12000;
 
       if (animationDone && (dataReady || timedOut)) {
@@ -80,14 +83,12 @@ export default function IntroOverlay() {
     };
 
     const interval = setInterval(checkAndDismiss, 100);
-    checkAndDismiss(); // Initial check
-
+    checkAndDismiss();
     return () => clearInterval(interval);
   }, [dismissIntro, showIntro, loading]);
 
   const handleFinish = () => {
     animationCompleteRef.current = true;
-    // The useEffect will handle actual dismissal
   };
 
   return (
@@ -113,23 +114,18 @@ export default function IntroOverlay() {
           }}
         >
           <div className="flex min-h-[16rem] w-full max-w-[18rem] items-center justify-center sm:max-w-[20rem]">
-            {/*
-              Video is always mounted so iOS starts buffering immediately.
-              opacity-0 hides the black frame until the video has actually started playing.
-              We do NOT use autoPlay — we call play() manually in onCanPlay.
-            */}
-            <video
-              ref={videoRef}
-              src="/assets/videos/new-splash-animation.mp4"
-              muted
-              playsInline
-              preload="auto"
-              onCanPlay={handleCanPlay}
-              onEnded={handleFinish}
-              className={`h-auto w-full max-w-[16rem] sm:max-w-[18rem] object-contain scale-125 transition-opacity duration-300 ${
-                videoVisible ? 'opacity-100' : 'opacity-0'
-              }`}
-            />
+            {mounted && (
+              <video
+                ref={videoRef}
+                src="/assets/videos/splash-ios-final.mp4"
+                muted
+                playsInline
+                autoPlay
+                preload="auto"
+                onEnded={handleFinish}
+                className="h-auto w-full max-w-[16rem] sm:max-w-[18rem] object-contain scale-125"
+              />
+            )}
           </div>
         </motion.div>
       ) : null}
