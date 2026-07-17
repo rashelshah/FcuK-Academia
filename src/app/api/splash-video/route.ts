@@ -5,7 +5,7 @@ import path from 'path';
 // Force Node.js runtime — required to access the filesystem
 export const runtime = 'nodejs';
 
-const VIDEO_PATH = path.join(process.cwd(), 'public', 'assets', 'videos', 'splash-ios-final.mp4');
+const VIDEO_PATH = path.join(process.cwd(), 'public', 'assets', 'videos', 'splash-ios-zoomed.mp4');
 
 /**
  * Serves the splash video via an /api/ route so it completely bypasses the

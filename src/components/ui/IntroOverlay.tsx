@@ -11,7 +11,7 @@ const EXIT_EASING = [0.22, 1, 0.36, 1] as const;
 // ─── DEBUG MODE ───────────────────────────────────────────────────────────────
 // Set to true to show on-screen debug overlay and disable auto-dismiss.
 // Deploy this to production temporarily, test on iOS, then set back to false.
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
 // ─────────────────────────────────────────────────────────────────────────────
 
 type EventLog = { name: string; ts: number };
@@ -139,8 +139,8 @@ export default function IntroOverlay() {
           }}
         >
           {/* VIDEO — scale via wrapper div, NOT directly on <video> (iOS GPU clip bug) */}
-          <div className="flex min-h-[16rem] w-full max-w-[18rem] items-center justify-center sm:max-w-[20rem]">
-            <div className="scale-125">
+          <div className="flex w-full items-center justify-center overflow-visible">
+            <div className="scale-[1.25] sm:scale-[0.4]">
               <video
                 ref={videoRef}
                 src="/api/splash-video"
@@ -157,7 +157,7 @@ export default function IntroOverlay() {
                 onPlay={handlePlay}
                 onEnded={handleEnded}
                 onError={handleError}
-                className="h-auto w-full max-w-[16rem] sm:max-w-[18rem] object-contain"
+                className="h-auto w-full object-contain"
               />
             </div>
           </div>
