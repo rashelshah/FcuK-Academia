@@ -60,25 +60,31 @@ export default function IntroOverlay() {
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
 
-  /**
-   * Called by the video element's onCanPlay synthetic event.
-   * This is the ONLY reliable point on iOS to call play().
-   * Calling play() from useEffect, setTimeout, or autoPlay alone is unreliable on iOS.
-   */
-  const handleCanPlay = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    // Must be set programmatically — iOS ignores the HTML attribute alone
-    video.muted = true;
-    (video as any).defaultMuted = true;
-    video.play().catch(() => {
-      // If play() is rejected (e.g. aggressive policy), fall through to timeout
-    });
-  };
-
   const handleEnded = () => {
+    console.log('[Splash] onEnded — video finished');
     animationCompleteRef.current = true;
   };
+
+  // ─── Debug event handlers (logs help diagnose iOS issues) ───────────────────
+  const handleLoadStart    = () => console.log('[Splash] onLoadStart');
+  const handleLoadedMeta   = () => console.log('[Splash] onLoadedMetadata');
+  const handleLoadedData   = () => console.log('[Splash] onLoadedData');
+  const handleCanPlay      = () => {
+    console.log('[Splash] onCanPlay — calling play()');
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    (video as any).defaultMuted = true;
+    video.play().then(() => {
+      console.log('[Splash] play() resolved — video is playing');
+    }).catch((e) => {
+      console.warn('[Splash] play() rejected:', e);
+    });
+  };
+  const handleCanPlayThrough = () => console.log('[Splash] onCanPlayThrough');
+  const handlePlay           = () => console.log('[Splash] onPlay');
+  const handleError          = (e: React.SyntheticEvent<HTMLVideoElement>) =>
+    console.error('[Splash] onError:', (e.target as HTMLVideoElement).error);
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
@@ -93,7 +99,7 @@ export default function IntroOverlay() {
             opacity: 1,
             transition: { duration: 0.82, ease: EXIT_EASING },
           }}
-          className="fixed inset-0 z-[140] flex items-center justify-center overflow-hidden bg-black px-6"
+          className="fixed inset-0 z-[140] flex items-center justify-center bg-black px-6"
           aria-label="Splash screen"
           onAnimationComplete={(definition) => {
             if (definition && (definition as any).y === '-100%') {
@@ -101,24 +107,33 @@ export default function IntroOverlay() {
             }
           }}
         >
+          {/*
+            ROOT CAUSE FIX:
+            overflow-hidden on a parent + scale() on a child video = video clipped to 0px on iOS Safari.
+            Fix: overflow-hidden removed from container. Scale is now on a wrapper <div>,
+            NOT directly on the <video> element (which also clips video on iOS).
+          */}
           <div className="flex min-h-[16rem] w-full max-w-[18rem] items-center justify-center sm:max-w-[20rem]">
-            {/*
-              IMPORTANT — do NOT conditionally render or hide this element.
-              The video must be in the DOM immediately so iOS begins buffering.
-              Hiding via opacity/visibility masks iOS error signals and prevents canplay from firing.
-            */}
-            <video
-              ref={videoRef}
-              src="/assets/videos/splash-ios-final.mp4"
-              autoPlay          // hint to browser; actual play() is triggered via onCanPlay
-              muted             // required HTML attribute
-              playsInline       // required for iOS — prevents fullscreen takeover
-              preload="auto"    // tell the browser to start buffering immediately
-              disablePictureInPicture
-              onCanPlay={handleCanPlay}   // explicit play() call — most reliable iOS trigger
-              onEnded={handleEnded}
-              className="h-auto w-full max-w-[16rem] sm:max-w-[18rem] object-contain scale-125"
-            />
+            <div className="scale-125">
+              <video
+                ref={videoRef}
+                src="/assets/videos/splash-ios-final.mp4"
+                autoPlay
+                muted
+                playsInline
+                preload="auto"
+                {...{ 'webkit-playsinline': 'true' } as any}
+                onLoadStart={handleLoadStart}
+                onLoadedMetadata={handleLoadedMeta}
+                onLoadedData={handleLoadedData}
+                onCanPlay={handleCanPlay}
+                onCanPlayThrough={handleCanPlayThrough}
+                onPlay={handlePlay}
+                onEnded={handleEnded}
+                onError={handleError}
+                className="h-auto w-full max-w-[16rem] sm:max-w-[18rem] object-contain"
+              />
+            </div>
           </div>
         </motion.div>
       ) : null}
