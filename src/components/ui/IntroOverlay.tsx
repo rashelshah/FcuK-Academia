@@ -19,6 +19,7 @@ export default function IntroOverlay() {
   const hasDismissedRef = useRef(false);
   const startTimeRef = useRef(Date.now());
   const animationCompleteRef = useRef(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Delay video rendering until after initial mount and a brief buffer
   useEffect(() => {
@@ -31,6 +32,22 @@ export default function IntroOverlay() {
 
     return () => clearTimeout(timer);
   }, [showIntro]);
+
+  // Attempt to explicitly play video for iOS and handle failures (e.g. Low Power Mode)
+  useEffect(() => {
+    if (canRenderVideo && videoRef.current) {
+      const video = videoRef.current;
+      video.defaultMuted = true;
+      video.muted = true;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((e) => {
+          console.warn('Autoplay prevented on iOS:', e);
+          handleFinish(); // Skip splash screen so user isn't stuck
+        });
+      }
+    }
+  }, [canRenderVideo]);
 
   // Synchronize dismissal with data loading
   useEffect(() => {
@@ -92,11 +109,14 @@ export default function IntroOverlay() {
           <div className="flex min-h-[16rem] w-full max-w-[18rem] items-center justify-center sm:max-w-[20rem]">
             {canRenderVideo && (
               <video
+                ref={videoRef}
                 src="/assets/videos/splash-animation.mp4" /* Replace this path with your actual .mp4 path */
                 autoPlay
                 muted
                 playsInline
+                preload="auto"
                 onEnded={handleFinish}
+                onError={handleFinish}
                 className="h-auto w-full max-w-[16rem] sm:max-w-[18rem] object-contain scale-125"
               />
             )}
