@@ -110,7 +110,7 @@ export default function IntroOverlay() {
             {canRenderVideo && (
               <video
                 ref={videoRef}
-                src="/assets/videos/splash-animation.mp4" /* Replace this path with your actual .mp4 path */
+                src="/assets/videos/new-splash-animation.mp4" /* Replace this path with your actual .mp4 path */
                 autoPlay
                 muted
                 playsInline
