@@ -11,59 +11,55 @@ const EXIT_EASING = [0.22, 1, 0.36, 1] as const;
 /**
  * Handles the video logo splash only.
  * Cinematic is now triggered by CommunityPopup close → queueCinematic().
+ *
+ * iOS Safari notes:
+ * - The <video> is always mounted (not conditionally rendered) so the browser
+ *   starts downloading it as early as possible. We just keep it opacity-0 until
+ *   canplay fires so there's no black frame visible.
+ * - We call play() inside the canplay handler, not in a setTimeout, so iOS is
+ *   guaranteed to have buffered at least one frame before we ask it to play.
+ * - onError is deliberately NOT wired to handleFinish so a transient network
+ *   hiccup never causes an instant black-screen skip.
  */
 export default function IntroOverlay() {
   const { showIntro, dismissIntro, queueCinematic, communityPopupDone } = useTheme();
   const { loading } = useDashboard();
-  const [canRenderVideo, setCanRenderVideo] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const hasDismissedRef = useRef(false);
   const startTimeRef = useRef(Date.now());
   const animationCompleteRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Delay video rendering until after initial mount and a brief buffer
+  // Start playback as soon as iOS says the video is playable.
+  // This runs once when showIntro becomes true (component mounts with showIntro=true).
   useEffect(() => {
-    if (!showIntro) return;
-
-    // 150ms is usually enough to clear the hydration/initial-paint CPU spike
-    const timer = setTimeout(() => {
-      setCanRenderVideo(true);
-    }, 150);
-
-    return () => clearTimeout(timer);
-  }, [showIntro]);
-
-  // iOS-safe explicit play: wait for the video to be loaded before calling play().
-  // Calling play() before loadeddata fires is the #1 cause of black screens on iOS Safari.
-  useEffect(() => {
-    if (!canRenderVideo || !videoRef.current) return;
+    if (!showIntro || !videoRef.current) return;
 
     const video = videoRef.current;
-    // These must be set programmatically for iOS to accept autoplay
+    // Must set these programmatically for iOS to allow autoplay
     video.defaultMuted = true;
     video.muted = true;
 
-    const attemptPlay = () => {
+    const onCanPlay = () => {
+      setVideoReady(true);
       const promise = video.play();
       if (promise !== undefined) {
         promise.catch((err) => {
-          // Log but do NOT call handleFinish here.
-          // Let the 10-second timeout in the dismiss loop handle the fallback
-          // so the user doesn't see a blank black screen immediately.
-          console.warn('[IntroOverlay] Autoplay blocked (possibly Low Power Mode):', err);
+          // Log only — do NOT dismiss here. The 10s timeout handles fallback.
+          console.warn('[IntroOverlay] iOS autoplay blocked:', err);
         });
       }
     };
 
-    // readyState >= 2 means HAVE_CURRENT_DATA — enough data to play at least one frame
-    if (video.readyState >= 2) {
-      attemptPlay();
+    // readyState >= 3 means HAVE_FUTURE_DATA — enough to play without immediately stalling
+    if (video.readyState >= 3) {
+      onCanPlay();
     } else {
-      // Wait until iOS has buffered enough data before trying to play
-      video.addEventListener('loadeddata', attemptPlay, { once: true });
-      return () => video.removeEventListener('loadeddata', attemptPlay);
+      // canplay fires earlier than loadeddata and is the right signal for iOS
+      video.addEventListener('canplay', onCanPlay, { once: true });
+      return () => video.removeEventListener('canplay', onCanPlay);
     }
-  }, [canRenderVideo]);
+  }, [showIntro]);
 
   // Synchronize dismissal with data loading
   useEffect(() => {
@@ -73,10 +69,10 @@ export default function IntroOverlay() {
       if (hasDismissedRef.current) return;
 
       const elapsed = Date.now() - startTimeRef.current;
-      // Wait for the video to finish playing naturally (or fallback after 10s if it fails to play)
+      // Wait for the video to finish playing naturally (or fallback after 10s)
       const animationDone = animationCompleteRef.current || elapsed >= 10000;
       const dataReady = !loading;
-      // Hard timeout so user is never permanently stuck
+      // Hard timeout so user is never permanently stuck on black screen
       const timedOut = elapsed >= 12000;
 
       if (animationDone && (dataReady || timedOut)) {
@@ -85,7 +81,6 @@ export default function IntroOverlay() {
       }
     };
 
-    // Check periodically or whenever loading changes
     const interval = setInterval(checkAndDismiss, 100);
     checkAndDismiss(); // Initial check
 
@@ -112,10 +107,7 @@ export default function IntroOverlay() {
           className="fixed inset-0 z-[140] flex items-center justify-center overflow-hidden bg-black px-6"
           aria-label="Splash screen"
           onAnimationComplete={(definition) => {
-            // Signal that we are fully exited so Cinematic or Community can take over
             if (definition && (definition as any).y === '-100%') {
-              // If community popup is already done (seen/skipped), start cinematic now.
-              // Otherwise, CommunityPopup will take over and call queueCinematic later.
               if (communityPopupDone) {
                 queueCinematic();
               }
@@ -123,20 +115,22 @@ export default function IntroOverlay() {
           }}
         >
           <div className="flex min-h-[16rem] w-full max-w-[18rem] items-center justify-center sm:max-w-[20rem]">
-            {canRenderVideo && (
-              <video
-                ref={videoRef}
-                src="/assets/videos/new-splash-animation.mp4"
-                autoPlay
-                muted
-                playsInline
-                preload="auto"
-                onEnded={handleFinish}
-                // NOTE: onError is intentionally omitted — we let the 10s timeout
-                // handle fallback so a transient load error doesn't skip the splash instantly.
-                className="h-auto w-full max-w-[16rem] sm:max-w-[18rem] object-contain scale-125"
-              />
-            )}
+            {/*
+              The video is always in the DOM (not conditionally rendered) so iOS
+              begins buffering it immediately. We fade it in once canplay fires.
+            */}
+            <video
+              ref={videoRef}
+              src="/assets/videos/new-splash-animation.mp4"
+              autoPlay
+              muted
+              playsInline
+              preload="auto"
+              onEnded={handleFinish}
+              className={`h-auto w-full max-w-[16rem] sm:max-w-[18rem] object-contain scale-125 transition-opacity duration-300 ${
+                videoReady ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
           </div>
         </motion.div>
       ) : null}
