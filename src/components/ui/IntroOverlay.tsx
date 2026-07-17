@@ -9,74 +9,45 @@ import { useDashboard } from '@/hooks/useDashboard';
 const EXIT_EASING = [0.22, 1, 0.36, 1] as const;
 
 /**
- * Handles the video logo splash only.
- * Cinematic is now triggered by CommunityPopup close → queueCinematic().
+ * Video splash screen overlay.
  *
- * iOS video compatibility requirements met by splash-ios-final.mp4:
- *  - H.264 Constrained Baseline profile, Level 3.1  ← required for all iOS versions
- *  - 30 fps                                          ← required (60fps rejected on iOS)
- *  - No audio track                                  ← required for autoplay
- *  - moov atom at start (faststart)                  ← required for streaming
- *  - yuv420p pixel format                            ← required
+ * Video file: /assets/videos/splash-ios-final.mp4
+ *   ✅ H.264 Constrained Baseline, Level 3.1   (iOS-required profile)
+ *   ✅ 30 fps                                    (iOS blocks autoplay >30fps)
+ *   ✅ No audio track                            (required for iOS autoplay)
+ *   ✅ moov atom at front (faststart)            (required for streaming)
+ *   ✅ yuv420p                                   (required pixel format)
+ *
+ * iOS autoplay rules satisfied:
+ *   ✅ muted attribute + video.muted = true (programmatic)
+ *   ✅ playsInline attribute
+ *   ✅ autoPlay attribute as fallback hint
+ *   ✅ play() called explicitly on canplay event (not in setTimeout/effect)
+ *   ✅ No opacity or visibility hiding (hides error signals)
  */
 export default function IntroOverlay() {
   const { showIntro, dismissIntro, queueCinematic, communityPopupDone } = useTheme();
   const { loading } = useDashboard();
+
   const hasDismissedRef = useRef(false);
   const startTimeRef = useRef(Date.now());
   const animationCompleteRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [mounted, setMounted] = useState(false);
 
-  // Small mount delay so the video element gets a fully-painted DOM before play()
-  useEffect(() => {
-    if (!showIntro) return;
-    const t = setTimeout(() => setMounted(true), 100);
-    return () => clearTimeout(t);
-  }, [showIntro]);
-
-  // As soon as the video element is in the DOM, try to play
-  useEffect(() => {
-    if (!mounted || !videoRef.current) return;
-
-    const video = videoRef.current;
-
-    // These must be set programmatically for iOS to trust the muted state
-    video.muted = true;
-    (video as any).defaultMuted = true;
-
-    // Directly attempt play — video element already has muted + playsInline + no audio
-    const tryPlay = () => {
-      const p = video.play();
-      if (p) {
-        p.catch(() => {
-          // Autoplay fully blocked (e.g. strict browser policy) — dismiss after a short pause
-          setTimeout(() => { animationCompleteRef.current = true; }, 500);
-        });
-      }
-    };
-
-    if (video.readyState >= 2) {
-      tryPlay();
-    } else {
-      video.addEventListener('loadeddata', tryPlay, { once: true });
-      return () => video.removeEventListener('loadeddata', tryPlay);
-    }
-  }, [mounted]);
-
-  // Synchronize dismissal with data loading
+  // ─── Dismissal loop ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!showIntro || hasDismissedRef.current) return;
 
     const checkAndDismiss = () => {
       if (hasDismissedRef.current) return;
-
       const elapsed = Date.now() - startTimeRef.current;
-      const animationDone = animationCompleteRef.current || elapsed >= 10000;
+      // Primary exit: video ended naturally
+      const videoDone = animationCompleteRef.current;
+      // Safety exit: video didn't play within 10 seconds
+      const timedOut = elapsed >= 10000;
       const dataReady = !loading;
-      const timedOut = elapsed >= 12000;
 
-      if (animationDone && (dataReady || timedOut)) {
+      if ((videoDone && dataReady) || timedOut) {
         hasDismissedRef.current = true;
         dismissIntro();
       }
@@ -87,10 +58,29 @@ export default function IntroOverlay() {
     return () => clearInterval(interval);
   }, [dismissIntro, showIntro, loading]);
 
-  const handleFinish = () => {
+  // ─── Handlers ──────────────────────────────────────────────────────────────
+
+  /**
+   * Called by the video element's onCanPlay synthetic event.
+   * This is the ONLY reliable point on iOS to call play().
+   * Calling play() from useEffect, setTimeout, or autoPlay alone is unreliable on iOS.
+   */
+  const handleCanPlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    // Must be set programmatically — iOS ignores the HTML attribute alone
+    video.muted = true;
+    (video as any).defaultMuted = true;
+    video.play().catch(() => {
+      // If play() is rejected (e.g. aggressive policy), fall through to timeout
+    });
+  };
+
+  const handleEnded = () => {
     animationCompleteRef.current = true;
   };
 
+  // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <AnimatePresence mode="wait">
       {showIntro ? (
@@ -107,25 +97,28 @@ export default function IntroOverlay() {
           aria-label="Splash screen"
           onAnimationComplete={(definition) => {
             if (definition && (definition as any).y === '-100%') {
-              if (communityPopupDone) {
-                queueCinematic();
-              }
+              if (communityPopupDone) queueCinematic();
             }
           }}
         >
           <div className="flex min-h-[16rem] w-full max-w-[18rem] items-center justify-center sm:max-w-[20rem]">
-            {mounted && (
-              <video
-                ref={videoRef}
-                src="/assets/videos/splash-ios-final.mp4"
-                muted
-                playsInline
-                autoPlay
-                preload="auto"
-                onEnded={handleFinish}
-                className="h-auto w-full max-w-[16rem] sm:max-w-[18rem] object-contain scale-125"
-              />
-            )}
+            {/*
+              IMPORTANT — do NOT conditionally render or hide this element.
+              The video must be in the DOM immediately so iOS begins buffering.
+              Hiding via opacity/visibility masks iOS error signals and prevents canplay from firing.
+            */}
+            <video
+              ref={videoRef}
+              src="/assets/videos/splash-ios-final.mp4"
+              autoPlay          // hint to browser; actual play() is triggered via onCanPlay
+              muted             // required HTML attribute
+              playsInline       // required for iOS — prevents fullscreen takeover
+              preload="auto"    // tell the browser to start buffering immediately
+              disablePictureInPicture
+              onCanPlay={handleCanPlay}   // explicit play() call — most reliable iOS trigger
+              onEnded={handleEnded}
+              className="h-auto w-full max-w-[16rem] sm:max-w-[18rem] object-contain scale-125"
+            />
           </div>
         </motion.div>
       ) : null}
