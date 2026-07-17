@@ -24,7 +24,7 @@ export default function IntroOverlay() {
   // Delay video rendering until after initial mount and a brief buffer
   useEffect(() => {
     if (!showIntro) return;
-    
+
     // 150ms is usually enough to clear the hydration/initial-paint CPU spike
     const timer = setTimeout(() => {
       setCanRenderVideo(true);
@@ -33,19 +33,35 @@ export default function IntroOverlay() {
     return () => clearTimeout(timer);
   }, [showIntro]);
 
-  // Attempt to explicitly play video for iOS and handle failures (e.g. Low Power Mode)
+  // iOS-safe explicit play: wait for the video to be loaded before calling play().
+  // Calling play() before loadeddata fires is the #1 cause of black screens on iOS Safari.
   useEffect(() => {
-    if (canRenderVideo && videoRef.current) {
-      const video = videoRef.current;
-      video.defaultMuted = true;
-      video.muted = true;
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((e) => {
-          console.warn('Autoplay prevented on iOS:', e);
-          handleFinish(); // Skip splash screen so user isn't stuck
+    if (!canRenderVideo || !videoRef.current) return;
+
+    const video = videoRef.current;
+    // These must be set programmatically for iOS to accept autoplay
+    video.defaultMuted = true;
+    video.muted = true;
+
+    const attemptPlay = () => {
+      const promise = video.play();
+      if (promise !== undefined) {
+        promise.catch((err) => {
+          // Log but do NOT call handleFinish here.
+          // Let the 10-second timeout in the dismiss loop handle the fallback
+          // so the user doesn't see a blank black screen immediately.
+          console.warn('[IntroOverlay] Autoplay blocked (possibly Low Power Mode):', err);
         });
       }
+    };
+
+    // readyState >= 2 means HAVE_CURRENT_DATA — enough data to play at least one frame
+    if (video.readyState >= 2) {
+      attemptPlay();
+    } else {
+      // Wait until iOS has buffered enough data before trying to play
+      video.addEventListener('loadeddata', attemptPlay, { once: true });
+      return () => video.removeEventListener('loadeddata', attemptPlay);
     }
   }, [canRenderVideo]);
 
@@ -60,7 +76,7 @@ export default function IntroOverlay() {
       // Wait for the video to finish playing naturally (or fallback after 10s if it fails to play)
       const animationDone = animationCompleteRef.current || elapsed >= 10000;
       const dataReady = !loading;
-      // Allow extra time for data to load, with a max timeout
+      // Hard timeout so user is never permanently stuck
       const timedOut = elapsed >= 12000;
 
       if (animationDone && (dataReady || timedOut)) {
@@ -110,13 +126,14 @@ export default function IntroOverlay() {
             {canRenderVideo && (
               <video
                 ref={videoRef}
-                src="/assets/videos/new-splash-animation.mp4" /* Replace this path with your actual .mp4 path */
+                src="/assets/videos/new-splash-animation.mp4"
                 autoPlay
                 muted
                 playsInline
                 preload="auto"
                 onEnded={handleFinish}
-                onError={handleFinish}
+                // NOTE: onError is intentionally omitted — we let the 10s timeout
+                // handle fallback so a transient load error doesn't skip the splash instantly.
                 className="h-auto w-full max-w-[16rem] sm:max-w-[18rem] object-contain scale-125"
               />
             )}
