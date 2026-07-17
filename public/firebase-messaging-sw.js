@@ -1,5 +1,5 @@
 const FIREBASE_VERSION = '12.12.0';
-const CACHE_VERSION = 'fcuk-academia-v6';
+const CACHE_VERSION = 'fcuk-academia-v7';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_CACHE = `${CACHE_VERSION}-offline`;
 const OFFLINE_URL = '/offline.html';
@@ -177,6 +177,15 @@ self.addEventListener('fetch', (event) => {
 
   const isFont = /\.(woff2?|ttf|otf)$/i.test(url.pathname);
   const isImage = request.destination === 'image';
+  // Videos must be explicitly passed through — iOS PWA drops requests that the SW
+  // doesn't handle, resulting in readyState=0 / HAVE_NOTHING on the video element.
+  const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(url.pathname) || request.destination === 'video';
+
+  if (isVideo) {
+    // Always fetch videos fresh from the network — never cache them (too large).
+    event.respondWith(fetch(request));
+    return;
+  }
 
   if (!isFont && !isImage) return;
 
