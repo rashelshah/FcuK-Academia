@@ -143,7 +143,7 @@ export default function IntroOverlay() {
             <div className="scale-125">
               <video
                 ref={videoRef}
-                src="/assets/videos/splash-ios-final.mp4"
+                src="/api/splash-video"
                 autoPlay
                 muted
                 playsInline
