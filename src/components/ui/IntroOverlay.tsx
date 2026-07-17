@@ -1,36 +1,32 @@
 'use client';
 
-import Lottie from 'lottie-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 
-import animationData from '@/assets/Scene-2.json';
 import { useTheme } from '@/context/ThemeContext';
 import { useDashboard } from '@/hooks/useDashboard';
 
-const SPLASH_DURATION_MS = 2000;
-const MAX_EXTRA_WAIT_MS = 1500; // Max extra time to wait for data after animation
 const EXIT_EASING = [0.22, 1, 0.36, 1] as const;
 
 /**
- * Handles the Lottie logo splash only.
+ * Handles the video logo splash only.
  * Cinematic is now triggered by CommunityPopup close → queueCinematic().
  */
 export default function IntroOverlay() {
   const { showIntro, dismissIntro, queueCinematic, communityPopupDone } = useTheme();
   const { loading } = useDashboard();
-  const [canRenderLottie, setCanRenderLottie] = useState(false);
+  const [canRenderVideo, setCanRenderVideo] = useState(false);
   const hasDismissedRef = useRef(false);
   const startTimeRef = useRef(Date.now());
   const animationCompleteRef = useRef(false);
 
-  // Delay Lottie rendering until after initial mount and a brief buffer
+  // Delay video rendering until after initial mount and a brief buffer
   useEffect(() => {
     if (!showIntro) return;
     
     // 150ms is usually enough to clear the hydration/initial-paint CPU spike
     const timer = setTimeout(() => {
-      setCanRenderLottie(true);
+      setCanRenderVideo(true);
     }, 150);
 
     return () => clearTimeout(timer);
@@ -44,9 +40,11 @@ export default function IntroOverlay() {
       if (hasDismissedRef.current) return;
 
       const elapsed = Date.now() - startTimeRef.current;
-      const animationDone = elapsed >= SPLASH_DURATION_MS || animationCompleteRef.current;
+      // Wait for the video to finish playing naturally (or fallback after 10s if it fails to play)
+      const animationDone = animationCompleteRef.current || elapsed >= 10000;
       const dataReady = !loading;
-      const timedOut = elapsed >= SPLASH_DURATION_MS + MAX_EXTRA_WAIT_MS;
+      // Allow extra time for data to load, with a max timeout
+      const timedOut = elapsed >= 12000;
 
       if (animationDone && (dataReady || timedOut)) {
         hasDismissedRef.current = true;
@@ -92,18 +90,14 @@ export default function IntroOverlay() {
           }}
         >
           <div className="flex min-h-[16rem] w-full max-w-[18rem] items-center justify-center sm:max-w-[20rem]">
-            {canRenderLottie && (
-              <Lottie
-                animationData={animationData}
-                loop={false}
-                autoplay
-                onComplete={handleFinish}
-                className="h-auto w-full max-w-[16rem] sm:max-w-[18rem]"
-                rendererSettings={{
-                  preserveAspectRatio: 'xMidYMid grow',
-                  progressiveLoad: true,
-                  hideOnTransparent: true,
-                }}
+            {canRenderVideo && (
+              <video
+                src="/assets/videos/splash-animation.mp4" /* Replace this path with your actual .mp4 path */
+                autoPlay
+                muted
+                playsInline
+                onEnded={handleFinish}
+                className="h-auto w-full max-w-[16rem] sm:max-w-[18rem] object-contain scale-125"
               />
             )}
           </div>

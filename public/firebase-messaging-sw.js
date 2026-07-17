@@ -3,15 +3,15 @@ const CACHE_VERSION = 'fcuk-academia-v6';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_CACHE = `${CACHE_VERSION}-offline`;
 const OFFLINE_URL = '/offline.html';
-const APP_ICON = '/icons/android-icon-192.png';
-const APP_BADGE = '/icons/android-icon-192.png';
+const APP_ICON = '/icons/new-android-icon-192.png';
+const APP_BADGE = '/icons/new-android-icon-192.png';
 const PRECACHE_URLS = [
   OFFLINE_URL,
   '/manifest.json',
   '/favicon.ico',
-  '/icons/android-icon-192.png',
-  '/icons/android-icon-512.png',
-  '/maskable-icon-512x512.png',
+  '/icons/new-android-icon-192.png',
+  '/icons/new-android-icon-512.png',
+  '/new-maskable-icon-512.png',
 ];
 
 const configUrl = new URL(self.location.href);

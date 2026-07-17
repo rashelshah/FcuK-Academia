@@ -49,15 +49,15 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/icons/android-icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/android-icon-512.png", sizes: "512x512", type: "image/png" },
-      { url: "/icons/browser%20logo.jpeg", type: "image/jpeg" },
+      { url: "/icons/new-android-icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/new-android-icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icons/new-browser-logo-48.jpeg", type: "image/jpeg" },
     ],
     apple: [
-      { url: "/icons/ios%20new%20logo.jpeg", type: "image/jpeg" },
+      { url: "/icons/new-ios-logo-180.jpeg", type: "image/jpeg" },
     ],
     shortcut: [
-      { url: "/icons/android-icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/new-android-icon-192.png", sizes: "192x192", type: "image/png" },
     ],
   },
   appleWebApp: {

@@ -107,7 +107,7 @@ export default function InstallGate({ children }: { children: React.ReactNode })
               className="absolute inset-x-0 bottom-0 h-[2px] bg-[#B6FF3B]/50 blur-sm"
             />
             <img
-              src="/android-chrome-192x192.png"
+              src="/icons/new-android-icon-192.png"
               alt="FcuK Academia"
               className="w-28 h-auto relative overflow-visible "
             />

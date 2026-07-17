@@ -9,7 +9,7 @@ const PUBLIC_PWA_PATHS = new Set([
   '/manifest.json',
   '/sw.js',
   '/offline.html',
-  '/maskable-icon-512x512.png',
+  '/new-maskable-icon-512.png',
 ]);
 
 export function proxy(request: NextRequest) {

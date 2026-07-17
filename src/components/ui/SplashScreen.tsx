@@ -47,7 +47,7 @@ export default function SplashScreen() {
     >
       <div className="splash-screen__logo-wrap">
         <Image
-          src="/android-chrome-512x512.png"
+          src="/icons/new-android-icon-512.png"
           alt=""
           width={112}
           height={112}
