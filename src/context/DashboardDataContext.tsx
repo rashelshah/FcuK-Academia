@@ -13,9 +13,17 @@ const FRESH_MS      = 60 * 1000;       // < 1 min → always bg-fetch (JS Map se
 const SOFT_STALE_MS = 5 * 60 * 1000;  // 1–5 min → bg-fetch via server snapshot
 const FOCUS_SKIP_MS = 30 * 1000;      // focus listener: skip if synced < 30s ago
 
-const PERSISTENCE_KEY = 'fcuk_dashboard_data_v1';
+const PERSISTENCE_KEY = 'fcuk_dashboard_data_v2';
+const OLD_PERSISTENCE_KEYS = ['fcuk_dashboard_data_v1'];
 
 interface PersistedDashboard extends DashboardData { _fetchedAt: number; }
+
+function clearOldPersistedKeys() {
+  if (typeof window === 'undefined') return;
+  for (const key of OLD_PERSISTENCE_KEYS) {
+    try { localStorage.removeItem(key); } catch { /* ignore */ }
+  }
+}
 
 function readPersisted(): PersistedDashboard | null {
   if (typeof window === 'undefined') return null;
@@ -30,6 +38,7 @@ function writePersisted(data: DashboardData) {
   try { localStorage.setItem(PERSISTENCE_KEY, JSON.stringify({ ...data, _fetchedAt: Date.now() })); }
   catch { /* quota */ }
 }
+
 
 function getPersistedAgeMs(): number {
   if (typeof window === 'undefined') return Infinity;
@@ -57,6 +66,9 @@ const DashboardDataContext = createContext<DashboardDataContextValue | undefined
 
 export function DashboardDataProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  // Remove any old versioned localStorage keys on every mount (runs client-side only).
+  clearOldPersistedKeys();
 
   const cachedDashboard = peekCachedJson<DashboardData>('/api/dashboard');
   const initialPersisted = readPersisted();

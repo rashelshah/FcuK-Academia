@@ -14,10 +14,28 @@ const DEFAULT_HEADERS = {
 };
 
 const URLS = {
-  profile: '/srm_university/academia-academic-services/page/My_Time_Table_2023_24',
+  // profile is now discovered dynamically — see getProfileCandidates()
   attendance: '/srm_university/academia-academic-services/page/My_Attendance',
   gridBase: '/srm_university/academia-academic-services/page/Unified_Time_Table_2025',
 } as const;
+
+const TIMETABLE_PAGE_BASE = '/srm_university/academia-academic-services/page';
+
+/** Returns all known timetable URL slugs to try, newest first. */
+function getProfileCandidates(): string[] {
+  return [
+    // This is the only URL that currently works (Academia updated the contents of this old page)
+    `${TIMETABLE_PAGE_BASE}/My_Time_Table_2023_24`,
+  ];
+}
+
+/** Returns all known attendance URL slugs to try, newest first. */
+function getAttendanceCandidates(): string[] {
+  return [
+    // None of the new URLs work yet, keeping the old one as a fallback
+    `${TIMETABLE_PAGE_BASE}/My_Attendance`,
+  ];
+}
 
 export type SessionCookies = Record<string, string>;
 
@@ -236,17 +254,23 @@ async function fetchAcademiaPage(path: string, sessionSource: SessionCookies | S
 
   const location = String(response.headers.location || '');
   const finalUrl = String(response.request?.res?.responseUrl || '');
+  console.log(`[academia] GET ${path} → status=${response.status} location="${location}" finalUrl="${finalUrl}"`);
+
   if ([301, 302].includes(response.status) || location.includes('signin') || finalUrl.includes('signin')) {
+    console.log(`[academia] → session expired / redirect for ${path}`);
     return { html: null as string | null, cookies: await jarToCookies(session.jar), session };
   }
 
   const rawHtml = typeof response.data === 'string' ? response.data : '';
+  const html = extractDecodedHtml(rawHtml);
+  console.log(`[academia] → extracted html: ${html ? html.slice(0, 80).replace(/\n/g, ' ') + '...' : 'NULL'}`);
   return {
-    html: extractDecodedHtml(rawHtml),
+    html,
     cookies: await jarToCookies(session.jar),
     session,
   };
 }
+
 
 function getPlannerCandidates(referenceDate = new Date()) {
   const basePath = '/srm_university/academia-academic-services/page';
@@ -989,7 +1013,26 @@ function parseCalendar(htmlContent: string | null): RawCalendarMonth[] {
 
 async function getProfileAndCourses(cookies: SessionCookies) {
   const session = await createSessionClient(cookies);
-  const profilePage = await fetchAcademiaPage(URLS.profile, session);
+
+  // Try each candidate timetable URL until one returns valid HTML.
+  let profilePage: Awaited<ReturnType<typeof fetchAcademiaPage>> | null = null;
+  let usedUrl = '';
+  for (const candidate of getProfileCandidates()) {
+    const page = await fetchAcademiaPage(candidate, session);
+    if (page.html) {
+      console.log(`[academia] ✅ Profile page found at: ${candidate}`);
+      profilePage = page;
+      usedUrl = candidate;
+      break;
+    }
+    console.log(`[academia] ❌ Not found: ${candidate}`);
+  }
+
+  if (!profilePage) {
+    // All candidates failed — session is truly expired.
+    profilePage = { html: null, cookies: await jarToCookies(session.jar), session };
+  }
+
   const userInfo = parseProfile(profilePage.html);
   const courseMap = parseCourseMap(profilePage.html);
   return {
@@ -999,8 +1042,10 @@ async function getProfileAndCourses(cookies: SessionCookies) {
     session,
     profileHtml: profilePage.html,
     isAuthenticated: Boolean(profilePage.html),
+    profileUrl: usedUrl,
   };
 }
+
 
 export async function stabilizeSession(cookies: SessionCookies) {
   const {
@@ -1011,7 +1056,22 @@ export async function stabilizeSession(cookies: SessionCookies) {
     profileHtml,
     isAuthenticated,
   } = await getProfileAndCourses(cookies);
-  const attendancePage = await fetchAcademiaPage(URLS.attendance, session);
+
+  // Try all attendance URL candidates to handle Academia renaming pages.
+  let attendancePage: Awaited<ReturnType<typeof fetchAcademiaPage>> | null = null;
+  for (const candidate of getAttendanceCandidates()) {
+    const page = await fetchAcademiaPage(candidate, session);
+    if (page.html) {
+      console.log(`[academia] ✅ Attendance page found at: ${candidate}`);
+      attendancePage = page;
+      break;
+    }
+    console.log(`[academia] ❌ Attendance not found: ${candidate} (status may be 403/404)`);
+  }
+  if (!attendancePage) {
+    attendancePage = { html: null, cookies: await jarToCookies(session.jar), session };
+  }
+
   const markList = parseMarks(attendancePage.html);
   const attendance = parseAttendance(attendancePage.html, courseMap);
 
@@ -1021,8 +1081,9 @@ export async function stabilizeSession(cookies: SessionCookies) {
     attendance,
     markList,
     cookies: attendancePage.cookies,
-    status: isAuthenticated && attendancePage.html ? 200 : 401,
-    error: isAuthenticated && attendancePage.html ? undefined : 'session expired. Log In again.',
+    // Use isAuthenticated — don't fail if only the attendance page is inaccessible.
+    status: isAuthenticated ? 200 : 401,
+    error: isAuthenticated ? undefined : 'session expired. Log In again.',
     profileCookies,
     profileHtml,
   };
@@ -1044,8 +1105,21 @@ export async function getDashboardData(cookies: SessionCookies) {
   }
 
   const batch = String(userInfo.batch).toLowerCase().trim() === '1' ? 'Batch_1' : 'batch_2';
-  const [attendancePage, gridPage, plannerResult] = await Promise.all([
-    fetchAcademiaPage(URLS.attendance, session),
+
+  // Try all attendance URL candidates.
+  let attendancePage: Awaited<ReturnType<typeof fetchAcademiaPage>> | null = null;
+  for (const candidate of getAttendanceCandidates()) {
+    const page = await fetchAcademiaPage(candidate, session);
+    if (page.html) {
+      attendancePage = page;
+      break;
+    }
+  }
+  if (!attendancePage) {
+    attendancePage = { html: null, cookies: await jarToCookies(session.jar), session };
+  }
+
+  const [gridPage, plannerResult] = await Promise.all([
     fetchAcademiaPage(`${URLS.gridBase}_${batch}`, session),
     fetchPlannerCalendar(session, (cookies as any).plannerUrl),
   ]);
@@ -1058,8 +1132,9 @@ export async function getDashboardData(cookies: SessionCookies) {
     calendar: plannerResult.calendar,
     plannerUrl: plannerResult.plannerUrl,
     cookies: plannerResult.page.cookies,
-    status: attendancePage.html ? 200 : 401,
-    error: attendancePage.html ? undefined : 'session expired. Log In again.',
+    // Return 200 if authenticated — don't fail just because attendance page is 403/404.
+    status: isAuthenticated ? 200 : 401,
+    error: isAuthenticated ? undefined : 'session expired. Log In again.',
   };
 }
 

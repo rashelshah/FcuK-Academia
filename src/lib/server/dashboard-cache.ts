@@ -12,11 +12,15 @@ import {
 const SNAPSHOT_TTL_MS = 1000 * 60 * 60 * 24; // 24 hours
 const SESSION_REFRESH_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
 
+// Bump this whenever the timetable URL or data schema changes to bust all cached snapshots.
+const CACHE_VERSION = 'AY2026-27-ODD';
+
 function isSnapshotUsable(snapshot: SessionSnapshot) {
   const hasName = Boolean(snapshot.userInfo.name?.trim());
   const hasRealMarks = snapshot.markList.some((item) => item.total.maxMark > 0);
   const hasCalendarMonth = snapshot.calendar.some((month) => month.month && month.month.toLowerCase() !== 'dt');
-  return hasName && hasCalendarMonth && (hasRealMarks || snapshot.markList.length === 0);
+  const isCurrentVersion = (snapshot as any).cacheVersion === CACHE_VERSION;
+  return isCurrentVersion && hasName && hasCalendarMonth && (hasRealMarks || snapshot.markList.length === 0);
 }
 
 export async function getCachedDashboardData(sessionId: string, session: UserSession, options?: { forceRefresh?: boolean }) {
@@ -64,7 +68,8 @@ export async function getCachedDashboardData(sessionId: string, session: UserSes
     timetable: result.timetable,
     calendar: result.calendar,
     updatedAt: Date.now(),
-  };
+    cacheVersion: CACHE_VERSION,
+  } as SessionSnapshot & { cacheVersion: string };
 
   await Promise.all([
     setSessionSnapshot(sessionId, snapshot),
