@@ -25,7 +25,7 @@ const getSrmCollegeCached = unstable_cache(
   async () => {
     return prisma.college.findFirst({
       where: {
-        name: { contains: 'SRM', mode: 'insensitive' },
+        name: { contains: 'Kattankulathur', mode: 'insensitive' },
       },
     });
   },

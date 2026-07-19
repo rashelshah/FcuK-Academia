@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     let srmCollege = await prisma.college.findFirst({
       where: {
         name: {
-          contains: 'SRM',
+          contains: 'Kattankulathur',
           mode: 'insensitive',
         },
       },
