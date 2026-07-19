@@ -62,6 +62,10 @@ export default function LoginPage() {
         sessionStorage.setItem('onboardingPending', 'true');
       }
 
+      // Explicitly clear old dashboard caches on login so we guarantee fresh data
+      localStorage.removeItem('fcuk_dashboard_data_v1');
+      localStorage.removeItem('fcuk_dashboard_data_v2');
+
       trackEvent('login_success', {
         method: 'srm_credentials',
       });
