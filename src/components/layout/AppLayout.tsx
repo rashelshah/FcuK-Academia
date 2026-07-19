@@ -22,6 +22,7 @@ import InstallGate from '@/components/system/InstallGate';
 import GlobalErrorBanner from '@/components/ui/GlobalErrorBanner';
 import ThemeBackground from '@/components/themes/ThemeBackground';
 import { useTheme } from '@/context/ThemeContext';
+import ThemeAnnouncementBanner from '@/components/ui/ThemeAnnouncementBanner';
 
 const HIDE_NAV_PATHS = ['/login'];
 const SWIPEABLE_PATHS = ['/', '/marks', '/attendance', '/timetable', '/calendar', '/settings'] as const;
@@ -121,6 +122,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="h-safe-top bg-surface" />
         <div className="sticky top-0 z-50">
           <GlobalErrorBanner />
+          <ThemeAnnouncementBanner />
         </div>
         <IntroOverlay />
         <CinematicIntroOverlay />
