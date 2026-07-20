@@ -27,20 +27,14 @@ export default function OnboardingOverlay() {
   const { dismissIntro, themeConfig } = useTheme();
   const [visible, setVisible] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return (
-      sessionStorage.getItem(ONBOARDING_PENDING_KEY) === 'true' &&
-      localStorage.getItem(ONBOARDING_STORAGE_KEY) !== 'true'
-    );
+    return localStorage.getItem(ONBOARDING_STORAGE_KEY) !== 'true';
   });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const shouldShow =
-        sessionStorage.getItem(ONBOARDING_PENDING_KEY) === 'true' &&
-        localStorage.getItem(ONBOARDING_STORAGE_KEY) !== 'true';
+      const shouldShow = localStorage.getItem(ONBOARDING_STORAGE_KEY) !== 'true';
 
       if (shouldShow) {
-        sessionStorage.removeItem(ONBOARDING_PENDING_KEY);
         setVisible(true);
       }
     });

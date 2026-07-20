@@ -1154,9 +1154,8 @@ export function getThemeBootstrapScript(initialTheme: ThemeType = defaultTheme) 
         root.dataset.theme = theme;
         root.dataset.themeMode = modes[theme] || 'dark';
         const introSeen = sessionStorage.getItem(introKey) === 'true';
-        const onboardingPending = sessionStorage.getItem(onboardingPendingKey) === 'true';
         const onboardingDone = localStorage.getItem(onboardingDoneKey) === 'true';
-        const shouldHideAppForOnboarding = onboardingPending && !onboardingDone;
+        const shouldHideAppForOnboarding = !onboardingDone;
         root.dataset.introSeen = introSeen ? 'true' : 'false';
         root.dataset.appVisible = introSeen && !shouldHideAppForOnboarding ? 'true' : 'false';
         root.style.colorScheme = root.dataset.themeMode;
