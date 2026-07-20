@@ -60,87 +60,14 @@ const slidesData = [
 ];
 
 export default function OnboardingContainer({ theme, onFinish }: OnboardingContainerProps) {
-  const viewportRef = useRef<HTMLDivElement | null>(null);
-  const settleTimerRef = useRef<number | null>(null);
-  const programmaticScrollBehaviorRef = useRef<ScrollBehavior>('auto');
-  const touchStartXRef = useRef(0);
-  const touchStartYRef = useRef(0);
-  const gestureLockRef = useRef<'x' | 'y' | null>(null);
   const activeIndexRef = useRef(0);
   const stepNavigationSourceRef = useRef<'initial' | 'button' | 'swipe'>('initial');
   const previousTrackedIndexRef = useRef<number | null>(null);
   
   const [activeIndex, setActiveIndex] = useState(0);
-  const [viewportWidth, setViewportWidth] = useState(0);
-  const [viewportNode, setViewportNode] = useState<HTMLDivElement | null>(null);
 
   const totalSlides = slidesData.length;
 
-  const toggleSwipeMode = useCallback((active: boolean) => {
-    document.body.classList.toggle('is-swiping', active);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (settleTimerRef.current !== null) {
-        window.clearTimeout(settleTimerRef.current);
-      }
-      toggleSwipeMode(false);
-    };
-  }, [toggleSwipeMode]);
-
-  useEffect(() => {
-    const node = viewportNode;
-    if (!node) return;
-
-    viewportRef.current = node;
-
-    const updateSize = () => {
-      const nextWidth = node.clientWidth;
-      setViewportWidth((current) => (current === nextWidth ? current : nextWidth));
-    };
-
-    updateSize();
-    const observer = new ResizeObserver(updateSize);
-    observer.observe(node);
-
-    return () => observer.disconnect();
-  }, [viewportNode]);
-
-  useEffect(() => {
-    const node = viewportRef.current;
-    if (!node || !viewportWidth) return;
-
-    const targetLeft = activeIndex * viewportWidth;
-    if (Math.abs(node.scrollLeft - targetLeft) < 1) return;
-
-    const behavior = programmaticScrollBehaviorRef.current;
-
-    // Fix Safari/iOS issue where smooth scrolling gets stuck on scroll-snap containers.
-    // Temporarily remove snap classes/styles while scrolling programmatically.
-    if (behavior === 'smooth') {
-      node.classList.remove('snap-x', 'snap-mandatory');
-      node.style.scrollSnapType = 'none';
-    }
-
-    node.scrollTo({
-      left: targetLeft,
-      behavior,
-    });
-    programmaticScrollBehaviorRef.current = 'auto';
-
-    if (settleTimerRef.current !== null) {
-      window.clearTimeout(settleTimerRef.current);
-    }
-
-    settleTimerRef.current = window.setTimeout(() => {
-      // Re-enable snapping after the smooth scroll animation completes
-      node.classList.add('snap-x', 'snap-mandatory');
-      node.style.scrollSnapType = '';
-      toggleSwipeMode(false);
-      settleTimerRef.current = null;
-    }, 600); // 600ms allows plenty of time for native smooth scrolling to finish
-  }, [activeIndex, toggleSwipeMode, viewportWidth]);
 
   useEffect(() => {
     activeIndexRef.current = activeIndex;
@@ -169,9 +96,8 @@ export default function OnboardingContainer({ theme, onFinish }: OnboardingConta
     stepNavigationSourceRef.current = 'initial';
   }, [activeIndex, totalSlides]);
 
-  const goToSlide = (index: number, behavior: ScrollBehavior = 'smooth') => {
+  const goToSlide = (index: number) => {
     stepNavigationSourceRef.current = 'button';
-    programmaticScrollBehaviorRef.current = behavior;
     setActiveIndex(Math.max(0, Math.min(totalSlides - 1, index)));
   };
 
@@ -180,155 +106,108 @@ export default function OnboardingContainer({ theme, onFinish }: OnboardingConta
       onFinish();
       return;
     }
-    goToSlide(activeIndex + 1, 'smooth');
+    goToSlide(activeIndex + 1);
   };
 
   return (
-    <AnimatePresence>
-      <motion.div
-        key="onboarding-overlay"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0, transition: { duration: 0.22 } }}
-        className="absolute inset-0 z-[150] overflow-hidden bg-black"
-      >
-        <div
-          ref={setViewportNode}
-          className="relative flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none]"
-          style={{
-            WebkitOverflowScrolling: 'touch',
-            overscrollBehaviorX: 'contain',
-            willChange: 'transform',
-            transform: 'translate3d(0, 0, 0)',
-          }}
-          onTouchStart={(event) => {
-            const touch = event.touches[0];
-            if (!touch) return;
-            gestureLockRef.current = null;
-            touchStartXRef.current = touch.clientX;
-            touchStartYRef.current = touch.clientY;
-          }}
-          onTouchMove={(event) => {
-            const touch = event.touches[0];
-            if (!touch) return;
-
-            const deltaX = touch.clientX - touchStartXRef.current;
-            const deltaY = touch.clientY - touchStartYRef.current;
-
-            if (!gestureLockRef.current) {
-              if (Math.abs(deltaX) < 6 && Math.abs(deltaY) < 6) return;
-              gestureLockRef.current = Math.abs(deltaX) > Math.abs(deltaY) * DIRECTION_LOCK_RATIO ? 'x' : 'y';
-            }
-
-            if (gestureLockRef.current === 'x') {
-              toggleSwipeMode(true);
-            }
-          }}
-          onTouchEnd={() => {
-            gestureLockRef.current = null;
-            if (settleTimerRef.current === null) {
-              window.setTimeout(() => {
-                toggleSwipeMode(false);
-              }, 120);
-            }
-          }}
-          onTouchCancel={() => {
-            gestureLockRef.current = null;
-            toggleSwipeMode(false);
-          }}
-          onScroll={(event) => {
-            if (!viewportWidth) return;
-            const viewport = event.currentTarget;
-            toggleSwipeMode(true);
-
-            if (settleTimerRef.current !== null) {
-              window.clearTimeout(settleTimerRef.current);
-            }
-
-            settleTimerRef.current = window.setTimeout(() => {
-              const nextIndex = Math.round(viewport.scrollLeft / viewportWidth);
-              toggleSwipeMode(false);
-              settleTimerRef.current = null;
-              if (nextIndex !== activeIndexRef.current) {
-                stepNavigationSourceRef.current = 'swipe';
-                setActiveIndex(Math.max(0, Math.min(totalSlides - 1, nextIndex)));
-              }
-            }, 70);
-          }}
-        >
-          <div className="flex h-full min-w-full [&::-webkit-scrollbar]:hidden">
-            {slidesData.map((slide, index) => {
-              const isLast = index === totalSlides - 1;
-              return (
-                <section
-                  key={index}
-                  className="snap-start relative h-full min-w-full flex-[0_0_100%] shrink-0 flex flex-col"
-                  style={{ background: slide.bgColor, width: viewportWidth || undefined }}
-                  aria-hidden={activeIndex !== index}
-                  aria-label={`Onboarding slide ${index + 1}`}
-                >
-                  {/* Illustration Area */}
-                  <div className="flex-1 flex justify-center items-center relative overflow-visible px-8 z-20">
-                    {slide.image ? (
-                      <div className="absolute inset-x-[-2rem] top-[-4rem] bottom-[-4.5rem] flex justify-center items-end pointer-events-none">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <motion.img 
-                          src={slide.image} 
-                          alt={slide.title} 
-                          className={`w-full max-w-[600px] h-full max-h-[130%] object-contain object-bottom drop-shadow-2xl ${slide.imageClassName || ''}`} 
-                          initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                          animate={activeIndex === index ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 50, scale: 0.9 }}
-                          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-full h-full flex justify-center items-end pb-8 pt-10">
-                        <div className="w-full max-w-[280px] h-[300px] border-2 border-dashed border-white/30 rounded-2xl flex flex-col items-center justify-center text-white/60 bg-white/5">
-                          <span className="text-sm font-semibold mb-2">Illustration Slot</span>
-                          <span className="text-xs text-center px-4 opacity-70">Add your GIF here to replace characters</span>
-                        </div>
-                      </div>
-                    )}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.8, ease: 'easeInOut' } }}
+      transition={{ duration: 0.8, ease: 'easeInOut' }}
+      className="absolute inset-0 z-[130] overflow-hidden bg-black"
+    >
+      <div className="relative h-full w-full overflow-hidden">
+        {slidesData.map((slide, index) => {
+          const isLast = index === totalSlides - 1;
+          return (
+            <motion.section
+              key={index}
+              className="absolute inset-0 flex flex-col"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(e, { offset }) => {
+                const swipe = offset.x;
+                if (swipe < -50 && activeIndex < totalSlides - 1) {
+                  goNext();
+                } else if (swipe > 50 && activeIndex > 0) {
+                  goToSlide(activeIndex - 1);
+                }
+              }}
+              style={{ 
+                background: slide.bgColor,
+                pointerEvents: activeIndex === index ? 'auto' : 'none'
+              }}
+              initial={false}
+              animate={{ 
+                opacity: activeIndex === index ? 1 : 0,
+                zIndex: activeIndex === index ? 10 : 0
+              }}
+              transition={{ duration: 0.8, ease: 'easeInOut' }}
+              aria-hidden={activeIndex !== index}
+              aria-label={`Onboarding slide ${index + 1}`}
+            >
+              {/* Illustration Area */}
+              <div className="flex-1 flex justify-center items-center relative overflow-visible px-8 z-20">
+                {slide.image ? (
+                  <div className="absolute inset-x-[-2rem] top-[-4rem] bottom-[-4.5rem] flex justify-center items-end pointer-events-none">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <motion.img 
+                      src={slide.image} 
+                      alt={slide.title} 
+                      className={`w-full max-w-[600px] h-full max-h-[130%] object-contain object-bottom drop-shadow-2xl ${slide.imageClassName || ''}`} 
+                      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                      animate={activeIndex === index ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 50, scale: 0.9 }}
+                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                    />
                   </div>
-
-                  {/* White Card Content */}
-                  <div className="bg-white rounded-t-[2.5rem] px-8 pt-6 pb-24 flex flex-col min-h-[38%] z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] relative">
-                    <h2 className="text-black font-sans text-[2.25rem] font-black leading-none mb-3 tracking-tight">
-                      {slide.title}
-                    </h2>
-                    <p className="text-gray-500 text-[0.95rem] mb-6 leading-relaxed font-medium">
-                      {slide.description}
-                    </p>
-
-                    <div className="mt-auto flex justify-between items-center">
-                      {/* Pagination Dots */}
-                      <div className="flex gap-2.5">
-                        {slidesData.map((_, dotIndex) => (
-                          <div
-                            key={dotIndex}
-                            className={`h-2 rounded-full transition-all duration-300 ${
-                              dotIndex === index ? 'w-2 bg-black' : 'w-2 bg-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-
-                      {/* CTA Button */}
-                      <button
-                        onClick={goNext}
-                        className="text-white px-7 py-3.5 rounded-[2rem] font-bold text-[0.9rem] tracking-wide transition-transform hover:scale-105 active:scale-95 shadow-md"
-                        style={{ background: slide.bgColor }}
-                      >
-                        {slide.buttonText}
-                      </button>
+                ) : (
+                  <div className="w-full h-full flex justify-center items-end pb-8 pt-10">
+                    <div className="w-full max-w-[280px] h-[300px] border-2 border-dashed border-white/30 rounded-2xl flex flex-col items-center justify-center text-white/60 bg-white/5">
+                      <span className="text-sm font-semibold mb-2">Illustration Slot</span>
+                      <span className="text-xs text-center px-4 opacity-70">Add your GIF here to replace characters</span>
                     </div>
                   </div>
-                </section>
-              );
-            })}
-          </div>
-        </div>
-      </motion.div>
-    </AnimatePresence>
+                )}
+              </div>
+
+              {/* White Card Content */}
+              <div className="bg-white rounded-t-[2.5rem] px-8 pt-6 pb-24 flex flex-col min-h-[38%] z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] relative">
+                <h2 className="text-black font-sans text-[2.25rem] font-black leading-none mb-3 tracking-tight">
+                  {slide.title}
+                </h2>
+                <p className="text-gray-500 text-[0.95rem] mb-6 leading-relaxed font-medium">
+                  {slide.description}
+                </p>
+
+                <div className="mt-auto flex justify-between items-center">
+                  {/* Pagination Dots */}
+                  <div className="flex gap-2.5">
+                    {slidesData.map((_, dotIndex) => (
+                      <div
+                        key={dotIndex}
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          dotIndex === index ? 'w-2 bg-black' : 'w-2 bg-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* CTA Button */}
+                  <button
+                    onClick={goNext}
+                    className="text-white px-7 py-3.5 rounded-[2rem] font-bold text-[0.9rem] tracking-wide transition-transform hover:scale-105 active:scale-95 shadow-md"
+                    style={{ background: slide.bgColor }}
+                  >
+                    {slide.buttonText}
+                  </button>
+                </div>
+              </div>
+            </motion.section>
+          );
+        })}
+      </div>
+    </motion.div>
   );
 }

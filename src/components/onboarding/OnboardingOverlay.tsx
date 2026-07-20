@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 
 import OnboardingContainer from '@/components/onboarding/OnboardingContainer';
 import type { OnboardingThemeConfig } from '@/components/onboarding/types';
@@ -24,11 +25,8 @@ function toRgba(hex: string, alpha: number) {
 }
 
 export default function OnboardingOverlay() {
-  const { dismissIntro, themeConfig } = useTheme();
-  const [visible, setVisible] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem(ONBOARDING_STORAGE_KEY) !== 'true';
-  });
+  const { dismissIntro, themeConfig, showIntro } = useTheme();
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -85,13 +83,14 @@ export default function OnboardingOverlay() {
       total_steps: 5,
     });
     localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+    document.documentElement.dataset.appVisible = 'true';
     setVisible(false);
     dismissIntro();
   };
 
-  if (!visible) {
-    return null;
-  }
-
-  return <OnboardingContainer theme={onboardingTheme} onFinish={handleFinish} />;
+  return (
+    <AnimatePresence>
+      {visible && <OnboardingContainer theme={onboardingTheme} onFinish={handleFinish} />}
+    </AnimatePresence>
+  );
 }

@@ -66,9 +66,6 @@ function resolveIntroState() {
   }
 
   if (typeof window !== 'undefined') {
-    if (sessionStorage.getItem('onboardingPending') === 'true') {
-      return false;
-    }
     return sessionStorage.getItem(INTRO_STORAGE_KEY) !== 'true';
   }
 
@@ -140,7 +137,12 @@ export function ThemeProvider({
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    document.documentElement.dataset.appVisible = showIntro ? 'false' : 'true';
+    const onboardingDone = localStorage.getItem('onboardingDone') === 'true';
+    if (!onboardingDone) {
+      document.documentElement.dataset.appVisible = 'false';
+    } else {
+      document.documentElement.dataset.appVisible = showIntro ? 'false' : 'true';
+    }
   }, [showIntro]);
 
   function dismissIntro() {
