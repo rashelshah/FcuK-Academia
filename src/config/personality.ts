@@ -74,30 +74,30 @@ export const personalityContent: Record<PersonalityMode, PersonalityCopy> = {
   girlie_pop: {
     home: {
       greetings: [
-        'you’ve got this, bestie 💅',
-        'attendance glow-up pending ✨',
+        'you’ve got this, bestie',
+        'attendance glow-up pending',
         'slay the semester',
-        'hey bestie, you\'re doing amazing 💖',
+        'hey bestie, you\'re doing amazing',
       ],
     },
     footer: {
       messages: [
-        'making college chaos a little more iconic ✨',
-        'romanticizing the academic struggle 💅',
-        'serving straight A energy ✨',
+        'making college chaos a little more iconic',
+        'romanticizing the academic struggle',
+        'serving straight A energy',
       ],
       submessages: [
         'romanticizing the grind one day at a time',
-        'doing it for the aesthetic ✨',
+        'doing it for the aesthetic',
       ]
     },
     marks: {
-      bannerTitle: ['time for a little academic glow-up 💅'],
-      bannerSubtitle: ['subjects that need a little more love 💖'],
+      bannerTitle: ['time for a little academic glow-up'],
+      bannerSubtitle: ['subjects that need a little more love'],
     },
     attendance: {
-      bannerTitleGood: ['attendance check passed bestie ✨'],
-      bannerTitleBad: ['attendance needs some love 💖'],
+      bannerTitleGood: ['attendance check passed bestie'],
+      bannerTitleBad: ['attendance needs some love'],
     },
     notifications: {
       upcomingClass: { title: 'class time bestie ✨', message: '💅 time to romanticize {subject} in 30 mins' },
@@ -144,7 +144,7 @@ export const personalityContent: Record<PersonalityMode, PersonalityCopy> = {
   delulu: {
     home: {
       greetings: [
-        'A+ energy only ✨',
+        'A+ energy only',
         'manifesting academic success',
         'you’re definitely passing',
         'the universe is giving you a 10.0',
@@ -152,22 +152,22 @@ export const personalityContent: Record<PersonalityMode, PersonalityCopy> = {
     },
     footer: {
       messages: [
-        'delulu is the solulu ✨',
+        'delulu is the solulu',
         'manifesting distinction for everyone.',
         'what are exams if not a construct?',
       ],
       submessages: [
-        'believing in the curve ✨',
+        'believing in the curve',
         'living in our own academic reality.',
       ]
     },
     marks: {
-      bannerTitle: ['comeback season starts now ✨'],
+      bannerTitle: ['comeback season starts now'],
       bannerSubtitle: ['minor setbacks for a major comeback'],
     },
     attendance: {
-      bannerTitleGood: ['perfect attendance energy ✨'],
-      bannerTitleBad: ['there\'s still time to recover ✨'],
+      bannerTitleGood: ['perfect attendance energy'],
+      bannerTitleBad: ['there\'s still time to recover'],
     },
     notifications: {
       upcomingClass: { title: 'manifesting a class ✨', message: '🔮 {subject} in 30 mins (if it even exists)' },
