@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import Lottie from 'lottie-react';
@@ -12,6 +13,7 @@ const EXIT_EASING = [0.22, 1, 0.36, 1] as const;
 export default function IntroOverlay() {
   const { showIntro, dismissIntro, queueCinematic, communityPopupDone } = useTheme();
   const { loading } = useDashboard();
+  const pathname = usePathname();
 
   const hasDismissedRef    = useRef(false);
   const startTimeRef       = useRef(Date.now());
@@ -42,7 +44,8 @@ export default function IntroOverlay() {
       // 10s fallback timeout
       const timeoutMs = 10000;
       const timedOut  = elapsed >= timeoutMs;
-      const dataReady = !loading;
+      // If on login screen, we don't need to wait for dashboard data
+      const dataReady = pathname === '/login' ? true : !loading;
 
       if ((videoDone && dataReady) || timedOut) {
         hasDismissedRef.current = true;
@@ -53,7 +56,7 @@ export default function IntroOverlay() {
     const interval = setInterval(checkAndDismiss, 100);
     checkAndDismiss();
     return () => clearInterval(interval);
-  }, [dismissIntro, showIntro, loading]);
+  }, [dismissIntro, showIntro, loading, pathname]);
 
   const handleEnded = () => {
     animationCompleteRef.current = true;

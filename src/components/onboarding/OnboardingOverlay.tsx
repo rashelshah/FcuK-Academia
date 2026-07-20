@@ -24,7 +24,7 @@ function toRgba(hex: string, alpha: number) {
 }
 
 export default function OnboardingOverlay() {
-  const { startIntro, themeConfig } = useTheme();
+  const { dismissIntro, themeConfig } = useTheme();
   const [visible, setVisible] = useState(() => {
     if (typeof window === 'undefined') return false;
     return (
@@ -92,7 +92,7 @@ export default function OnboardingOverlay() {
     });
     localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
     setVisible(false);
-    startIntro();
+    dismissIntro();
   };
 
   if (!visible) {
