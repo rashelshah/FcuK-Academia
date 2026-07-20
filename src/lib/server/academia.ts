@@ -289,13 +289,13 @@ function getPlannerCandidates(referenceDate = new Date()) {
   };
 
   const candidates = new Set<string>([
-    `${basePath}/Academic_Planner`,
     ...buildUrls(academicYear, isOdd ? 'ODD' : 'EVEN'),
     ...buildUrls(academicYear, isOdd ? 'EVEN' : 'ODD'),
     ...buildUrls(academicYear + 1, 'ODD'),
     ...buildUrls(academicYear + 1, 'EVEN'),
     ...buildUrls(academicYear - 1, 'EVEN'),
     ...buildUrls(academicYear - 1, 'ODD'),
+    `${basePath}/Academic_Planner`,
   ]);
 
   return [...candidates];
