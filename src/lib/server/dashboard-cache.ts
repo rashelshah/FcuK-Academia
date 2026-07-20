@@ -13,7 +13,7 @@ const SNAPSHOT_TTL_MS = 1000 * 60 * 60 * 24; // 24 hours
 const SESSION_REFRESH_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
 
 // Bump this whenever the timetable URL or data schema changes to bust all cached snapshots.
-const CACHE_VERSION = 'AY2026-27-ODD-v3';
+const CACHE_VERSION = 'AY2026-27-ODD-v4';
 
 function isSnapshotUsable(snapshot: SessionSnapshot) {
   const hasName = Boolean(snapshot.userInfo.name?.trim());
@@ -48,9 +48,11 @@ export async function getCachedDashboardData(sessionId: string, session: UserSes
     await clearSessionSnapshot(sessionId);
   }
 
+  const isVersionStale = cached && (cached as any).cacheVersion !== CACHE_VERSION;
+
   const result = await getDashboardData({
     ...session.cookies,
-    plannerUrl: session.plannerUrl,
+    plannerUrl: (forceRefresh || isVersionStale) ? undefined : session.plannerUrl,
   } as any);
   if (result.status !== 200) {
     return {
