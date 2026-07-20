@@ -108,6 +108,7 @@ async function callScraperEndpoint<T>(body: Record<string, unknown>): Promise<T>
       },
       body: JSON.stringify(body),
       signal: controller.signal,
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -236,6 +237,7 @@ async function callDriveEndpoint<T>(body: Record<string, unknown>): Promise<T> {
       },
       body: JSON.stringify(body),
       signal: controller.signal,
+      cache: 'no-store',
     });
 
     if (!response.ok) {
