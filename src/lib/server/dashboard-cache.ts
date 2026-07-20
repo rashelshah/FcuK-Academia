@@ -13,7 +13,7 @@ const SNAPSHOT_TTL_MS = 1000 * 60 * 60 * 24; // 24 hours
 const SESSION_REFRESH_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
 
 // Bump this whenever the timetable URL or data schema changes to bust all cached snapshots.
-const CACHE_VERSION = 'AY2026-27-ODD';
+const CACHE_VERSION = 'AY2026-27-ODD-v2';
 
 function isSnapshotUsable(snapshot: SessionSnapshot) {
   const hasName = Boolean(snapshot.userInfo.name?.trim());

@@ -275,17 +275,28 @@ async function fetchAcademiaPage(path: string, sessionSource: SessionCookies | S
 function getPlannerCandidates(referenceDate = new Date()) {
   const basePath = '/srm_university/academia-academic-services/page';
   const currentYear = referenceDate.getFullYear();
+  const currentMonth = referenceDate.getMonth();
+  
+  const isOdd = currentMonth >= 5;
+  const academicYear = isOdd ? currentYear : currentYear - 1;
+
+  const buildUrls = (year: number, term: string) => {
+    const shortNext = String(year + 1).slice(-2);
+    return [
+      `${basePath}/Academic_Planner_${year}_${shortNext}_${term}`,
+      `${basePath}/Academic_Planner_${year}_${year + 1}_${term}`
+    ];
+  };
+
   const candidates = new Set<string>([
     `${basePath}/Academic_Planner`,
+    ...buildUrls(academicYear, isOdd ? 'ODD' : 'EVEN'),
+    ...buildUrls(academicYear, isOdd ? 'EVEN' : 'ODD'),
+    ...buildUrls(academicYear + 1, 'ODD'),
+    ...buildUrls(academicYear + 1, 'EVEN'),
+    ...buildUrls(academicYear - 1, 'EVEN'),
+    ...buildUrls(academicYear - 1, 'ODD'),
   ]);
-
-  for (let startYear = currentYear - 2; startYear <= currentYear + 1; startYear += 1) {
-    const shortEndYear = String(startYear + 1).slice(-2);
-    for (const term of ['EVEN', 'ODD']) {
-      candidates.add(`${basePath}/Academic_Planner_${startYear}_${shortEndYear}_${term}`);
-      candidates.add(`${basePath}/Academic_Planner_${startYear}_${startYear + 1}_${term}`);
-    }
-  }
 
   return [...candidates];
 }
@@ -921,29 +932,40 @@ function parseTimetable(htmlContent: string | null, courseMap: Map<string, RawCo
 function parseCalendar(htmlContent: string | null): RawCalendarMonth[] {
   if (!htmlContent) return [];
   const $ = cheerio.load(htmlContent);
-  const monthPattern = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*'?\s*(\d{2,4})/i;
+  const monthPattern = /(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s*'?\s*(\d{2,4})/i;
   const dayOrderPattern = /^(?:day\s*)?([1-5])$/i;
 
   for (const table of $('table').toArray()) {
     const rows = $(table).find('tr').toArray();
     if (rows.length < 2) continue;
 
-    const headerCells = $(rows[0]).find('th, td').toArray();
-    const monthHeaders = headerCells
-      .map((cell) => cleanText($(cell).text()))
-      .map((text) => {
-        const match = text.match(monthPattern);
-        if (!match) return null;
-        const yearText = match[2];
-        return `${match[1]} '${yearText.slice(-2)}`;
-      })
-      .filter((value): value is string => Boolean(value));
+    let monthHeaders: string[] = [];
+    let headerRowIndex = 0;
+
+    for (let i = 0; i < Math.min(rows.length, 5); i += 1) {
+      const headerCells = $(rows[i]).find('th, td').toArray();
+      const currentHeaders = headerCells
+        .map((cell) => cleanText($(cell).text()).replace(/[\u200B-\u200D\uFEFF]/g, ''))
+        .map((text) => {
+          const match = text.match(monthPattern);
+          if (!match) return null;
+          const yearText = match[2];
+          return `${match[1]} '${yearText.slice(-2)}`;
+        })
+        .filter((value): value is string => Boolean(value));
+      
+      if (currentHeaders.length > 0) {
+        monthHeaders = currentHeaders;
+        headerRowIndex = i;
+        break;
+      }
+    }
 
     if (!monthHeaders.length) continue;
 
     const months: RawCalendarMonth[] = monthHeaders.map((month) => ({ month, days: [] }));
 
-    for (const row of rows.slice(1)) {
+    for (const row of rows.slice(headerRowIndex + 1)) {
       const cells = $(row)
         .find('td, th')
         .toArray()

@@ -13,8 +13,8 @@ const FRESH_MS      = 60 * 1000;       // < 1 min → always bg-fetch (JS Map se
 const SOFT_STALE_MS = 5 * 60 * 1000;  // 1–5 min → bg-fetch via server snapshot
 const FOCUS_SKIP_MS = 30 * 1000;      // focus listener: skip if synced < 30s ago
 
-const PERSISTENCE_KEY = 'fcuk_dashboard_data_v2';
-const OLD_PERSISTENCE_KEYS = ['fcuk_dashboard_data_v1'];
+const PERSISTENCE_KEY = 'fcuk_dashboard_data_v3';
+const OLD_PERSISTENCE_KEYS = ['fcuk_dashboard_data_v1', 'fcuk_dashboard_data_v2'];
 
 interface PersistedDashboard extends DashboardData { _fetchedAt: number; }
 
