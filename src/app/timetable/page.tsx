@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import AppHeader from '@/components/layout/AppHeader';
 import DayOrderPills from '@/components/ui/DayOrderPills';
@@ -11,8 +11,11 @@ import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useTimetable } from '@/hooks/useTimetable';
 import { getClassesForDay, getCurrentClassIndex, getDayOrders } from '@/lib/academia-ui';
 import { cn } from '@/lib/utils';
+import { Download } from 'lucide-react';
+import TimetableDownloadModal from '@/components/timetable/TimetableDownloadModal';
 
 export default function TimetablePage() {
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const { timetableRaw, loading, error } = useTimetable();
   const {
     activeDayOrder,
@@ -35,16 +38,26 @@ export default function TimetablePage() {
   );
 
   return (
-    <PageReveal className="flex flex-col gap-8 pb-32 pt-4">
+    <>
+    <PageReveal className="flex flex-col gap-8 pb-32 pt-4 print:hidden">
       <AppHeader />
 
-      <RevealText className="relative z-10 mt-4 flex items-center gap-5">
-        <span className="theme-kicker">day order</span>
-        <DayOrderPills
-          days={dayOrders.length ? dayOrders : [1, 2, 3, 4]}
-          activeDayOrder={dayOrder}
-          onSelect={setActiveDayOrder}
-        />
+      <RevealText className="relative z-10 mt-4 flex items-center justify-between gap-3 sm:gap-5 pr-2 sm:pr-4">
+        <div className="flex items-center gap-3 sm:gap-5">
+          <span className="theme-kicker hidden sm:inline">day order</span>
+          <DayOrderPills
+            days={dayOrders.length ? dayOrders : [1, 2, 3, 4]}
+            activeDayOrder={dayOrder}
+            onSelect={setActiveDayOrder}
+          />
+        </div>
+        <button
+          onClick={() => setIsDownloadModalOpen(true)}
+          className="flex h-9 w-9 sm:h-11 sm:w-auto sm:px-5 shrink-0 items-center justify-center gap-2 rounded-full bg-primary font-headline text-sm font-bold text-on-primary shadow-[var(--glow-primary)] hover:opacity-90 transition-all"
+        >
+          <Download size={16} />
+          <span className="hidden sm:inline">Download</span>
+        </button>
       </RevealText>
 
       <section className="relative mt-2">
@@ -117,6 +130,12 @@ export default function TimetablePage() {
         </div>
       </section>
     </PageReveal>
+    <TimetableDownloadModal 
+      isOpen={isDownloadModalOpen} 
+      onClose={() => setIsDownloadModalOpen(false)} 
+      timetable={timetableRaw} 
+    />
+    </>
   );
 }
 

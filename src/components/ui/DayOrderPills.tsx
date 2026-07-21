@@ -36,7 +36,7 @@ export default function DayOrderPills({
             whileTap={motionProps.whileTap}
             transition={motionProps.transition}
             className={cn(
-              'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border font-headline text-xl font-bold transition-all',
+              'flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full border font-headline text-lg sm:text-xl font-bold transition-all',
               active ? 'text-[var(--text-inverse)] shadow-[var(--glow-primary)]' : 'text-on-surface-variant',
             )}
             style={
