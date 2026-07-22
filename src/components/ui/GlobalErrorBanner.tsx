@@ -1,14 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertTriangle, LogIn } from 'lucide-react';
 import { useDashboardDataContext } from '@/context/DashboardDataContext';
 
 export default function GlobalErrorBanner() {
   const { error } = useDashboardDataContext();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [isOnboarding, setIsOnboarding] = useState(true);
 
-  if (!error) return null;
+  useEffect(() => {
+    setIsOnboarding(localStorage.getItem('onboardingDone') !== 'true');
+  }, []);
+
+  if (isOnboarding || !error) return null;
 
   async function handleLogOut() {
     try {

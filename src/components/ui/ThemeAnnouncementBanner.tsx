@@ -11,7 +11,8 @@ export default function ThemeAnnouncementBanner() {
 
   useEffect(() => {
     const isDismissed = localStorage.getItem('theme-banner-dismissed-v1');
-    if (!isDismissed) {
+    const isOnboarding = localStorage.getItem('onboardingDone') !== 'true';
+    if (!isDismissed && !isOnboarding) {
       setIsVisible(true);
     }
   }, []);

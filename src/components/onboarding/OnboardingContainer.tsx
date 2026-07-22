@@ -115,7 +115,7 @@ export default function OnboardingContainer({ theme, onFinish }: OnboardingConta
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.8, ease: 'easeInOut' } }}
       transition={{ duration: 0.8, ease: 'easeInOut' }}
-      className="absolute inset-0 z-[130] overflow-hidden bg-black"
+      className="fixed inset-0 z-[130] mx-auto w-full max-w-[28rem] sm:max-w-[34rem] lg:max-w-[44rem] xl:max-w-[52rem] overflow-hidden bg-black"
     >
       <div className="relative h-full w-full overflow-hidden">
         {slidesData.map((slide, index) => {
