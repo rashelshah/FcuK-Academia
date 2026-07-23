@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
-import Lottie from 'lottie-react';
+import Lottie, { LottieRefCurrentProps } from 'lottie-react';
 
 import { useTheme } from '@/context/ThemeContext';
 import { useDashboard } from '@/hooks/useDashboard';
@@ -18,6 +18,7 @@ export default function IntroOverlay() {
   const hasDismissedRef    = useRef(false);
   const startTimeRef       = useRef(Date.now());
   const animationCompleteRef = useRef(false);
+  const lottieRef = useRef<LottieRefCurrentProps>(null);
 
   const [animationData, setAnimationData] = useState<any>(null);
 
@@ -72,7 +73,7 @@ export default function IntroOverlay() {
           exit={{
             y: '-100%',
             opacity: 1,
-            transition: { duration: 0.82, ease: EXIT_EASING },
+            transition: { duration: 0.5, ease: EXIT_EASING },
           }}
           className="fixed inset-0 z-[140] flex items-center justify-center bg-black px-6"
           aria-label="Splash screen"
@@ -87,9 +88,11 @@ export default function IntroOverlay() {
             <div className="w-full max-w-md mx-auto md:max-w-lg lg:max-w-xl">
               {animationData ? (
                 <Lottie
+                  lottieRef={lottieRef}
                   animationData={animationData}
                   loop={false}
                   onComplete={handleEnded}
+                  onDOMLoaded={() => lottieRef.current?.setSpeed(2)}
                   className="h-auto w-full object-contain"
                 />
               ) : null}
