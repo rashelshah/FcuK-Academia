@@ -24,7 +24,7 @@ export default function IntroOverlay() {
 
   useEffect(() => {
     if (showIntro) {
-      fetch('/assets/videos/latest-1-splash-animation.json')
+      fetch('/assets/videos/latest-animation.json')
         .then(res => res.json())
         .then(data => setAnimationData(data))
         .catch(err => {
@@ -92,7 +92,6 @@ export default function IntroOverlay() {
                   animationData={animationData}
                   loop={false}
                   onComplete={handleEnded}
-                  onDOMLoaded={() => lottieRef.current?.setSpeed(2)}
                   className="h-auto w-full object-contain"
                 />
               ) : null}
