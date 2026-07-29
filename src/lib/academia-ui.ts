@@ -254,8 +254,19 @@ export function toTimetableEntries(timetable: RawTimetableItem[]): TimetableEntr
   );
 }
 
-export function getClassesForDay(timetable: RawTimetableItem[], dayOrder: number) {
-  return timetable.find((item) => Number(item.dayOrder) === dayOrder)?.class.filter((item) => item.isClass) ?? [];
+export function generateLectureId(dayOrder: number, item: RawClassItem, index: number) {
+  const code = item.courseCode || item.courseTitle || item.time;
+  return `${dayOrder}-${item.slot}-${code}-${index}`.replace(/\s+/g, '-').toLowerCase();
+}
+
+export function getClassesForDay(timetable: RawTimetableItem[], dayOrder: number, hiddenLectureIds: string[] = []) {
+  const classes = timetable.find((item) => Number(item.dayOrder) === dayOrder)?.class.filter((item) => item.isClass) ?? [];
+  if (!hiddenLectureIds.length) return classes;
+  
+  return classes.filter((item, index) => {
+    const lectureId = generateLectureId(dayOrder, item, index);
+    return !hiddenLectureIds.includes(lectureId);
+  });
 }
 
 export function formatDayOrderNumber(dayOrder: number | null | undefined) {
@@ -302,8 +313,9 @@ export function getScheduleSnapshot(
   orderedDayOrders?: number[],
   referenceDate = new Date(),
   calendar: RawCalendarMonth[] = [],
+  hiddenLectureIds: string[] = []
 ): ScheduleSnapshot {
-  const classes = getClassesForDay(timetable, dayOrder);
+  const classes = getClassesForDay(timetable, dayOrder, hiddenLectureIds);
   const currentMinutes = (referenceDate.getHours() * 60) + referenceDate.getMinutes();
   const availableDayOrders = (orderedDayOrders?.length ? orderedDayOrders : getDayOrders(timetable))
     .filter((value) => value > 0);
@@ -313,7 +325,7 @@ export function getScheduleSnapshot(
   if (todayCalendarEntry && isCalendarHoliday(todayCalendarEntry.day, todayCalendarEntry.month)) {
     if (immediateNextCalendarEntry && !isCalendarHoliday(immediateNextCalendarEntry.day, immediateNextCalendarEntry.month)) {
       const nextDayOrder = Number(immediateNextCalendarEntry.day.dayOrder);
-      const nextDayClasses = nextDayOrder > 0 ? getClassesForDay(timetable, nextDayOrder) : [];
+      const nextDayClasses = nextDayOrder > 0 ? getClassesForDay(timetable, nextDayOrder, hiddenLectureIds) : [];
 
       return {
         status: nextDayClasses.length ? 'tomorrow' : 'none',
@@ -366,7 +378,7 @@ export function getScheduleSnapshot(
     }
 
     const nextCalendarDayOrder = Number(immediateNextCalendarEntry.day.dayOrder);
-    const nextCalendarClasses = nextCalendarDayOrder > 0 ? getClassesForDay(timetable, nextCalendarDayOrder) : [];
+    const nextCalendarClasses = nextCalendarDayOrder > 0 ? getClassesForDay(timetable, nextCalendarDayOrder, hiddenLectureIds) : [];
 
     return {
       status: nextCalendarClasses.length ? 'tomorrow' : 'none',
@@ -380,7 +392,7 @@ export function getScheduleSnapshot(
   const nextDayOrder = currentDayOrderIndex >= 0
     ? availableDayOrders[(currentDayOrderIndex + 1) % availableDayOrders.length]
     : availableDayOrders[0] ?? null;
-  const nextDayClasses = nextDayOrder ? getClassesForDay(timetable, nextDayOrder) : [];
+  const nextDayClasses = nextDayOrder ? getClassesForDay(timetable, nextDayOrder, hiddenLectureIds) : [];
 
   return {
     status: nextDayClasses.length ? 'tomorrow' : 'none',

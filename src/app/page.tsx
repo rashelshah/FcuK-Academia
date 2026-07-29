@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, FileStack } from 'lucide-react';
 
@@ -43,14 +43,28 @@ export default function HomePage() {
   const currentTime = useCurrentTime();
   const [manualDaySelection, setManualDaySelection] = useState(false);
 
+  const [hiddenLectureIds, setHiddenLectureIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('fcuk_hiddenLectures');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setHiddenLectureIds(parsed.map((p: any) => p.id));
+        }
+      } catch (e) {}
+    }
+  }, []);
+
   const overallAttendance = getOverallAttendance(attendance);
   const totalMarks = getTotalMarks(marks);
   const autoSchedule = useMemo(
-    () => getScheduleSnapshot(timetable, dayOrder, dayOrders, currentTime, calendar),
-    [calendar, currentTime, dayOrder, dayOrders, timetable],
+    () => getScheduleSnapshot(timetable, dayOrder, dayOrders, currentTime, calendar, hiddenLectureIds),
+    [calendar, currentTime, dayOrder, dayOrders, timetable, hiddenLectureIds],
   );
   const manualSchedule = useMemo(() => {
-    const classes = getClassesForDay(timetable, dayOrder);
+    const classes = getClassesForDay(timetable, dayOrder, hiddenLectureIds);
     const currentIndex = getCurrentClassIndex(classes, currentTime);
 
     if (currentIndex >= 0) {
@@ -83,7 +97,7 @@ export default function HomePage() {
       activeDayOrder: dayOrder,
       displayDayOrder: dayOrder,
     };
-  }, [currentTime, dayOrder, timetable]);
+  }, [currentTime, dayOrder, timetable, hiddenLectureIds]);
   const schedule = manualDaySelection ? manualSchedule : autoSchedule;
   const featuredClass = schedule.classItem;
   const holidayCopy = getCopy('holiday', undefined, 'holiday detected. brain shutting down…');
