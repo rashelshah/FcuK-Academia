@@ -84,7 +84,7 @@ export default function FloatingAnnouncement() {
   };
   
   const springConfig = {
-    type: "spring",
+    type: "spring" as const,
     stiffness: 280,
     damping: 28,
     mass: 0.8
@@ -120,8 +120,8 @@ export default function FloatingAnnouncement() {
     transition: {
       duration: 6,
       repeat: Infinity,
-      repeatType: "loop",
-      ease: "easeInOut",
+      repeatType: "loop" as const,
+      ease: "easeInOut" as const,
       delay: 2 // Start after entry
     }
   };
