@@ -39,8 +39,12 @@ export default function FloatingAnnouncement() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Pause playback when tab hidden or app backgrounded
+  // Force play on iOS and handle visibility
   useEffect(() => {
+    if (activeAnnouncement?.autoPlay && !isDismissed && videoRef.current) {
+      videoRef.current.play().catch(() => setHasError(true));
+    }
+
     const handleVisibilityChange = () => {
       if (!videoRef.current) return;
       if (document.hidden) {
@@ -162,6 +166,7 @@ export default function FloatingAnnouncement() {
                 bg-[#141414e0] backdrop-blur-[20px] 
                 border border-white/10 
                 shadow-[0_20px_80px_rgba(0,0,0,0.35)]
+                will-change-transform
                 ${isExpanded 
                   ? 'w-full h-[100dvh] rounded-none md:w-[80vw] md:max-w-[700px] md:h-[85vh] md:rounded-[24px]' 
                   : 'w-[220px] md:w-[320px] aspect-[4/5] rounded-[24px]'}
@@ -180,15 +185,17 @@ export default function FloatingAnnouncement() {
                       muted
                       loop
                       playsInline
-                      className={`w-full h-full transition-all duration-300 ${isExpanded ? 'object-contain' : 'object-cover'}`}
+                      preload="auto"
+                      disablePictureInPicture
+                      className={`w-full h-full ${isExpanded ? 'object-contain bg-black' : 'object-cover'}`}
                       onError={() => setHasError(true)}
                     />
                  ) : (
-                    <div className="w-full h-full relative">
+                    <div className="w-full h-full relative bg-black">
                       <img 
                         src={activeAnnouncement.thumbnail} 
                         alt={activeAnnouncement.title}
-                        className={`w-full h-full transition-all duration-300 ${isExpanded ? 'object-contain' : 'object-cover'}`}
+                        className={`w-full h-full ${isExpanded ? 'object-contain' : 'object-cover'}`}
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                          <Play className="w-12 h-12 text-white/80" />
