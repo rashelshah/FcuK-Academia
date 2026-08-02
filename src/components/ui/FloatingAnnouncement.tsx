@@ -6,11 +6,15 @@ import { X, Maximize2, Minimize2, Play } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { activeAnnouncement } from "@/config/announcements";
 
+// Routes on which the announcement should never appear
+const BLOCKED_ROUTES = ['/login', '/onboarding', '/wrap'];
+
 export default function FloatingAnnouncement() {
   const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDismissed, setIsDismissed] = useState(true); // default true to prevent hydration mismatch
   const [hasError, setHasError] = useState(false);
+  const [isOnboarding, setIsOnboarding] = useState(false); // suppress during onboarding overlay
   const videoRef = useRef<HTMLVideoElement>(null);
   const shouldReduceMotion = useReducedMotion();
   const [isMounted, setIsMounted] = useState(false);
@@ -29,6 +33,24 @@ export default function FloatingAnnouncement() {
        return;
     }
 
+    // Don't show while user is going through onboarding
+    const onboardingDone = localStorage.getItem('onboardingDone') === 'true';
+    const onboardingPending = sessionStorage.getItem('onboardingPending') === 'true';
+    if (!onboardingDone || onboardingPending) {
+      setIsOnboarding(true);
+      // Poll until onboarding completes, then show
+      const poll = setInterval(() => {
+        const done = localStorage.getItem('onboardingDone') === 'true';
+        const pending = sessionStorage.getItem('onboardingPending') === 'true';
+        if (done && !pending) {
+          setIsOnboarding(false);
+          clearInterval(poll);
+          setTimeout(() => setIsVisible(true), 1500);
+        }
+      }, 500);
+      return () => clearInterval(poll);
+    }
+
     setIsDismissed(false);
 
     // Initial delay so it doesn't fight loading screens (1200 - 1800ms)
@@ -39,26 +61,45 @@ export default function FloatingAnnouncement() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Force play on iOS and handle visibility
+  // iOS-safe: trigger play once video is mounted and ready
   useEffect(() => {
-    if (activeAnnouncement?.autoPlay && !isDismissed && videoRef.current) {
-      videoRef.current.play().catch(() => setHasError(true));
+    const video = videoRef.current;
+    if (!video) return;
+
+    const tryPlay = () => {
+      video.play().catch(() => {
+        // iOS may block even muted autoplay in some edge cases — mark error to show thumbnail
+        setHasError(true);
+      });
+    };
+
+    // Fire immediately if already loaded, otherwise wait for metadata
+    if (video.readyState >= 1) {
+      tryPlay();
+    } else {
+      video.addEventListener('loadedmetadata', tryPlay, { once: true });
     }
 
+    return () => {
+      video.removeEventListener('loadedmetadata', tryPlay);
+    };
+  }, [isVisible]); // re-run when the component becomes visible
+
+  // Pause / resume when tab visibility changes
+  useEffect(() => {
     const handleVisibilityChange = () => {
-      if (!videoRef.current) return;
+      const video = videoRef.current;
+      if (!video) return;
       if (document.hidden) {
-        videoRef.current.pause();
+        video.pause();
       } else if (activeAnnouncement?.autoPlay && !isDismissed) {
-        // Only resume if autoPlay is enabled and it hasn't been dismissed
-        videoRef.current.play().catch(() => setHasError(true));
+        video.play().catch(() => setHasError(true));
       }
     };
-    
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isDismissed]);
-  
+
   // Handle escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -72,7 +113,8 @@ export default function FloatingAnnouncement() {
 
   if (!isMounted) return null;
   if (!activeAnnouncement) return null;
-  if (pathname?.startsWith('/login') || pathname?.startsWith('/onboarding') || pathname?.startsWith('/wrap')) return null;
+  if (BLOCKED_ROUTES.some(route => pathname?.startsWith(route))) return null;
+  if (isOnboarding) return null;
   if (isDismissed && !isVisible) return null;
 
   const handleDismiss = () => {
@@ -126,7 +168,7 @@ export default function FloatingAnnouncement() {
       repeat: Infinity,
       repeatType: "loop" as const,
       ease: "easeInOut" as const,
-      delay: 2 // Start after entry
+      delay: 2
     }
   };
 
@@ -154,7 +196,7 @@ export default function FloatingAnnouncement() {
             }`}
           >
             <motion.div
-              layout // Shared layout animation magic
+              layout
               initial="hidden"
               animate={["visible", "idle"]}
               exit="exit"
@@ -175,33 +217,41 @@ export default function FloatingAnnouncement() {
             >
               {/* Video Element */}
               <div className="absolute inset-0 w-full h-full bg-black pointer-events-none">
-                 {/* Video fallback to thumbnail */}
-                 {!hasError ? (
-                    <video
-                      ref={videoRef}
-                      src={activeAnnouncement.video}
-                      poster={activeAnnouncement.thumbnail}
-                      autoPlay={activeAnnouncement.autoPlay}
-                      muted
-                      loop
-                      playsInline
-                      preload="auto"
-                      disablePictureInPicture
-                      className={`w-full h-full ${isExpanded ? 'object-contain bg-black' : 'object-cover'}`}
-                      onError={() => setHasError(true)}
-                    />
-                 ) : (
-                    <div className="w-full h-full relative bg-black">
-                      <img 
-                        src={activeAnnouncement.thumbnail} 
-                        alt={activeAnnouncement.title}
-                        className={`w-full h-full ${isExpanded ? 'object-contain' : 'object-cover'}`}
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                         <Play className="w-12 h-12 text-white/80" />
-                      </div>
-                    </div>
-                 )}
+                {!hasError ? (
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                    disablePictureInPicture
+                    webkit-playsinline="true"
+                    x5-playsinline="true"
+                    className={`w-full h-full ${isExpanded ? 'object-contain bg-black' : 'object-cover'}`}
+                    onError={() => setHasError(true)}
+                  >
+                    {/* Use <source> tag instead of src attribute for better iOS compat */}
+                    <source src={activeAnnouncement.video} type="video/mp4" />
+                  </video>
+                ) : (
+                  <div className="w-full h-full relative bg-black flex items-center justify-center">
+                    {activeAnnouncement.thumbnail ? (
+                      <>
+                        <img 
+                          src={activeAnnouncement.thumbnail} 
+                          alt={activeAnnouncement.title}
+                          className={`w-full h-full ${isExpanded ? 'object-contain' : 'object-cover'}`}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                          <Play className="w-12 h-12 text-white/80" />
+                        </div>
+                      </>
+                    ) : (
+                      <Play className="w-12 h-12 text-white/40" />
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Controls */}
@@ -209,7 +259,7 @@ export default function FloatingAnnouncement() {
                 {activeAnnouncement.dismissible && (
                   <button
                     onClick={handleDismiss}
-                    className="p-1.5 md:p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 backdrop-blur-md transition-all md:opacity-0 md:group-hover:opacity-100 shadow-sm"
+                    className="p-1.5 md:p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 backdrop-blur-md transition-all shadow-sm"
                     aria-label="Close announcement"
                   >
                     <X className="w-4 h-4 md:w-5 md:h-5" />
@@ -220,7 +270,7 @@ export default function FloatingAnnouncement() {
               <div className="absolute bottom-3 right-3 flex gap-2 z-20">
                   <button
                     onClick={toggleExpand}
-                    className="p-1.5 md:p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 backdrop-blur-md transition-all md:opacity-0 md:group-hover:opacity-100 shadow-sm"
+                    className="p-1.5 md:p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 backdrop-blur-md transition-all shadow-sm"
                     aria-label={isExpanded ? "Minimize announcement" : "Expand announcement"}
                   >
                     {isExpanded ? <Minimize2 className="w-4 h-4 md:w-5 md:h-5" /> : <Maximize2 className="w-4 h-4 md:w-5 md:h-5" />}
