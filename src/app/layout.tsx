@@ -16,6 +16,7 @@ import CommunityPopup from "@/components/system/CommunityPopup";
 import IntroOverlay from "@/components/ui/IntroOverlay";
 import CinematicIntroOverlay from "@/components/ui/CinematicIntroOverlay";
 import ServiceWorkerRegistration from "@/components/system/ServiceWorkerRegistration";
+import FloatingAnnouncement from "@/components/ui/FloatingAnnouncement";
 import dynamic from 'next/dynamic';
 
 import {
@@ -123,6 +124,7 @@ export default async function RootLayout({
                 <PersonalityProvider>
                   <NotificationProvider>
                     <CommunityPopup />
+                    <FloatingAnnouncement />
                     <AppLayout>
                       {children}
                     </AppLayout>
