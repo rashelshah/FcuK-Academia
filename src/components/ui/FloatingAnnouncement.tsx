@@ -5,20 +5,60 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { X, Maximize2, Minimize2, Play } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { activeAnnouncement } from "@/config/announcements";
+import Lottie from "lottie-react";
 
 // Routes on which the announcement should never appear
 const BLOCKED_ROUTES = ['/login', '/onboarding', '/wrap'];
 
 export default function FloatingAnnouncement() {
   const [isVisible, setIsVisible] = useState(false);
+  const [timeToReveal, setTimeToReveal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDismissed, setIsDismissed] = useState(true); // default true to prevent hydration mismatch
   const [hasError, setHasError] = useState(false);
   const [isOnboarding, setIsOnboarding] = useState(false); // suppress during onboarding overlay
+  const [lottieData, setLottieData] = useState<any>(null);
+  
   const videoRef = useRef<HTMLVideoElement>(null);
+  const lottieRef = useRef<any>(null);
   const shouldReduceMotion = useReducedMotion();
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
+
+  const isLottie = activeAnnouncement?.video?.endsWith('.json');
+
+  // Load Lottie data if needed
+  useEffect(() => {
+    if (isLottie && activeAnnouncement?.video) {
+      fetch(activeAnnouncement.video)
+        .then(res => {
+          if (!res.ok) throw new Error("Failed to load lottie");
+          return res.json();
+        })
+        .then(data => setLottieData(data))
+        .catch(err => {
+          console.error("Lottie load error:", err);
+          setHasError(true);
+        });
+    }
+  }, [isLottie]);
+
+  // Handle visibility state (wait for both timer and data)
+  useEffect(() => {
+    if (timeToReveal && (!isLottie || lottieData || hasError)) {
+      setIsVisible(true);
+    }
+  }, [timeToReveal, lottieData, hasError, isLottie]);
+
+  // Delayed autoplay for Lottie (wait for entrance animation to finish)
+  useEffect(() => {
+    if (isVisible && isLottie && lottieData) {
+      const t = setTimeout(() => {
+        lottieRef.current?.goToAndPlay(0, true);
+      }, 400); // 400ms delay to let the Framer Motion slide-up finish
+      return () => clearTimeout(t);
+    }
+  }, [isVisible, isLottie, lottieData]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -45,7 +85,7 @@ export default function FloatingAnnouncement() {
         if (done && !pending) {
           setIsOnboarding(false);
           clearInterval(poll);
-          setTimeout(() => setIsVisible(true), 1500);
+          setTimeout(() => setTimeToReveal(true), 1500);
         }
       }, 500);
       return () => clearInterval(poll);
@@ -55,14 +95,16 @@ export default function FloatingAnnouncement() {
 
     // Initial delay so it doesn't fight loading screens (1200 - 1800ms)
     const timer = setTimeout(() => {
-      setIsVisible(true);
+      setTimeToReveal(true);
     }, 1500);
 
     return () => clearTimeout(timer);
   }, []);
 
-  // iOS-safe: trigger play once video is mounted and ready
+  // iOS-safe: trigger play once video is mounted and ready (only if it's a real video)
   useEffect(() => {
+    if (isLottie) return;
+    
     const video = videoRef.current;
     if (!video) return;
 
@@ -83,10 +125,12 @@ export default function FloatingAnnouncement() {
     return () => {
       video.removeEventListener('loadedmetadata', tryPlay);
     };
-  }, [isVisible]); // re-run when the component becomes visible
+  }, [isVisible, isLottie]); // re-run when the component becomes visible
 
-  // Pause / resume when tab visibility changes
+  // Pause / resume when tab visibility changes (only for real video)
   useEffect(() => {
+    if (isLottie) return; // Lottie handles visibility internally usually or we can just let it loop
+    
     const handleVisibilityChange = () => {
       const video = videoRef.current;
       if (!video) return;
@@ -98,7 +142,7 @@ export default function FloatingAnnouncement() {
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isDismissed]);
+  }, [isDismissed, isLottie]);
 
   // Handle escape key
   useEffect(() => {
@@ -215,25 +259,41 @@ export default function FloatingAnnouncement() {
               `}
               onClick={() => !isExpanded && setIsExpanded(true)}
             >
-              {/* Video Element */}
-              <div className="absolute inset-0 w-full h-full bg-black pointer-events-none">
+              {/* Media Element */}
+              <div className="absolute inset-0 w-full h-full pointer-events-none flex items-center justify-center rounded-[inherit] overflow-hidden">
                 {!hasError ? (
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                    disablePictureInPicture
-                    webkit-playsinline="true"
-                    x5-playsinline="true"
-                    className={`w-full h-full ${isExpanded ? 'object-contain bg-black' : 'object-cover'}`}
-                    onError={() => setHasError(true)}
-                  >
-                    {/* Use <source> tag instead of src attribute for better iOS compat */}
-                    <source src={activeAnnouncement.video} type="video/mp4" />
-                  </video>
+                  isLottie ? (
+                    lottieData ? (
+                      <Lottie 
+                        lottieRef={lottieRef}
+                        animationData={lottieData}
+                        loop={activeAnnouncement.autoPlay}
+                        autoplay={false} // Autoplay handled via useEffect after animation finishes
+                        rendererSettings={{ preserveAspectRatio: isExpanded ? 'xMidYMid meet' : 'xMidYMid slice' }}
+                        className="w-full h-full"
+                        style={{ width: '100%', height: '100%' }}
+                      />
+                    ) : (
+                      <div className="w-full h-full animate-pulse" />
+                    )
+                  ) : (
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      preload="auto"
+                      disablePictureInPicture
+                      webkit-playsinline="true"
+                      x5-playsinline="true"
+                      className={`w-full h-full ${isExpanded ? 'object-contain bg-black/50' : 'object-cover'}`}
+                      onError={() => setHasError(true)}
+                    >
+                      {/* Use <source> tag instead of src attribute for better iOS compat */}
+                      <source src={activeAnnouncement.video} type="video/mp4" />
+                    </video>
+                  )
                 ) : (
                   <div className="w-full h-full relative bg-black flex items-center justify-center">
                     {activeAnnouncement.thumbnail ? (
@@ -259,7 +319,7 @@ export default function FloatingAnnouncement() {
                 {activeAnnouncement.dismissible && (
                   <button
                     onClick={handleDismiss}
-                    className="p-1.5 md:p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 backdrop-blur-md transition-all shadow-sm"
+                    className="p-1.5 md:p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 backdrop-blur-md transition-all shadow-sm pointer-events-auto"
                     aria-label="Close announcement"
                   >
                     <X className="w-4 h-4 md:w-5 md:h-5" />
@@ -270,7 +330,7 @@ export default function FloatingAnnouncement() {
               <div className="absolute bottom-3 right-3 flex gap-2 z-20">
                   <button
                     onClick={toggleExpand}
-                    className="p-1.5 md:p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 backdrop-blur-md transition-all shadow-sm"
+                    className="p-1.5 md:p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 backdrop-blur-md transition-all shadow-sm pointer-events-auto"
                     aria-label={isExpanded ? "Minimize announcement" : "Expand announcement"}
                   >
                     {isExpanded ? <Minimize2 className="w-4 h-4 md:w-5 md:h-5" /> : <Maximize2 className="w-4 h-4 md:w-5 md:h-5" />}
