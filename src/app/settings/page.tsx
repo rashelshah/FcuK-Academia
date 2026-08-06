@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, ChevronRight, LogOut, MessageCircle, Palette, RefreshCw, ShieldCheck, Smile, Sparkles, X } from 'lucide-react';
+import { Bell, ChevronRight, LogOut, MessageCircle, MessageSquareDot, Palette, RefreshCw, ShieldCheck, Smile, Sparkles, X } from 'lucide-react';
 import {
   AnimatePresence,
   motion,
@@ -19,6 +19,7 @@ import { createPortal } from 'react-dom';
 import AppHeader from '@/components/layout/AppHeader';
 import DayOrderSelector from '@/components/settings/DayOrderSelector';
 import ThemeGalleryBottomSheet from '@/components/settings/ThemeGalleryBottomSheet';
+import FeedbackBottomSheet from '@/components/feedback/FeedbackBottomSheet';
 import Button from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
 import UserAvatar from '@/components/ui/UserAvatar';
@@ -61,6 +62,7 @@ export default function SettingsPage() {
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [themeGalleryOpen, setThemeGalleryOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const compactCourse = getCompactCourseLabel(user);
   const formattedRegNumber = formatRegistrationNumber(user?.regNumber);
 
@@ -201,6 +203,24 @@ export default function SettingsPage() {
         </GlassCard>
       </section>
 
+      {/* ── Feedback Section — separate from Preferences ── */}
+      <section className="space-y-4">
+        <SectionHeading
+          kicker="feedback"
+          title="talk to us"
+        />
+
+        <GlassCard className="p-5" style={{ '--card-edge-color': 'var(--accent)' } as React.CSSProperties}>
+          <PreferenceButton
+            onClick={() => setFeedbackOpen(true)}
+            icon={MessageSquareDot}
+            title="feedback"
+            subtitle="Report bugs, suggest features, or share your thoughts."
+            motionProps={motionProps}
+          />
+        </GlassCard>
+      </section>
+
       <DayOrderSelector />
 
       <section className="space-y-4 pt-1">
@@ -216,6 +236,7 @@ export default function SettingsPage() {
 
       <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
       <ThemeGalleryBottomSheet open={themeGalleryOpen} onClose={() => setThemeGalleryOpen(false)} />
+      <FeedbackBottomSheet open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </div>
   );
 }

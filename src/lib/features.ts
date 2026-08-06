@@ -1,6 +1,8 @@
 export const FEATURES = {
   WHATSAPP_COMMUNITY_POPUP: process.env.NEXT_PUBLIC_ENABLE_COMMUNITY_POPUP !== 'false',
   ENABLE_PERSONALITY_MODES: process.env.NEXT_PUBLIC_ENABLE_PERSONALITY_MODES === 'true',
+  /** Set NEXT_PUBLIC_ENABLE_FEEDBACK=false to hide the Feedback section without a deploy */
+  ENABLE_FEEDBACK: process.env.NEXT_PUBLIC_ENABLE_FEEDBACK !== 'false',
 };
 
 export const WHATSAPP_COMMUNITY_POPUP_CONFIG = {
