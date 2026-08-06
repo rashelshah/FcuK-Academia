@@ -112,6 +112,17 @@ export default function ThemeGalleryBottomSheet({ open, onClose }: ThemeGalleryB
   const lastScrollPosition = useRef<number>(0);
   const scrollLockYRef = useRef<number>(0);
 
+  // ── Handle-only drag state (all refs — no React state during gesture) ─────
+  // The sheet element ref is used to imperatively set its translateY during drag.
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  // Raw gesture tracking refs — never cause re-renders mid-gesture
+  const dragState = useRef<{
+    active: boolean;
+    startY: number;
+    currentY: number;
+    startTime: number;
+  }>({ active: false, startY: 0, currentY: 0, startTime: 0 });
+
   // ── Reliable iOS & Android Body Scroll Lock ──────────────────────────────
   useEffect(() => {
     if (!open) {
@@ -160,6 +171,93 @@ export default function ThemeGalleryBottomSheet({ open, onClose }: ThemeGalleryB
     if (scrollContainerRef.current) {
       lastScrollPosition.current = scrollContainerRef.current.scrollTop;
     }
+  }, []);
+
+  // ── Handle-region drag: raw pointer events, no Framer Motion drag ─────────
+  // These handlers are attached only to the drag handle element.
+  // The sheet's scroll container never receives or processes these events.
+  // All tracking is done in refs to avoid React re-renders during the gesture.
+
+  const applySheetTranslation = useCallback((y: number) => {
+    const el = sheetRef.current;
+    if (!el) return;
+    // Clamp: cannot drag upward past resting position; allow downward drag freely
+    const clamped = Math.max(0, y);
+    el.style.transform = `translateY(${clamped}px)`;
+  }, []);
+
+  const handleDragPointerDown = useCallback((e: React.PointerEvent) => {
+    // Only respond to primary pointer (left mouse / first touch)
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    // Capture the pointer so move/up events are received even if finger leaves element
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    dragState.current = {
+      active: true,
+      startY: e.clientY,
+      currentY: e.clientY,
+      startTime: Date.now(),
+    };
+    e.stopPropagation();
+  }, []);
+
+  const handleDragPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragState.current.active) return;
+    dragState.current.currentY = e.clientY;
+    const deltaY = e.clientY - dragState.current.startY;
+    applySheetTranslation(deltaY);
+    e.stopPropagation();
+  }, [applySheetTranslation]);
+
+  const handleDragPointerUp = useCallback((e: React.PointerEvent) => {
+    if (!dragState.current.active) return;
+    dragState.current.active = false;
+
+    const deltaY = e.clientY - dragState.current.startY;
+    const elapsed = Date.now() - dragState.current.startTime;
+    const velocity = elapsed > 0 ? deltaY / elapsed : 0; // px/ms
+
+    // Dismiss if dragged down far enough OR velocity is fast enough downward
+    if (deltaY > 100 || velocity > 0.4) {
+      triggerHaptic('impact');
+      onClose();
+      // Do not reset transform — the exit animation will handle removal
+    } else {
+      // Snap back to resting position with a spring-like CSS transition
+      const el = sheetRef.current;
+      if (el) {
+        el.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
+        el.style.transform = 'translateY(0px)';
+        const cleanup = () => {
+          if (el) {
+            el.style.transition = '';
+            el.style.transform = '';
+          }
+          el.removeEventListener('transitionend', cleanup);
+        };
+        el.addEventListener('transitionend', cleanup, { once: true });
+      }
+    }
+    e.stopPropagation();
+  }, [onClose]);
+
+  const handleDragPointerCancel = useCallback((e: React.PointerEvent) => {
+    if (!dragState.current.active) return;
+    dragState.current.active = false;
+    // Snap back on cancel
+    const el = sheetRef.current;
+    if (el) {
+      el.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
+      el.style.transform = 'translateY(0px)';
+      const cleanup = () => {
+        if (el) {
+          el.style.transition = '';
+          el.style.transform = '';
+        }
+        el.removeEventListener('transitionend', cleanup);
+      };
+      el.addEventListener('transitionend', cleanup, { once: true });
+    }
+    e.stopPropagation();
   }, []);
 
   // ── Filtered theme list: Soft → Minimal → Dark display order ─────────────
@@ -230,23 +328,21 @@ export default function ThemeGalleryBottomSheet({ open, onClose }: ThemeGalleryB
             className="fixed inset-0 backdrop-blur-sm pointer-events-none"
           />
 
-          {/* Bottom Sheet */}
+          {/* Bottom Sheet
+              ── IMPORTANT: NO Framer Motion drag prop here.
+              Framer Motion's `drag` intercepts ALL pointerdown events on the element,
+              including those originating inside the scroll container, which causes the
+              gesture competition this fix resolves.
+              Drag is handled exclusively via raw pointer events on the handle region below.
+          */}
           <motion.div
             key="tg-sheet"
+            ref={sheetRef}
             initial={{ y: shouldReduceMotion ? 0 : '100%', opacity: shouldReduceMotion ? 0 : 1 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: shouldReduceMotion ? 0 : '100%', opacity: shouldReduceMotion ? 0 : 1 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             onAnimationComplete={() => setIsEntering(false)}
-            drag={shouldReduceMotion ? false : 'y'}
-            dragConstraints={{ top: 0 }}
-            dragElastic={{ top: 0, bottom: 0.22 }}
-            onDragEnd={(_, info) => {
-              if (info.offset.y > 100 || info.velocity.y > 400) {
-                triggerHaptic('impact');
-                onClose();
-              }
-            }}
             role="dialog"
             aria-modal="true"
             aria-label="Select Theme"
@@ -263,8 +359,19 @@ export default function ThemeGalleryBottomSheet({ open, onClose }: ThemeGalleryB
               willChange: isEntering ? 'transform' : 'auto',
             }}
           >
-            {/* Drag Handle */}
-            <div className="flex shrink-0 items-center justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing touch-none">
+            {/* ── Drag Handle ──
+                This is the ONLY element that owns the drag gesture.
+                Raw pointer events are attached here exclusively.
+                touch-none ensures the browser does not intercept for scrolling.
+                The scroll container below is completely isolated from these events.
+            */}
+            <div
+              className="flex shrink-0 items-center justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing touch-none select-none"
+              onPointerDown={shouldReduceMotion ? undefined : handleDragPointerDown}
+              onPointerMove={shouldReduceMotion ? undefined : handleDragPointerMove}
+              onPointerUp={shouldReduceMotion ? undefined : handleDragPointerUp}
+              onPointerCancel={shouldReduceMotion ? undefined : handleDragPointerCancel}
+            >
               <div
                 className="h-1 w-9 rounded-full"
                 style={{ background: 'color-mix(in srgb, var(--primary) 70%, transparent)' }}
@@ -349,15 +456,23 @@ export default function ThemeGalleryBottomSheet({ open, onClose }: ThemeGalleryB
               </div>
             )}
 
-            {/* Theme Grid */}
+            {/* ── Theme Grid (scroll container) ──
+                This element is architecturally isolated from the drag gesture above.
+                - It has NO onPointerDown/onPointerMove — it does not compete with the handle.
+                - overscroll-behavior: contain prevents scroll chaining to parent/sheet.
+                - touch-action: pan-y tells the browser this region scrolls vertically;
+                  the browser will not attempt to transfer this gesture to any ancestor.
+                - The drag handle's pointer events are completely separate and do not
+                  interact with this element in any way.
+            */}
             <div
               ref={scrollContainerRef}
               onScroll={handleScroll}
-              onPointerDown={(e) => e.stopPropagation()}
               className={cn(
-                'flex-1 overflow-y-auto overscroll-contain px-4 pb-5 pt-0.5 scrollbar-hide transition-opacity duration-100',
+                'flex-1 overflow-y-auto px-4 pb-5 pt-0.5 scrollbar-hide transition-opacity duration-100',
                 isFilterChanging ? 'opacity-20 pointer-events-none' : 'opacity-100'
               )}
+              style={{ overscrollBehavior: 'contain', touchAction: 'pan-y' }}
             >
               <div className="grid grid-cols-3 gap-2.5">
                 {filteredThemes.map((option) => (
