@@ -144,9 +144,12 @@ export default function FacultyDetailClient({
       </div>
 
       <div className="relative z-10">
+        {/* ── Section 1: Header ──────────────────────────────────────────────────── */}
         <motion.div
-          initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.3 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0 }}
+          style={{ willChange: 'transform, opacity' }}
           className="sticky top-0 z-40 px-4 sm:px-6 py-4 flex items-center justify-between pointer-events-none"
         >
         <div className="pointer-events-auto flex items-center gap-4">
@@ -169,9 +172,12 @@ export default function FacultyDetailClient({
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8">
 
+        {/* ── Section 2: Faculty Info & Rating Badge ─────────────────────────── */}
         <motion.div
-          initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.4 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0.07 }}
+          style={{ willChange: 'transform, opacity' }}
           className="relative bg-[var(--surface-soft)] border border-white/10 rounded-[2rem] p-6 sm:p-8 mb-8 overflow-hidden shadow-xl ring-1 ring-white/5"
         >
 
@@ -208,8 +214,12 @@ export default function FacultyDetailClient({
           </div>
         </motion.div>
 
+        {/* ── Section 3: Rating Breakdown ─────────────────────────────────────── */}
         <motion.div
-          initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.05, duration: 0.4 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0.14 }}
+          style={{ willChange: 'transform, opacity' }}
           className="grid gap-x-10 sm:grid-cols-2 bg-[var(--surface-soft)] rounded-[2rem] p-6 sm:p-8 border border-white/5 mb-10 shadow-lg relative overflow-hidden"
         >
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-[var(--primary)]/30 to-transparent" />
@@ -232,8 +242,12 @@ export default function FacultyDetailClient({
           </div>
         </motion.div>
 
+        {/* ── Section 4: Review CTA Button ────────────────────────────────────── */}
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0.21 }}
+          style={{ willChange: 'transform, opacity' }}
           className="flex justify-center mb-16"
         >
           <motion.button
@@ -249,8 +263,12 @@ export default function FacultyDetailClient({
           </motion.button>
         </motion.div>
 
+        {/* ── Section 5: Student Reviews ──────────────────────────────────────── */}
         <motion.div
-          initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.28 }}
+          style={{ willChange: 'transform, opacity' }}
         >
           <h3 className="text-2xl font-black font-[var(--font-headline)] mb-6 tracking-tight flex items-center gap-2">
             student reviews

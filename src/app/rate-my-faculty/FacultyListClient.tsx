@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Loader2, ArrowLeft, Star, Plus } from 'lucide-react';
@@ -89,12 +89,16 @@ export default function FacultyListClient({
   // Add Faculty Form State
   const [showAddForm, setShowAddForm] = useState(false);
 
+  // Track whether this is the first mount so we can decide skeleton vs reveal
+  const isFirstVisit = useRef(true);
+
   React.useEffect(() => {
     router.prefetch('/');
   }, [router]);
 
   useEffect(() => {
     setMounted(true);
+    isFirstVisit.current = false;
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
     }, 150);
@@ -150,11 +154,14 @@ export default function FacultyListClient({
       </div>
 
       <div className="relative z-10">
-        <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="sticky top-0 z-40 px-4 sm:px-6 py-4 flex items-center justify-between pointer-events-none"
-        >
+        {/* ── Section 1: Header ──────────────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0 }}
+        style={{ willChange: 'transform, opacity' }}
+        className="sticky top-0 z-40 px-4 sm:px-6 py-4 flex items-center justify-between pointer-events-none"
+      >
         <div className="pointer-events-auto flex items-center gap-4">
           <Link 
             href="/"
@@ -179,8 +186,12 @@ export default function FacultyListClient({
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10">
 
+      {/* ── Section 2: Campus Stats Card ─────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0.07 }}
+          style={{ willChange: 'transform, opacity' }}
           className="flex justify-between items-end gap-4 mb-8"
         >
           <div className="flex-1 min-w-0">
@@ -203,8 +214,12 @@ export default function FacultyListClient({
           </div>
         </motion.div>
 
+      {/* ── Section 3: Search & Add Action Bar ──────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0.14 }}
+          style={{ willChange: 'transform, opacity' }}
           className="relative mb-6 group"
         >
           <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-r from-[var(--primary)]/20 to-transparent blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300" />
@@ -237,8 +252,12 @@ export default function FacultyListClient({
           )}
         </AnimatePresence>
 
+      {/* ── Section 4: Sort Filter Chips ────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0.21 }}
+          style={{ willChange: 'transform, opacity' }}
           className="flex flex-wrap gap-2 mb-8"
         >
           {(['RATING', 'REVIEWS', 'NAME'] as SortType[]).map((type) => {
@@ -266,6 +285,13 @@ export default function FacultyListClient({
           })}
         </motion.div>
 
+        {/* ── Section 5: Faculty Cards List ────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.28 }}
+          style={{ willChange: 'transform, opacity' }}
+        >
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-[var(--primary)]">
             <Loader2 className="animate-spin mb-4" size={32} />
@@ -346,6 +372,7 @@ export default function FacultyListClient({
               </AnimatePresence>
             </div>
           )}
+        </motion.div>
         </div>
       </div>
     </div>

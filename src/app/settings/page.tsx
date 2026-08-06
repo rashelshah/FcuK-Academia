@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, ChevronRight, LogOut, MessageCircle, RefreshCw, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { Bell, ChevronRight, LogOut, MessageCircle, Palette, RefreshCw, ShieldCheck, Smile, Sparkles, X } from 'lucide-react';
 import {
   AnimatePresence,
   motion,
@@ -13,25 +13,36 @@ import {
   useTransform,
   useVelocity,
 } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createPortal } from 'react-dom';
 
 import AppHeader from '@/components/layout/AppHeader';
 import DayOrderSelector from '@/components/settings/DayOrderSelector';
-import PersonalityModeSelector from '@/components/settings/PersonalityModeSelector';
+import ThemeGalleryBottomSheet from '@/components/settings/ThemeGalleryBottomSheet';
 import Button from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { useAppState } from '@/context/AppStateContext';
 import { useDashboardDataContext } from '@/context/DashboardDataContext';
 import { useNotificationContext } from '@/context/NotificationContext';
+import { usePersonalityMode } from '@/context/PersonalityContext';
 import { useTheme } from '@/context/ThemeContext';
 import { formatRegistrationNumber, getCompactCourseLabel } from '@/lib/academia-ui';
 import { clearNotificationToken } from '@/lib/notifications/getToken';
 import { getInteractiveMotion } from '@/lib/motion';
 import { useUser } from '@/hooks/useUser';
 import { cn } from '@/lib/utils';
-import { WHATSAPP_COMMUNITY_POPUP_CONFIG } from '@/lib/features';
+import { FEATURES, WHATSAPP_COMMUNITY_POPUP_CONFIG } from '@/lib/features';
+
+const PERSONALITY_MAP: Record<string, { name: string; icon: string }> = {
+  fcuk_academia: { name: 'FcuK Academia', icon: '🔥' },
+  girlie_pop: { name: 'Girlie Pop', icon: '✨' },
+  sigma: { name: 'Sigma', icon: '🗿' },
+  delulu: { name: 'Delulu', icon: '🧘' },
+  academic_victim: { name: 'Academic Victim', icon: '😭' },
+  corporate_hustler: { name: 'Corporate Hustler', icon: '🤝' },
+  brain_rot: { name: 'Brain Rot', icon: '🧠' },
+};
 
 
 export default function SettingsPage() {
@@ -45,11 +56,19 @@ export default function SettingsPage() {
     setNotificationsEnabled,
   } = useNotificationContext();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const motionProps = getInteractiveMotion(themeConfig.motion);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [themeGalleryOpen, setThemeGalleryOpen] = useState(false);
   const compactCourse = getCompactCourseLabel(user);
   const formattedRegNumber = formatRegistrationNumber(user?.regNumber);
+
+  useEffect(() => {
+    if (searchParams.get('gallery') === 'open') {
+      setThemeGalleryOpen(true);
+    }
+  }, [searchParams]);
 
   const syncLabel = useMemo(() => {
     if (loading) return 'live sync';
@@ -95,6 +114,9 @@ export default function SettingsPage() {
     return 'off';
   }, [notificationsEnabled, permissionState]);
 
+  const { mode: personalityMode } = usePersonalityMode();
+  const activePersonality = PERSONALITY_MAP[personalityMode] || PERSONALITY_MAP.fcuk_academia;
+
   return (
     <div className="space-y-7 pb-36 pt-4">
       <AppHeader />
@@ -130,55 +152,13 @@ export default function SettingsPage() {
         </div>
       </GlassCard>
 
-      <PersonalityModeSelector />
-
-      <section className="space-y-4">
-        <SectionHeading
-          kicker="appearance"
-          title="theme system"
-        />
-
-        <GlassCard className="space-y-6 px-4 py-5" style={{ '--card-edge-color': 'var(--secondary)' } as React.CSSProperties}>
-          <div className="flex items-center justify-between gap-4">
-            <div className="space-y-1">
-              <p className="theme-kicker">active theme</p>
-              <h3 className="font-headline text-xl font-bold text-on-surface">{themeConfig.label}</h3>
-            </div>
-            <div className="flex gap-2">
-              {themeConfig.preview.map((color) => (
-                <span
-                  key={color}
-                  className="h-4 w-4 rounded-full border border-white/10"
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-            </div>
-          </div>
-
-          <Link href="/settings/theme" className="block">
-            <motion.div
-              whileHover={motionProps.whileHover}
-              whileTap={motionProps.whileTap}
-              transition={motionProps.transition}
-              className="theme-panel flex items-center justify-between gap-4 p-4"
-              style={{ '--card-edge-color': 'var(--primary)' } as React.CSSProperties}
-            >
-              <div>
-                <h4 className="font-headline text-xl font-bold text-on-surface">select theme</h4>
-              </div>
-              <ChevronRight size={18} className="shrink-0 text-on-surface-variant" />
-            </motion.div>
-          </Link>
-        </GlassCard>
-      </section>
-
       <section className="space-y-4">
         <SectionHeading
           kicker="preferences"
           title="daily controls"
         />
 
-        <GlassCard className="p-5" style={{ '--card-edge-color': 'var(--error)' } as React.CSSProperties}>
+        <GlassCard className="p-5" style={{ '--card-edge-color': 'var(--secondary)' } as React.CSSProperties}>
           <div className="flex flex-col gap-6">
             <ToggleRow
               icon={Bell}
@@ -191,10 +171,19 @@ export default function SettingsPage() {
               }}
               motionProps={motionProps}
             />
-            <PreferenceLink
-              href="/settings/theme"
-              icon={Sparkles}
-              title="select theme"
+            {FEATURES.ENABLE_PERSONALITY_MODES && (
+              <PreferenceLink
+                href="/settings/personality"
+                icon={Sparkles}
+                title="personality mode"
+                subtitle={`${activePersonality.name} ${activePersonality.icon}`}
+                motionProps={motionProps}
+              />
+            )}
+            <PreferenceButton
+              onClick={() => setThemeGalleryOpen(true)}
+              icon={Palette}
+              title="theme"
               subtitle={themeConfig.label}
               motionProps={motionProps}
             />
@@ -226,6 +215,7 @@ export default function SettingsPage() {
       </section>
 
       <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
+      <ThemeGalleryBottomSheet open={themeGalleryOpen} onClose={() => setThemeGalleryOpen(false)} />
     </div>
   );
 }
@@ -350,6 +340,39 @@ function StatTile({ label, value, color = 'var(--primary)' }: { label: string; v
         {value}
       </p>
     </div>
+  );
+}
+
+function PreferenceButton({
+  onClick,
+  icon: Icon,
+  title,
+  subtitle,
+  motionProps,
+}: {
+  onClick: () => void;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  title: string;
+  subtitle: string;
+  motionProps: ReturnType<typeof getInteractiveMotion>;
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      whileHover={motionProps.whileHover}
+      whileTap={{ scale: 0.95 }}
+      transition={{ duration: 0.08 }}
+      className="block w-full text-left cursor-pointer"
+    >
+      <PreferenceRow
+        icon={Icon}
+        title={title}
+        subtitle={subtitle}
+        motionProps={motionProps}
+        action={<ChevronRight size={18} className="text-on-surface-variant" />}
+      />
+    </motion.button>
   );
 }
 

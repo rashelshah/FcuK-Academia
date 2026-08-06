@@ -1,17 +1,41 @@
 'use client';
 
-import React, { memo, useEffect, useState, useTransition } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
-import { BarChart2, Calendar, CheckSquare, Clock, Home, Settings, type LucideIcon } from 'lucide-react';
+import {
+  BarChart2,
+  Calendar,
+  CheckSquare,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Home,
+  Settings,
+  type LucideIcon,
+} from 'lucide-react';
 
 import { useTheme } from '@/context/ThemeContext';
-import { useAppState } from '@/context/AppStateContext';
 import { useThemeDictionary } from '@/hooks/useThemeDictionary';
 import { getInteractiveMotion } from '@/lib/motion';
 import type { ThemeMotionPreset } from '@/lib/types';
 import { cn } from '@/lib/utils';
+
+// ─── Constants ─────────────────────────────────────────────────────────────────
+/** Inner padding (px) between the nav pill edge and the item grid */
+const NAV_INSET_PX = 5;
+/** Total accumulated downward scroll (px) required to hide the nav */
+const HIDE_DELTA_THRESHOLD = 60;
+/** Any upward scroll ≥ this value (px) re-shows the nav */
+const SHOW_DELTA_PX = 8;
 
 const navItems = [
   { href: '/', icon: Home, label: 'home' },
@@ -29,8 +53,15 @@ const rmfNavItems = [
   { href: 'https://rate-my-facult.me', label: 'RateMyFaculty', external: true },
 ] as const;
 
-const NAV_INSET_PX = 5;
+// ─── Haptic Feedback ───────────────────────────────────────────────────────────
+// Capability-based detection — never UA-sniff
+function triggerHaptic(pattern: number | number[] = 10) {
+  if ('vibrate' in navigator) {
+    try { navigator.vibrate(pattern); } catch { /* graceful degradation */ }
+  }
+}
 
+// ─── Types ─────────────────────────────────────────────────────────────────────
 interface NavbarProps {
   activePath?: string;
   onNavigate?: (href: string) => void;
@@ -45,8 +76,10 @@ interface NavItemButtonProps {
   themeId?: string;
   mounted: boolean;
   onNavigate?: (href: string) => void;
+  onPointerDown?: () => void;
 }
 
+// ─── NavItemButton ──────────────────────────────────────────────────────────────
 const NavItemButton = memo(function NavItemButton({
   href,
   icon: Icon,
@@ -56,89 +89,111 @@ const NavItemButton = memo(function NavItemButton({
   themeId,
   mounted,
   onNavigate,
+  onPointerDown,
 }: NavItemButtonProps) {
   const motionProps = getInteractiveMotion(motionPreset);
-  const content = themeId === 'arcade' ? (
-    <div className="relative flex flex-col items-center justify-center w-full h-full pb-1">
-      <div 
-        className={cn(
-          "relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-150 active:translate-y-1 active:shadow-[inset_0_4px_0_rgba(255,255,255,0.2),0_0_15px_rgba(255,46,67,0.6)]",
-          isActive ? "bg-[#FF2E43] translate-y-1" : "bg-[#222]"
-        )}
-        style={{ 
-          boxShadow: isActive ? 'inset 0 4px 0 rgba(255,255,255,0.2), 0 0 15px rgba(255, 46, 67, 0.6)' : 'inset 0 4px 0 rgba(255,255,255,0.1), 0 4px 0 #000',
-          border: '2px solid #000'
-        }}
-      >
-        <Icon size={16} strokeWidth={isActive ? 3 : 2.5} className={isActive ? "text-white drop-shadow-md" : "text-[#777]"} />
+
+  const handlePointerDown = () => {
+    // Arcade gets a distinct rattle pattern; everything else gets a subtle tap
+    if (themeId === 'arcade') {
+      triggerHaptic([10, 30, 10]);
+    } else {
+      triggerHaptic(10);
+    }
+    onPointerDown?.();
+  };
+
+  const content =
+    themeId === 'arcade' ? (
+      <div className="relative flex flex-col items-center justify-center w-full h-full pb-1">
+        <div
+          className={cn(
+            'relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-150',
+            'active:translate-y-1 active:shadow-[inset_0_4px_0_rgba(255,255,255,0.2),0_0_15px_rgba(255,46,67,0.6)]',
+            isActive ? 'bg-[#FF2E43] translate-y-1' : 'bg-[#222]',
+          )}
+          style={{
+            boxShadow: isActive
+              ? 'inset 0 4px 0 rgba(255,255,255,0.2), 0 0 15px rgba(255,46,67,0.6)'
+              : 'inset 0 4px 0 rgba(255,255,255,0.1), 0 4px 0 #000',
+            border: '2px solid #000',
+          }}
+        >
+          <Icon
+            size={18}
+            strokeWidth={isActive ? 3 : 2.5}
+            className={isActive ? 'text-white drop-shadow-md' : 'text-[#777]'}
+          />
+        </div>
       </div>
-    </div>
-  ) : (
-    <div
-      className={cn(
-        'relative z-10 flex h-full w-full items-center justify-center rounded-full transition-colors duration-300',
-        isActive ? 'text-[var(--text)]' : 'text-on-surface-variant opacity-50',
-      )}
-      style={{
-        WebkitTapHighlightColor: 'transparent',
-        transform: 'translateZ(0)',
-        backfaceVisibility: 'hidden',
-      }}
-    >
-      <span
+    ) : (
+      <div
         className={cn(
-          'absolute inset-y-[7px] aspect-square rounded-full transition-opacity duration-300',
-          isActive ? 'opacity-100' : 'opacity-0',
+          'relative z-10 flex flex-col h-full w-full items-center justify-center gap-1 py-1 px-0.5 rounded-full transition-colors duration-300',
+          isActive ? 'text-[var(--primary)]' : 'text-on-surface-variant opacity-50 hover:opacity-80',
         )}
         style={{
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 42%, rgba(255,255,255,0) 100%)',
+          WebkitTapHighlightColor: 'transparent',
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
         }}
-      />
-      <AnimatePresence>
-        {isActive && themeId === 'mission-control' && (
-          <motion.div
-            initial={{ opacity: 0.8, scaleY: 0.5, y: 0 }}
-            animate={{ opacity: 0, scaleY: 2.5, y: 20 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="absolute bottom-1 w-3 h-3 rounded-full bg-gradient-to-b from-[#00E5FF] to-transparent pointer-events-none"
-            style={{ filter: 'blur(3px)', transformOrigin: 'top center' }}
-          />
-        )}
-      </AnimatePresence>
-      <motion.div
-        animate={{ scale: isActive ? 1.15 : 1 }}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
       >
-        <Icon
-          size={17}
-          strokeWidth={isActive ? 2.6 : 2.0}
-          className="relative z-10 shrink-0 transition-transform duration-300 ease-out"
-          style={{
-            vectorEffect: 'non-scaling-stroke',
-            shapeRendering: 'geometricPrecision',
-            transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden',
-            WebkitTransform: 'translateZ(0)',
-            ...(isActive ? { filter: 'drop-shadow(0 0 10px color-mix(in srgb, var(--primary) 60%, transparent))' } : undefined),
-          }}
-        />
-      </motion.div>
-    </div>
-  );
+        {/* Mission-control rocket exhaust particle */}
+        <AnimatePresence>
+          {isActive && themeId === 'mission-control' && (
+            <motion.div
+              initial={{ opacity: 0.8, scaleY: 0.5, y: 0 }}
+              animate={{ opacity: 0, scaleY: 2.5, y: 20 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="absolute bottom-1 w-3 h-3 rounded-full bg-gradient-to-b from-[#00E5FF] to-transparent pointer-events-none"
+              style={{ filter: 'blur(3px)', transformOrigin: 'top center' }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Icon with subtle scale spring on active */}
+        <motion.div
+          animate={{ scale: isActive ? 1.22 : 1 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          className="relative z-10"
+        >
+          <Icon
+            size={24}
+            strokeWidth={isActive ? (href === '/marks' ? 2.4 : 1.9) : 1.5}
+            fill={isActive && href !== '/marks' ? 'color-mix(in srgb, var(--primary) 35%, transparent)' : 'none'}
+            className="relative z-10 shrink-0 transition-colors duration-200"
+            style={{
+              vectorEffect: 'non-scaling-stroke',
+              shapeRendering: 'geometricPrecision',
+              transform: 'translateZ(0)',
+              backfaceVisibility: 'hidden',
+            }}
+          />
+        </motion.div>
+
+        {/* Visible Page Label Under Icon */}
+        <span
+          className={cn(
+            'relative z-10 text-[10px] sm:text-[11px] leading-none tracking-tight pt-0.5 transition-colors duration-200 capitalize font-semibold',
+            isActive ? 'text-[var(--primary)] font-bold opacity-100' : 'text-on-surface-variant opacity-60',
+          )}
+        >
+          {label}
+        </span>
+      </div>
+    );
 
   const inner = mounted ? (
     <motion.div
       whileHover={motionProps.whileHover}
       whileTap={motionProps.whileTap}
       transition={motionProps.transition}
-      className="relative w-full"
+      className="relative w-full h-full"
     >
       {content}
     </motion.div>
   ) : (
-    <div className="relative w-full">
-      {content}
-    </div>
+    <div className="relative w-full h-full">{content}</div>
   );
 
   if (onNavigate) {
@@ -147,12 +202,8 @@ const NavItemButton = memo(function NavItemButton({
         type="button"
         aria-label={label}
         aria-current={isActive ? 'page' : undefined}
-        onClick={() => {
-          if (themeId === 'arcade' && typeof navigator !== 'undefined' && navigator.vibrate) {
-            navigator.vibrate([10, 30, 10]);
-          }
-          onNavigate(href);
-        }}
+        onPointerDown={handlePointerDown}
+        onClick={() => { onNavigate(href); }}
         className="relative flex h-full min-w-0 items-center justify-center bg-transparent outline-none"
         style={{
           WebkitTapHighlightColor: 'transparent',
@@ -170,11 +221,7 @@ const NavItemButton = memo(function NavItemButton({
       href={href}
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}
-      onClick={() => {
-        if (themeId === 'arcade' && typeof navigator !== 'undefined' && navigator.vibrate) {
-          navigator.vibrate([10, 30, 10]);
-        }
-      }}
+      onPointerDown={handlePointerDown}
       className="relative flex h-full min-w-0 items-center justify-center"
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >
@@ -183,29 +230,306 @@ const NavItemButton = memo(function NavItemButton({
   );
 });
 
+// ─── RMF Floating Dock ─────────────────────────────────────────────────────────
+interface RmfDockProps {
+  isRmfRoute: boolean;
+  themeMode: string;
+  onToggle: () => void;
+  collapsed: boolean;
+  onExpand: () => void;
+}
+
+/**
+ * Zepto-style utility dock floating above the navbar on the right.
+ *
+ * Collapsed State: Solid theme tab on right edge with ONLY the Left Chevron (‹).
+ * Expanded State: Smoothly slides left to reveal the Logo icon.
+ *
+ * Tap when collapsed: smoothly expands / slides left.
+ * Tap when expanded: navigates to destination (/rate-my-faculty or return home).
+ */
+const RmfDock = memo(function RmfDock({
+  isRmfRoute,
+  themeMode,
+  onToggle,
+  collapsed,
+  onExpand,
+}: RmfDockProps) {
+  const logoSrc = isRmfRoute
+    ? '/images/rmf/fcuk-logo.png'
+    : themeMode === 'light'
+    ? '/images/rmf/rmf-logo-light.png'
+    : '/images/rmf/rmf-logo.png';
+
+  const logoFilter = isRmfRoute
+    ? themeMode === 'light'
+      ? 'brightness(0) opacity(0.85)'
+      : 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))'
+    : themeMode === 'light'
+    ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))'
+    : 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))';
+
+  const handleClick = () => {
+    if (collapsed) {
+      triggerHaptic(10);
+      onExpand();
+    } else {
+      triggerHaptic(10);
+      onToggle();
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onPointerDown={() => triggerHaptic(10)}
+      onClick={handleClick}
+      className="outline-none"
+      aria-label={
+        collapsed
+          ? 'Expand dock'
+          : isRmfRoute
+          ? 'Return to FcuK Academia'
+          : 'Open Rate My Faculty'
+      }
+      style={{ WebkitTapHighlightColor: 'transparent', display: 'block' }}
+    >
+      <motion.div
+        layout
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className={cn(
+          'relative flex items-center justify-end overflow-hidden cursor-pointer rounded-l-2xl rounded-r-none',
+
+        )}
+        style={{
+          height: '3.25rem',
+          minHeight: '3.25rem',
+          /* PART 2 — transformOrigin locks the right side; layout-animation
+           * (width change) only grows toward the left. No right-edge movement. */
+          transformOrigin: 'right center',
+          /* Solid theme surface color — no transparent blur */
+          background: isRmfRoute
+            ? 'color-mix(in srgb, var(--primary) 18%, var(--surface-elevated))'
+            : 'var(--surface-elevated)',
+          border: isRmfRoute
+            ? '1px solid color-mix(in srgb, var(--primary) 50%, transparent)'
+            : '1px solid color-mix(in srgb, var(--border) 40%, rgba(255,255,255,0.15))',
+          boxShadow: '0 3px 10px rgba(0,0,0,0.14)',
+          transform: 'translateZ(0)',
+        }}
+      >
+        <AnimatePresence>
+          {!collapsed && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease: 'easeOut', delay: 0.05 }}
+              className="absolute inset-0 pointer-events-none rounded-l-2xl rounded-r-none z-0"
+            >
+              <svg className="absolute top-0 left-0 h-full overflow-visible" style={{ width: 'calc(100% + 20px)' }}>
+                <rect
+                  x="1" y="1"
+                  width="calc(100% - 2px)" height="calc(100% - 2px)"
+                  rx="15"
+                  fill="none"
+                  stroke="var(--primary)"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  pathLength="100"
+                  strokeDasharray="15 85"
+                  className="rmf-svg-accent-path"
+                />
+              </svg>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence mode="popLayout" initial={false}>
+          {collapsed ? (
+            <motion.div
+              key="collapsed-chevron"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="flex items-center justify-center w-12 h-full text-on-surface relative z-10 shrink-0"
+            >
+              <ChevronLeft size={24} strokeWidth={2.8} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="expanded-logo"
+              initial={{ opacity: 0, x: 10, filter: 'blur(4px)' }}
+              animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, x: 10, filter: 'blur(4px)' }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="flex items-center justify-center px-3.5 py-1 h-full relative z-10 shrink-0"
+            >
+              <img
+                src={logoSrc}
+                alt=""
+                className="h-[2.5rem] w-[2.5rem] object-contain shrink-0"
+                style={{ transform: 'translateZ(0)', filter: logoFilter }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </button>
+  );
+});
+
+// ─── Navbar ────────────────────────────────────────────────────────────────────
 function Navbar({ activePath, onNavigate }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const { themeConfig } = useTheme();
   const { getTerm } = useThemeDictionary();
-  const { isAnnouncementActive } = useAppState();
   const [mounted, setMounted] = useState(false);
-  const resolvedPath = activePath ?? (pathname.startsWith('/settings') ? '/settings' : pathname);
-  
-  // Navigation State Logic
+
+  // ── Reduced Motion ────────────────────────────────────────────────────────
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  // ── Path resolution ────────────────────────────────────────────────────────
+  const resolvedPath =
+    activePath ?? (pathname.startsWith('/settings') ? '/settings' : pathname);
+
+  // ── RMF navigation state ───────────────────────────────────────────────────
   const _isRmfRoute = pathname.startsWith('/rate-my-faculty');
   const [optimisticRmfRoute, setOptimisticRmfRoute] = useState(_isRmfRoute);
-  
   const isRmfRoute = optimisticRmfRoute;
   const currentNavItems = isRmfRoute ? rmfNavItems : navItems;
-  const currentActiveIndex = isRmfRoute 
+  const currentActiveIndex = isRmfRoute
     ? Math.max(0, rmfNavItems.findIndex((item) => item.href === pathname))
     : Math.max(0, navItems.findIndex((item) => item.href === resolvedPath));
-  
-  const currentIndicatorLeft = `calc(${NAV_INSET_PX}px + ${currentActiveIndex} * ((100% - ${NAV_INSET_PX * 2}px) / ${currentNavItems.length}))`;
-  const currentIndicatorWidth = `calc((100% - ${NAV_INSET_PX * 2}px) / ${currentNavItems.length})`;
 
+  // ── Pointer-down optimistic indicator ────────────────────────────────────
+  // The indicator reacts on pointerdown — before the route changes.
+  const [pressedIndex, setPressedIndex] = useState<number | null>(null);
+  const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const indicatorIndex = pressedIndex !== null ? pressedIndex : currentActiveIndex;
+
+  const handleItemPointerDown = useCallback((index: number) => {
+    if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
+    setPressedIndex(index);
+    // Safety: clear pressed state after 800ms in case route never resolves
+    pressTimerRef.current = setTimeout(() => setPressedIndex(null), 800);
+  }, []);
+
+  // Clear pressed index when actual route resolves
+  useEffect(() => {
+    setPressedIndex(null);
+  }, [currentActiveIndex]);
+
+  // ── Nav inner width measurement (for translateX indicator) ─────────────
+  // We measure the inner container so itemWidth stays accurate across breakpoints.
+  const navInnerRef = useRef<HTMLDivElement>(null);
+  const [itemWidth, setItemWidth] = useState(0);
+
+  useEffect(() => {
+    const el = navInnerRef.current;
+    if (!el) return;
+    const update = () => {
+      setItemWidth((el.offsetWidth - 2 * NAV_INSET_PX) / currentNavItems.length);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [currentNavItems.length]);
+
+  // ── Scroll-linked hide/show (accumulated delta) ────────────────────────
+  const [navHidden, setNavHidden] = useState(false);
+  const scrollYRef = useRef(0);
+  const accRef = useRef(0);
+  const tickRef = useRef(false);
+
+  // ── RMF collapse state — persists across page navigations via useRef ───
+  const rmfCollapsedRef = useRef(false);
+  const [rmfCollapsed, setRmfCollapsed] = useState(false);
+  const syncRmfCollapsed = useCallback((val: boolean) => {
+    rmfCollapsedRef.current = val;
+    setRmfCollapsed(val);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = (e: Event) => {
+      // Do not respond during active swipe or programmatic navigation.
+      if (document.body.classList.contains('is-swiping')) return;
+      if (document.body.classList.contains('is-navigating')) return;
+      if (tickRef.current) return;
+      tickRef.current = true;
+
+      requestAnimationFrame(() => {
+        const target = (e.target as HTMLElement) || document.documentElement;
+        const scrollTop =
+          target === (document as any) || target === document.documentElement || target === document.body
+            ? window.scrollY || document.documentElement.scrollTop
+            : target.scrollTop || 0;
+
+        const delta = scrollTop - scrollYRef.current;
+        scrollYRef.current = scrollTop;
+
+        if (delta > 0 && scrollTop > 15) {
+          // Scrolling down — accumulate
+          accRef.current = Math.min(accRef.current + delta, HIDE_DELTA_THRESHOLD + 20);
+          if (accRef.current >= HIDE_DELTA_THRESHOLD) {
+            setNavHidden(true);
+            syncRmfCollapsed(true);
+          }
+        } else if (delta < -SHOW_DELTA_PX) {
+          // Scrolling up — reset and show
+          accRef.current = 0;
+          setNavHidden(false);
+          syncRmfCollapsed(false);
+        }
+
+        tickRef.current = false;
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    return () => window.removeEventListener('scroll', onScroll, { capture: true });
+  }, [syncRmfCollapsed]);
+
+  // ── Post-swipe RMF collapse ────────────────────────────────────────────
+  // Watch for the `is-swiping` body class to disappear after a swipe gesture.
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.type !== 'attributes' || m.attributeName !== 'class') continue;
+        const oldVal = m.oldValue ?? '';
+        const wasSwipingClass = oldVal.includes('is-swiping');
+        const isNowNotSwiping = !document.body.classList.contains('is-swiping');
+        if (wasSwipingClass && isNowNotSwiping) {
+          // Swipe settled — collapse the RMF dock
+          syncRmfCollapsed(true);
+        }
+      }
+    });
+    observer.observe(document.body, { attributes: true, attributeOldValue: true });
+    return () => observer.disconnect();
+  }, [syncRmfCollapsed]);
+
+  // ── External RMF nav toggle event ─────────────────────────────────────
+  useEffect(() => {
+    const handleToggle = (e: CustomEvent<{ isRmf: boolean }>) => {
+      setOptimisticRmfRoute(e.detail.isRmf);
+    };
+    window.addEventListener('rmf-nav-toggle', handleToggle as EventListener);
+    return () => window.removeEventListener('rmf-nav-toggle', handleToggle as EventListener);
+  }, []);
+
+  // ── Prefetch RMF routes ────────────────────────────────────────────────
   useEffect(() => {
     if (optimisticRmfRoute) {
       router.prefetch('/rate-my-faculty');
@@ -214,284 +538,221 @@ function Navbar({ activePath, onNavigate }: NavbarProps) {
     }
   }, [optimisticRmfRoute, router]);
 
-  useEffect(() => {
-    const handleToggle = (e: any) => {
-      setOptimisticRmfRoute(e.detail.isRmf);
-    };
-    window.addEventListener('rmf-nav-toggle', handleToggle as EventListener);
-    return () => window.removeEventListener('rmf-nav-toggle', handleToggle as EventListener);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  
+  // ── Lock-in mode (hides nav on PYQ pages) ─────────────────────────────
   const isLockIn = pathname.startsWith('/pyqs');
+
+  // ── RMF toggle handler ─────────────────────────────────────────────────
+  const handleRmfToggle = useCallback(() => {
+    const nextIsRmf = !optimisticRmfRoute;
+    setOptimisticRmfRoute(nextIsRmf);
+
+    // Reset scroll tracking so the top-scroll after navigation doesn't
+    // misfire the scroll handler
+    scrollYRef.current = 0;
+    accRef.current = 0;
+
+    if (nextIsRmf) {
+      router.prefetch('/rate-my-faculty');
+      router.prefetch('/rate-my-faculty/today');
+      router.prefetch('/rate-my-faculty/rooms');
+    } else {
+      router.prefetch('/');
+    }
+
+    startTransition(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      router.push(nextIsRmf ? '/rate-my-faculty' : '/');
+    });
+  }, [optimisticRmfRoute, router, startTransition]);
+
+  // ── Motion & Animation Config ──────────────────────────────────────────
+  const hideY = 160;
+
+  const navAnimate = isLockIn
+    ? { y: prefersReducedMotion ? 0 : hideY, opacity: 0 }
+    : navHidden
+    ? {
+        y: prefersReducedMotion ? 0 : hideY,
+        opacity: prefersReducedMotion ? 0 : 1,
+      }
+    : { y: 0, opacity: 1 };
+
+  const navTransition = isLockIn
+    ? ({
+        type: 'spring',
+        stiffness: 260,
+        damping: 32,
+        mass: 1,
+        restDelta: 0.001,
+      } as const)
+    : ({
+        duration: 0.36,
+        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+      } as const);
 
   return (
     <>
-      <motion.div
-        initial={false}
-        animate={{ 
-          y: isLockIn ? 160 : 0,
-          opacity: isLockIn ? 0 : 1,
-        }}
-        transition={{ 
-          type: 'spring', 
-          stiffness: 260, 
-          damping: 32, 
-          mass: 1,
-          restDelta: 0.001 
-        }}
-        className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center px-4 sm:px-6 xl:px-8 mx-auto gap-4 sm:gap-4 pointer-events-none"
+      {/*
+       * Outer fixed container for floating navigation system.
+       * RMF Dock remains 100% visible on screen, collapsing to the right edge.
+       * Navbar glides down off-screen on scroll down, restoring on scroll up.
+       */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-stretch pointer-events-none"
         style={{
-          paddingBottom: `calc(16px + max(env(safe-area-inset-bottom), 0px))`,
-          willChange: 'transform, opacity',
-        }}
+          paddingBottom: 'calc(16px + max(env(safe-area-inset-bottom, 0px), 0px))',
+          '--nav-height': '5.0rem',
+          '--nav-inset': `${NAV_INSET_PX}px`,
+          /* PART 1 — Raised 14px above old position (26 → 40px) so it floats
+           * comfortably above the navbar rather than feeling attached to it. */
+          '--rmf-dock-offset': '40px',
+        } as React.CSSProperties}
       >
-        {/* LEFT: FLOATING NAVBAR */}
-        <AnimatePresence mode="popLayout">
-          <motion.nav
-            key={isRmfRoute ? 'rmf-nav' : 'main-nav'}
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 60, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 260, damping: 25 }}
-            className="liquid-nav pointer-events-auto relative w-[85%] max-w-[28rem] sm:max-w-[32rem] h-[4rem]"
-            aria-label={isRmfRoute ? 'RMF Navigation' : 'Primary'}
+        {/* ── RMF Floating Dock — stays on-screen, collapses to edge ── */}
+        {!isLockIn && (
+          <div
+            className="flex justify-end items-center pointer-events-none"
+            style={{
+              marginBottom: 'var(--rmf-dock-offset, 40px)',
+              /* PART 2 — Right edge is ALWAYS zero so the dock is permanently
+               * flush with the right screen edge in both collapsed & expanded
+               * states. Expansion only grows toward the left. */
+              paddingRight: '0px',
+              paddingLeft: 'max(16px, env(safe-area-inset-left, 0px))',
+            }}
           >
-            <div
-              className="relative h-full overflow-hidden rounded-full border p-[4px] backdrop-blur-xl"
-              style={{
-                borderColor: 'color-mix(in srgb, var(--border-strong) 40%, rgba(255,255,255,0.1))',
-                background: 'linear-gradient(180deg, color-mix(in srgb, var(--nav-background) 80%, rgba(0,0,0,0.4)) 0%, color-mix(in srgb, var(--surface) 80%, rgba(0,0,0,0.6)) 100%)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.3), 0 0 16px rgba(255,255,255,0.02)',
-                transform: 'translateZ(0)',
-                willChange: 'transform',
-              }}
+            {/* PART 3 — rmf-dock-expanded enables the CSS revolving accent border
+             * only while expanded. Collapsed state remains completely clean. */}
+            <div className={`pointer-events-auto${rmfCollapsed ? '' : ' rmf-dock-expanded'}`}>
+              <RmfDock
+                isRmfRoute={isRmfRoute}
+                themeMode={themeConfig.mode}
+                onToggle={handleRmfToggle}
+                collapsed={rmfCollapsed}
+                onExpand={() => syncRmfCollapsed(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ── Nav Bar — glides off-screen on scroll-down ────────────────────── */}
+        <motion.div
+          animate={navAnimate}
+          transition={navTransition}
+          className="flex items-center justify-center pointer-events-none"
+          style={{
+            paddingRight: 'max(16px, env(safe-area-inset-right, 0px))',
+            paddingLeft: 'max(16px, env(safe-area-inset-left, 0px))',
+            willChange: 'transform, opacity',
+          }}
+        >
+          <AnimatePresence mode="popLayout">
+            <motion.nav
+              key={isRmfRoute ? 'rmf-nav' : 'main-nav'}
+              initial={{ y: 60, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 60, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 25 }}
+              className="liquid-nav pointer-events-auto relative w-[95%] max-w-[38rem] sm:max-w-[42rem]"
+              style={
+                { height: 'var(--nav-height, 5.0rem)' } as React.CSSProperties
+              }
+              aria-label={isRmfRoute ? 'RMF Navigation' : 'Primary'}
             >
               <div
-                className="pointer-events-none absolute inset-0 opacity-80"
-                style={{ background: 'var(--surface-gradient)' }}
-              />
-              
-              <motion.div
-                aria-hidden="true"
-                className={cn(
-                  "pointer-events-none absolute bottom-[5px] top-[5px] items-center justify-center z-0",
-                  themeConfig.id === 'arcade' ? "hidden" : "flex"
-                )}
-                animate={{ left: currentIndicatorLeft }}
-                initial={false}
-                transition={{
-                  duration: 0.35,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
+                ref={navInnerRef}
+                className="relative h-full overflow-hidden rounded-full border p-1 px-1.5 sm:px-2"
                 style={{
-                  width: currentIndicatorWidth,
-                  willChange: 'left',
+                  /* Solid Frosted glass material (88% surface opacity) */
+                  backdropFilter: 'blur(14px) saturate(160%)',
+                  WebkitBackdropFilter: 'blur(14px) saturate(160%)',
+                  background:
+                    'color-mix(in srgb, var(--surface) 88%, color-mix(in srgb, var(--primary) 8%, transparent))',
+                  borderColor:
+                    'color-mix(in srgb, white 22%, color-mix(in srgb, var(--primary) 12%, transparent))',
+                  boxShadow:
+                    '0 8px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.12)',
                   transform: 'translateZ(0)',
-                  backfaceVisibility: 'hidden',
                 }}
               >
+                {/* Surface gradient overlay (theme-specific tinting) */}
                 <div
-                  className="relative h-10 w-full overflow-hidden border"
-                  style={{
-                    borderRadius: '999px',
-                    borderColor: 'color-mix(in srgb, var(--primary) 36%, rgba(255,255,255,0.28))',
-                    background: 'linear-gradient(180deg, color-mix(in srgb, rgba(255,255,255,0.26) 48%, var(--surface-highlight)) 0%, color-mix(in srgb, var(--primary) 10%, var(--surface-elevated) 90%) 100%)',
-                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2), 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent)',
-                    transform: 'translateZ(0)',
-                  }}
-                >
-                  <div
-                    className="absolute inset-[1px]"
-                    style={{
-                      borderRadius: '999px',
-                      background: 'linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 22%, rgba(255,255,255,0.18)) 0%, color-mix(in srgb, var(--primary) 12%, transparent) 48%, rgba(255,255,255,0.04) 100%)',
-                    }}
-                  />
-                </div>
-              </motion.div>
+                  className="pointer-events-none absolute inset-0 opacity-80"
+                  style={{ background: 'var(--surface-gradient)' }}
+                />
 
-              <div className={cn("relative z-10 grid h-full items-center", isRmfRoute ? "grid-cols-4" : "grid-cols-6")}>
-                {isRmfRoute ? (
-                  rmfNavItems.map((tab) => {
-                    const active = pathname === tab.href;
-                    return (
-                      <button
-                        key={tab.label}
-                        onClick={() => {
-                          window.scrollTo({ top: 0, behavior: 'instant' });
-                          if ('external' in tab && tab.external) {
-                            window.open(tab.href, '_blank', 'noopener,noreferrer');
-                          } else {
-                            router.push(tab.href);
-                          }
-                        }}
-                        className={cn(
-                         "relative h-full w-full flex items-center justify-center rounded-full text-[10px] sm:text-xs font-bold tracking-[0.1em] transition-colors duration-300",
-                          active ? "text-[var(--text)]" : "text-on-surface-variant opacity-50 hover:opacity-80"
-                        )}
-                      >
-                        <span className="relative z-10 flex items-center uppercase font-black">
-                          {tab.label === 'RateMyFaculty' ? (
-                            <span className="font-serif italic whitespace-nowrap">
-                              <span className="hidden sm:inline">Rate<span className="text-[#C19F62]">My</span>Faculty</span>
-                              <span className="sm:hidden">RMF</span>
-                            </span>
-                          ) : (
-                            tab.label
-                          )}
-                        </span>
-                      </button>
-                    );
-                  })
-                ) : (
-                  navItems.map((item) => {
-                    const displayLabel = getTerm(item.label) || item.label;
-                    return (
-                      <NavItemButton
-                        key={item.href}
-                        href={item.href}
-                        icon={item.icon}
-                        isActive={resolvedPath === item.href}
-                        label={displayLabel}
-                        motionPreset={themeConfig.motion}
-                        themeId={themeConfig.id}
-                        mounted={mounted}
-                        onNavigate={onNavigate}
-                      />
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          </motion.nav>
-        </AnimatePresence>
-
-        {/* RIGHT: FLOATING CTA BUTTON */}
-        <div className="pointer-events-auto relative flex items-center justify-center">
-
-          <button 
-            type="button"
-            onClick={() => {
-              if (themeConfig.id === 'arcade' && typeof navigator !== 'undefined' && navigator.vibrate) {
-                navigator.vibrate([15, 40, 15]);
-              }
-              const nextIsRmf = !optimisticRmfRoute;
-              
-              // 1. Immediate state update for snappy UI feedback
-              setOptimisticRmfRoute(nextIsRmf);
-              
-              // 2. Aggressive prefetch for instant feel
-              if (nextIsRmf) {
-                router.prefetch('/rate-my-faculty');
-                router.prefetch('/rate-my-faculty/today');
-                router.prefetch('/rate-my-faculty/rooms');
-              } else {
-                router.prefetch('/');
-              }
-
-              // 3. Use React transition for the heavy navigation to keep animations smooth
-              startTransition(() => {
-                window.scrollTo({ top: 0, behavior: 'instant' });
-                router.push(nextIsRmf ? '/rate-my-faculty' : '/');
-              });
-            }}
-            className="outline-none"
-          >
-
-            <motion.div
-              className="group relative flex aspect-square h-[4rem] items-center justify-center rounded-full outline-none"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.92 }}
-            >
-              <div 
-                className="absolute inset-0 rounded-full transition-all duration-300 group-hover:duration-200"
-                style={{
-                  background: themeConfig.mode === 'light' 
-                    ? 'linear-gradient(135deg, color-mix(in srgb, var(--primary) 20%, rgba(255,255,255,0.6)), color-mix(in srgb, var(--primary) 10%, rgba(255,255,255,0.3)))' 
-                    : 'linear-gradient(135deg, color-mix(in srgb, var(--primary) 15%, rgba(255,255,255,0.05)), color-mix(in srgb, var(--primary) 8%, rgba(255,255,255,0.02)))',
-                  border: themeConfig.mode === 'light'
-                    ? '1.5px solid color-mix(in srgb, var(--primary) 25%, rgba(0, 0, 0, 0.05))'
-                    : '1px solid color-mix(in srgb, var(--primary) 20%, rgba(255,255,255,0.12))',
-                  boxShadow: themeConfig.mode === 'light'
-                    ? `0 8px 32px rgba(0, 0, 0, 0.08), inset 0 0 16px color-mix(in srgb, var(--primary) 10%, rgba(255,255,255,0.8))`
-                    : '0 8px 32px rgba(0, 0, 0, 0.25), inset 0 0 16px rgba(255,255,255,0.05)',
-                }}
-              />
-              
-              <div className="relative z-10 w-full h-full flex items-center justify-center">
-                <AnimatePresence>
-                  {isRmfRoute ? (
-                    <motion.div
-                      key="fcuk"
-                      initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                      className="absolute inset-0 flex items-center justify-center p-1.5"
-                      style={{
-                        transform: 'translateZ(0)',
-                        willChange: 'transform, opacity',
-                        backfaceVisibility: 'hidden',
-                      }}
-                    >
-                      <img 
-                        src="/images/rmf/fcuk-logo.png" 
-                        alt="FcuK Academia" 
-                        className="w-full h-full object-contain"
-                        style={{
-                          transform: 'translateZ(0)',
-                          willChange: 'transform, opacity',
-                          backfaceVisibility: 'hidden',
-                          filter: themeConfig.mode === 'light' 
-                            ? 'brightness(0) opacity(0.85)' 
-                            : 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))'
-                        }}
-                      />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="rmf"
-                      initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                      className="absolute inset-0 flex items-center justify-center p-1.5"
-                      style={{
-                        transform: 'translateZ(0)',
-                        willChange: 'transform, opacity',
-                        backfaceVisibility: 'hidden',
-                      }}
-                    >
-                      <img 
-                        src={themeConfig.mode === 'light' ? "/images/rmf/rmf-logo-light.png" : "/images/rmf/rmf-logo.png"} 
-                        alt="RMF" 
-                        className="w-full h-full object-contain"
-                        style={{
-                          transform: 'translateZ(0)',
-                          willChange: 'transform, opacity',
-                          backfaceVisibility: 'hidden',
-                          filter: themeConfig.mode === 'light' 
-                            ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' 
-                            : 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))'
-                        }}
-                      />
-                    </motion.div>
+                {/* ── Nav Items Grid ──────────────────────────────────────── */}
+                <div
+                  className={cn(
+                    'relative z-10 grid h-full items-center justify-items-center',
+                    isRmfRoute ? 'grid-cols-4' : 'grid-cols-6',
                   )}
-                </AnimatePresence>
+                >
+                  {isRmfRoute
+                    ? rmfNavItems.map((tab) => {
+                        const active = pathname === tab.href;
+                        return (
+                          <button
+                            key={tab.label}
+                            onPointerDown={() => triggerHaptic(10)}
+                            onClick={() => {
+                              window.scrollTo({ top: 0, behavior: 'instant' });
+                              if ('external' in tab && tab.external) {
+                                window.open(tab.href, '_blank', 'noopener,noreferrer');
+                              } else {
+                                router.push(tab.href);
+                              }
+                            }}
+                            className={cn(
+                              'relative h-full w-full flex items-center justify-center rounded-full',
+                              'text-[10px] sm:text-xs font-bold tracking-[0.1em] transition-colors duration-300',
+                              active
+                                ? 'text-[var(--text)]'
+                                : 'text-on-surface-variant opacity-50 hover:opacity-80',
+                            )}
+                          >
+                            <span className="relative z-10 flex items-center uppercase font-black">
+                              {tab.label === 'RateMyFaculty' ? (
+                                <span className="font-serif italic whitespace-nowrap">
+                                  <span className="hidden sm:inline">
+                                    Rate
+                                    <span className="text-[#C19F62]">My</span>
+                                    Faculty
+                                  </span>
+                                  <span className="sm:hidden">RMF</span>
+                                </span>
+                              ) : (
+                                tab.label
+                              )}
+                            </span>
+                          </button>
+                        );
+                      })
+                    : navItems.map((item, index) => {
+                        const displayLabel = getTerm(item.label) || item.label;
+                        return (
+                          <NavItemButton
+                            key={item.href}
+                            href={item.href}
+                            icon={item.icon}
+                            isActive={resolvedPath === item.href}
+                            label={displayLabel}
+                            motionPreset={themeConfig.motion}
+                            themeId={themeConfig.id}
+                            mounted={mounted}
+                            onNavigate={onNavigate}
+                            onPointerDown={() => handleItemPointerDown(index)}
+                          />
+                        );
+                      })}
+                </div>
               </div>
-              
-              <div className="absolute -top-10 scale-90 opacity-0 transition-all duration-300 group-hover:-top-12 group-hover:scale-100 group-hover:opacity-100 pointer-events-none whitespace-nowrap bg-[var(--surface-elevated)] backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-xs font-bold text-[var(--text)] uppercase tracking-widest">
-                {isRmfRoute ? 'Return to FcuK' : 'Rate My Faculty'}
-              </div>
-            </motion.div>
-          </button>
-        </div>
-      </motion.div>
+            </motion.nav>
+          </AnimatePresence>
+        </motion.div>
+      </div>
     </>
   );
 }

@@ -656,6 +656,29 @@
   }
 }
 
+/* ─── RMF Dock SVG Accent Border ────────────────────────────────────────────── */
+/*
+ * A travelling accent line that traces the exact perimeter of the dock.
+ * Uses SVG stroke-dashoffset animation for GPU acceleration.
+ */
+.rmf-svg-accent-path {
+  animation: rmf-svg-travel 6s linear infinite;
+  opacity: 0.6;
+}
+
+@keyframes rmf-svg-travel {
+  0% { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmf-svg-accent-path {
+    animation: none;
+    opacity: 0.2; /* static subtle highlight when motion is off */
+    stroke-dasharray: none; /* solid border */
+  }
+}
+
 /* ─── AppSwitcher ripple animations ─────────────────────────────────────────── 
  * Defined here (not inline) so the browser compiles them once at parse time.
  * ─────────────────────────────────────────────────────────────────────────── */

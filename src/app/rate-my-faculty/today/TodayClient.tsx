@@ -60,9 +60,12 @@ export default function TodayClient({ initialRatings }: { initialRatings: any[] 
         {/* noiseSvg removed — feTurbulence SVG is expensive on mobile */}
       </div>
 
-      <motion.div 
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+      {/* ── Section 1: Header ──────────────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0 }}
+        style={{ willChange: 'transform, opacity' }}
         className="sticky top-0 z-40 px-4 sm:px-6 py-4 flex items-center justify-between pointer-events-none"
       >
         <div className="pointer-events-auto flex items-center gap-4">
@@ -89,7 +92,19 @@ export default function TodayClient({ initialRatings }: { initialRatings: any[] 
       </motion.div>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8 p-4 rounded-xl border border-[var(--primary)]/20 bg-[var(--primary)]/5">
+        {/* ── Section 2: Status Banner & Count Label ──────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0.07 }}
+          style={{ willChange: 'transform, opacity' }}
+        >
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2, delay: 0.07 }}
+          className="mb-8 p-4 rounded-xl border border-[var(--primary)]/20 bg-[var(--primary)]/5"
+        >
           <p className="text-sm">
             <span className="text-[var(--primary)] font-bold">SRMIST Kattankulathur</span> <span className="text-on-surface-variant">· Faculty reviews posted today</span>
           </p>
@@ -98,7 +113,15 @@ export default function TodayClient({ initialRatings }: { initialRatings: any[] 
         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant mb-6">
           {initialRatings.length > 0 ? `${initialRatings.length} UPDATES TODAY` : '0 UPDATES TODAY'}
         </h3>
+        </motion.div>
 
+        {/* ── Section 3: Reviews List ───────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.14 }}
+          style={{ willChange: 'transform, opacity' }}
+        >
         {initialRatings.length === 0 ? (
           <div className="text-center py-20 text-on-surface-variant italic font-serif opacity-50">It is quiet today...</div>
         ) : (
@@ -169,6 +192,7 @@ export default function TodayClient({ initialRatings }: { initialRatings: any[] 
             </AnimatePresence>
           </div>
         )}
+        </motion.div>
       </div>
     </div>
   );
