@@ -221,8 +221,8 @@ export default function SettingsPage() {
 }
 
 function DeveloperFooter() {
-  const developerNames = 'Rashel Shah and Biswajit Sahu';
-  const sponsorNames = 'Kanhaiya Kumar | Arpit Kumar Pandey | Vidharv Thakur';
+  const developerNames = 'Rashel Shah & Biswajit Sahu';
+  const sponsorNames = 'Kanhaiya Kumar | Arpit Kumar Pandey | Vidharv Thakur | S Roshan Kumar';
 
   return (
     <div className="mx-auto mt-2 mb-2 flex max-w-[19rem] flex-col items-center gap-1.5 overflow-hidden px-1">

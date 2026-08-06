@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarDays, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
-import { combineAttendanceSubjects, getClassesForDay, inferAttendanceComponent } from '@/lib/academia-ui';
+import { combineAttendanceSubjects, getClassWindow, getClassesForDay, inferAttendanceComponent } from '@/lib/academia-ui';
 import type { RawAttendanceItem, RawCalendarMonth, RawTimetableItem } from '@/lib/server/academia';
 import type { Subject } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -104,15 +104,14 @@ function getCalendarGrid(month: Date) {
 
 function toPredictionResults(
   attendanceSubjects: Subject[],
-  sessionImpact: Record<string, number>,
-  mode: PredictionMode,
+  sessionImpact: Record<string, { total: number; attended: number }>,
 ): AttendancePredictionResult[] {
   return attendanceSubjects.map((item) => {
     const conducted = item.attendance.total;
     const attended = item.attendance.attended;
-    const sessions = sessionImpact[item.id] || 0;
-    const newTotal = conducted + sessions;
-    const newAttended = mode === 'attending' ? attended + sessions : attended;
+    const impact = sessionImpact[item.id] || { total: 0, attended: 0 };
+    const newTotal = conducted + impact.total;
+    const newAttended = attended + impact.attended;
     const newAttendance = newTotal ? (newAttended / newTotal) * 100 : 0;
     const status: AttendancePredictionResult['status'] = newAttendance >= 75 ? 'safe' : 'danger';
     const margin = Math.max(0, Math.floor((newAttended / 0.75) - newTotal));
@@ -141,7 +140,7 @@ function toPredictionResults(
       required,
       conducted: newTotal,
       attended: newAttended,
-      sessionsAffected: sessions,
+      sessionsAffected: impact.total,
       accentColor,
       accentGlow,
     };
@@ -210,27 +209,57 @@ function AttendancePredictModal({
     return entries;
   }, [calendar]);
   const sessionImpact = useMemo(() => {
-    const impact: Record<string, number> = {};
+    const impact: Record<string, { total: number; attended: number }> = {};
+    if (!selectedKeys.length) return impact;
 
-    selectedKeys.forEach((dateKey) => {
+    const sortedSelected = [...selectedKeys].sort();
+    const maxDateKey = sortedSelected[sortedSelected.length - 1];
+    const [year, month, day] = maxDateKey.split('-').map(Number);
+    const endDate = new Date(year, month - 1, day);
+    
+    let currentDate = new Date(today);
+    const now = new Date();
+    const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+
+    while (currentDate <= endDate) {
+      const dateKey = formatDateKey(currentDate);
+      const isSelected = selectedKeys.includes(dateKey);
+      const isToday = isSameDay(currentDate, today);
+
       const dayInfo = calendarDayMap.get(dateKey);
-      if (!dayInfo || dayInfo.disabled || dayInfo.dayOrder === null) return;
-      const dayOrder = dayInfo.dayOrder;
+      if (dayInfo && !dayInfo.disabled && dayInfo.dayOrder !== null) {
+        const classes = getClassesForDay(timetable, dayInfo.dayOrder);
+        classes.forEach((item) => {
+          if (!item.courseCode) return;
+          
+          if (isToday) {
+            const window = getClassWindow(item);
+            if (!window || window.start <= currentMinutes) return;
+          }
 
-      const classes = getClassesForDay(timetable, dayOrder);
-      classes.forEach((item) => {
-        if (!item.courseCode) return;
-        const component = inferAttendanceComponent(item.slot, item.courseCategory, item.courseType);
-        const subjectId = `${item.courseCode}-${component}`;
-        if (!attendanceSubjects.some((subject) => subject.id === subjectId)) return;
-        impact[subjectId] = (impact[subjectId] || 0) + 1;
-      });
-    });
+          const component = inferAttendanceComponent(item.slot, item.courseCategory, item.courseType);
+          const subjectId = `${item.courseCode}-${component}`;
+          if (!attendanceSubjects.some((subject) => subject.id === subjectId)) return;
+          
+          if (!impact[subjectId]) impact[subjectId] = { total: 0, attended: 0 };
+          
+          impact[subjectId].total += 1;
+          
+          if (predictionMode === 'leaves') {
+            if (!isSelected) impact[subjectId].attended += 1;
+          } else {
+            if (isSelected) impact[subjectId].attended += 1;
+          }
+        });
+      }
+      
+      currentDate = addDays(currentDate, 1);
+    }
 
     return impact;
-  }, [attendanceSubjects, calendarDayMap, selectedKeys, timetable]);
+  }, [attendanceSubjects, calendarDayMap, selectedKeys, timetable, today, predictionMode]);
   const totalAffectedSessions = useMemo(
-    () => Object.values(sessionImpact).reduce((sum, value) => sum + value, 0),
+    () => Object.values(sessionImpact).reduce((sum, value) => sum + value.total, 0),
     [sessionImpact],
   );
 
@@ -253,8 +282,8 @@ function AttendancePredictModal({
   const calendarDays = useMemo(() => getCalendarGrid(visibleMonth), [visibleMonth]);
   const totalDaysSelected = selectedKeys.length;
   const results = useMemo(
-    () => toPredictionResults(attendanceSubjects, sessionImpact, predictionMode),
-    [attendanceSubjects, predictionMode, sessionImpact],
+    () => toPredictionResults(attendanceSubjects, sessionImpact),
+    [attendanceSubjects, sessionImpact],
   );
   const theoryResults = useMemo(
     () => results.filter((item) => item.attendanceComponent !== 'practical'),

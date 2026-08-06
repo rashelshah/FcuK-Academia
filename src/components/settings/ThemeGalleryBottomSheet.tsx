@@ -353,6 +353,7 @@ export default function ThemeGalleryBottomSheet({ open, onClose }: ThemeGalleryB
             <div
               ref={scrollContainerRef}
               onScroll={handleScroll}
+              onPointerDown={(e) => e.stopPropagation()}
               className={cn(
                 'flex-1 overflow-y-auto overscroll-contain px-4 pb-5 pt-0.5 scrollbar-hide transition-opacity duration-100',
                 isFilterChanging ? 'opacity-20 pointer-events-none' : 'opacity-100'
