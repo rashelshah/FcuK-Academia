@@ -24,13 +24,41 @@ export default function IntroOverlay() {
 
   useEffect(() => {
     if (showIntro) {
-      fetch('/assets/videos/latest-animation.json')
-        .then(res => res.json())
-        .then(data => setAnimationData(data))
-        .catch(err => {
+      const fetchAnimation = async () => {
+        const url = '/assets/videos/latest-animation.json';
+        try {
+          if ('caches' in window) {
+            const cache = await caches.open('splash-animation-cache');
+            const cachedRes = await cache.match(url);
+            if (cachedRes) {
+              const data = await cachedRes.json();
+              setAnimationData(data);
+              // Optionally trigger a background fetch to update the cache
+              // fetch(url).then(res => { if (res.ok) cache.put(url, res); }).catch(() => {});
+              return;
+            }
+            
+            const res = await fetch(url);
+            if (res.ok) {
+              cache.put(url, res.clone());
+              const data = await res.json();
+              setAnimationData(data);
+            } else {
+              throw new Error('Network response not ok');
+            }
+          } else {
+            // Fallback if Cache API is not supported
+            const res = await fetch(url);
+            const data = await res.json();
+            setAnimationData(data);
+          }
+        } catch (err) {
           console.error('[Splash] Failed to load Lottie JSON', err);
           animationCompleteRef.current = true;
-        });
+        }
+      };
+
+      fetchAnimation();
     }
   }, [showIntro]);
 
